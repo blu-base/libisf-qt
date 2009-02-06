@@ -1,0 +1,62 @@
+
+About LibISF:
+============
+
+LibISF is a Qt4 library made to encode and decode Microsoft's
+Ink Serialized Format.
+
+Q. What the hell is this?
+A. It's going to be (hopefully) a Qt rewrite of aMSN's ISF
+   encoding/decoding library, on which code we are building.
+
+Q. How will this library differ from aMSN's?
+A. It's being written with Qt, which makes it easily portable on
+   a lot of different architectures; also Qt's new licensing
+   terms (LGPL) will make it possible for everyone to use it
+   easily. Moreover, aMSN's is not distributed by itself, ours
+   is.
+
+Q. Are you aware it'll be a lot of work?
+A. Hell yeah. It's time to seminate a bit farther than our usual
+   little field!
+
+
+
+Compiling and installing:
+=================
+
+LibISF uses CMake, a quick and clean alternative to Autotools.
+
+First create a new directory within the one which contains this
+file (we'll have the library built there):
+$ mkdir build
+Enter it and run CMake:
+$ cd build
+$ cmake -D CMAKE_INSTALL_PREFIX=/usr ..
+Then, if everything went smoothly, build the library itself:
+$ make
+If everything went right again, install it:
+$ make install
+Aaand now you're set. :)
+
+
+
+Documentation:
+=================
+
+The ISF format is well documented: here's the sources we use.
+
+- Original Microsoft ISF specification, made open with their Open Specification Promise:
+  http://download.microsoft.com/download/0/B/E/0BE8BDD7-E5E8-422A-ABFD-4342ED7AD886/InkSerializedFormat(ISF)Specification.pdf
+- Quick explanation of the algorithms and other very useful details:
+  http://synce.org/moin/FormatDocumentation/InkSerializedFormat
+- Original code from aMSN:
+  https://amsn.svn.sourceforge.net/svnroot/amsn/trunk/amsn/utils/tclISF/src
+
+
+
+More Information
+================
+
+For more information about LibISF, ask us at the KMess board:
+http://www.kmess.org/board/

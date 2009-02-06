@@ -18,14 +18,10 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef ISFTYPES_H
-#define ISFTYPES_H
+#ifndef ISFCOMPRESSION_H
+#define ISFCOMPRESSION_H
 
-#include <QList>
-#include <QRectF>
-#include <QPointF>
-#include <QSizeF>
-#include <QtGlobal>
+#include <QByteArray>
 
 
 
@@ -36,8 +32,13 @@ namespace Isf
    */
   enum Algorithm
   {
-    Gorilla
+    Huffman = 0x00    /// Adaptive Huffman compression
+  , Gorilla = 0x80    /// Gorilla compression
   };
+
+
+
+  /// Mask byte used to identify the used algorithm
 
 
 
@@ -46,10 +47,10 @@ namespace Isf
    */
   namespace Compress
   {
-    /// Decompress data using a certain algorithm
-    bool deflate( Algorithm algorithm, void *data );
-    /// Compress data using a certain algorithm
-    bool inflate( Algorithm algorithm, void *data );
+    /// Decompress data autodetecting the algorithm to use
+    bool deflate( const QByteArray &source, quint32 &pos, QByteArray &decodedData );
+    /// Compress data autodetecting the algorithm to use
+    bool inflate( const QByteArray &source, quint32 &pos, QByteArray &encodedData );
   }
 }
 

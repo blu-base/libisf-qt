@@ -8,9 +8,9 @@ SET( LIBISF_VERSION "0.1" )
 # Define compiler flags
 # Tune the debug build with even more flags
 IF( CMAKE_COMPILER_IS_GNUCXX )
-  # skipped: -ansi -pendantic -Wfatal-errors -Wold-style-cast
+  # skipped: -ansi -pendantic -Wfatal-errors -Wold-style-cast -Wconversion
   SET( CMAKE_CXX_FLAGS_DEBUG     "-O0 -g -Wall" )
-  SET( CMAKE_CXX_FLAGS_DEBUGFULL "-O0 -g3 -fno-inline -Wall -Woverloaded-virtual -Wsign-compare -Wundef -Wconversion" )
+  SET( CMAKE_CXX_FLAGS_DEBUGFULL "-O0 -g3 -fno-inline -Wall -Woverloaded-virtual -Wsign-compare -Wundef" )
 ENDIF( CMAKE_COMPILER_IS_GNUCXX )
 
 

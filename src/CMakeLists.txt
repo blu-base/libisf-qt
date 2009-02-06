@@ -3,6 +3,10 @@ INCLUDE_DIRECTORIES( ${QT_INCLUDES} )
 
 
 SET( LIBISF_SOURCES
+     compression/compression.cpp
+     compression/gorilla.cpp
+     compression/huffman.cpp
+     format/types.cpp
      libisf.cpp
 )
 
@@ -17,18 +21,18 @@ INCLUDE( ${QT_USE_FILE} )
 # Run Qt's moc on the headers of QObject-derived classed
 # QT4_WRAP_CPP( LIBISF_MOC_SOURCES ${LIBISF_MOC_HEADERS} )
 
-ADD_LIBRARY( LibIsf SHARED
+ADD_LIBRARY( Isf SHARED
  ${LIBISF_SOURCES}
 #  ${LIBISF_MOC_SOURCES}
 )
 
-target_link_libraries( LibIsf ${QT_QTCORE_LIBRARY} )
+target_link_libraries( Isf ${QT_QTCORE_LIBRARY} )
 
-set_target_properties( LibIsf PROPERTIES
+set_target_properties( Isf PROPERTIES
                               VERSION ${LIBISF_VERSION}
                               SOVERSION ${LIBISF_VERSION}
 )
 
 
 
-INSTALL( TARGETS LibIsf LIBRARY DESTINATION lib )
+INSTALL( TARGETS Isf LIBRARY DESTINATION lib )

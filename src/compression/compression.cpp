@@ -18,36 +18,55 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef ISF_FORMAT_TYPES_H
-#define ISF_FORMAT_TYPES_H
+#include "compression.h"
+#include "gorilla.h"
+#include "huffman.h"
 
-#include <QByteArray>
+#include <QDebug>
 
-
+using namespace Isf;
 
 namespace Isf
 {
-  /**
-   * Encodes a multibyte unsigned integer into a 64-bit value.
-   */
-  QByteArray encodeUInt( quint64 value );
+  namespace Compress
+  {
+    // Decompress data autodetecting the algorithm to use
+    bool deflate( const QByteArray &source, quint32 &pos, QByteArray &decodedData )
+    {
+      uchar byte = source[ pos++ ];
 
+      switch( byte )
+      {
+        case Gorilla:
+          return deflateGorilla( source, pos, decodedData );
 
+        case Huffman:
+          return deflateHuffman( source, pos, decodedData );
 
-  /**
-   * Decodes a multibyte unsigned integer into a quint64.
-   */
-  quint64 decodeUInt( const QByteArray &bytes, int pos );
-
-
-
-  /**
-   * Decodes a multibyte signed integer into a qint64.
-   */
-  qint64 decodeInt( const QByteArray &bytes, int pos );
-
-
-
-}
-
+        default:
+#ifdef LIBISF_DEBUG
+          qDebug() << "Encoding algorithm not recognized! (byte:" << byte << ")";
 #endif
+          // Go back to the previous read position
+          --pos;
+          return false;
+      }
+
+      return true;
+    }
+
+
+
+    // Compress data autodetecting the algorithm to use
+    bool inflate( const QByteArray &source, quint64 &pos, QByteArray &encodedData )
+    {
+      return true;
+    }
+
+
+
+  }
+
+
+
+};

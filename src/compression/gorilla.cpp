@@ -18,36 +18,34 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef ISF_FORMAT_TYPES_H
-#define ISF_FORMAT_TYPES_H
+#include "gorilla.h"
 
-#include <QByteArray>
+#include <QDebug>
 
 
 
 namespace Isf
 {
-  /**
-   * Encodes a multibyte unsigned integer into a 64-bit value.
-   */
-  QByteArray encodeUInt( quint64 value );
+  namespace Compress
+  {
+    // Compress data using the Gorilla algorithm
+    bool deflateGorilla( const QByteArray &source, quint32 &pos, QByteArray &decodedData )
+    {
+      return true;
+    }
 
 
 
-  /**
-   * Decodes a multibyte unsigned integer into a quint64.
-   */
-  quint64 decodeUInt( const QByteArray &bytes, int pos );
+    // Decompress data using the Gorilla algorithm
+    bool inflateGorilla( const QByteArray &source, quint32 &pos, QByteArray &decodedData )
+    {
+      return true;
+    }
 
 
 
-  /**
-   * Decodes a multibyte signed integer into a qint64.
-   */
-  qint64 decodeInt( const QByteArray &bytes, int pos );
+  }
 
 
 
-}
-
-#endif
+};

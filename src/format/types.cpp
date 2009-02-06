@@ -39,7 +39,7 @@ namespace Isf
 
       flag = ( value == 0 ) ? 0 : 0x80;
 
-      output.append( tmp | flag );
+      output.append( byte | flag );
     }
     while( flag );
 
