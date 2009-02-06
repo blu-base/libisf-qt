@@ -1,0 +1,11 @@
+/**
+ * LibISF configuration file
+ *
+ * The value for these defines is controlled by CMake at configuration time.
+ */
+
+// Define the application version
+#define LIBISF_VERSION "${LIBISF_VERSION}"
+
+// Define if debug output should be enabled
+#define LIBISF_DEBUG ${LIBISF_DEBUG_OUTPUT}
