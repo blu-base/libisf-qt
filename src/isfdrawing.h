@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Valerio Pilo                                    *
- *   valerio@kmess.org                                                     *
+ *   Copyright (C) 2009 by Adam Goossens                                   *
+ *   adam@kmess.org                                                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Lesser General Public License as        *
@@ -18,43 +18,36 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "libisf.h"
-#include "format/types.h"
+#ifndef ISFDRAWING_H
+#define ISFDRAWING_H
 
-#include <QDebug>
-
-
+#include <QtCore/QObject>
 
 namespace Isf
 {
+  
+/**
+ * This class loads ISF (Ink Serialized Format) drawings.
+ *
+ * @author Adam Goossens (adam@kmess.org)
+ */
+class IsfDrawing : public QObject
+{
+  public:
+    IsfDrawing();
+    IsfDrawing(QByteArray &isfData);
 
+    // true if this is a null IsfDocument, false otherwise.
+    bool            isNull() const;
 
-
-  bool decodeIsf( const QByteArray &bytes, Image &image )
-  {
-    int pos = 0;
-//     quint64 tagNumber = 0;
-
-    // Check for the header, by reading the first multibyte int
-    if( decodeUInt( bytes, pos ) != 0 )
-    {
-#ifdef LIBISF_DEBUG
-      qDebug() << "Header was not valid! decoded byte:" << decodeUInt( bytes, pos );
-#endif
-
-      return false;
-    }
-
-    return true;
-  }
-
-
-
-  bool encodeIsf( const Image &image, QByteArray &bytes )
-  {
-    return true;
-  }
-
-
+  private:
+    // The raw ISF data.
+    QByteArray      isfData_;
+    // is this a null document?
+    bool            isNull_;
 
 };
+
+}
+
+#endif // ISFDRAWING_H

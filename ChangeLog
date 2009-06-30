@@ -1,0 +1,4 @@
+2009-06-30 (Adam)
+ * Created a unit test framework for libisf-qt; run using make test
+ * Created IsfDrawing class which will represent an ISF drawing.
+ * Added some rudimentary unit tests for IsfDrawing

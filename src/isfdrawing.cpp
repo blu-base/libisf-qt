@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Valerio Pilo                                    *
- *   valerio@kmess.org                                                     *
+ *   Copyright (C) 2009 by Adam Goossens                                   *
+ *   adam@kmess.org                                                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Lesser General Public License as        *
@@ -18,20 +18,28 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef LIBISF_H
-#define LIBISF_H
+#include "isfdrawing.h"
 
-#include "libisftypes.h"
-#include "libisfconfig.h" // CMake configuration file, generated at build time
+#include <QtDebug>
 
 namespace Isf
 {
-  bool decodeIsf( const QByteArray &bytes, Image &image );
-  bool encodeIsf( const Image &image, QByteArray &bytes );
+  
+IsfDrawing::IsfDrawing()
+  : isNull_( true )
+{
+}
 
-  void setZoom( Image &image, qreal amount );
-};
+IsfDrawing::IsfDrawing(QByteArray &isfData)
+  : isNull_(false),
+    isfData_( isfData )
+{
+  isNull_ = ( isfData_.size() == 0 );
+}
 
+bool IsfDrawing::isNull() const
+{
+  return isNull_;
+}
 
-
-#endif
+}
