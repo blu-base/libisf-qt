@@ -1,4 +1,5 @@
 2009-06-30 (Adam)
+ * Parse ISF version number properly; add unit tests for it.
  * Fix CMakeLists.txt to build with debug info by default
  * Moved format/types.(cpp|h) into the multibytecoding.(cpp|h) classes.
    Also moved these into libisf/ and deleted format/ directory.

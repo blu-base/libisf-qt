@@ -21,10 +21,18 @@
 class TestIsfDrawing : public QObject
 {
 Q_OBJECT
-private slots:
+  public:
+    TestIsfDrawing();
+    
+  private slots:
     void constructEmptyConstructor();
     void constructEmptyData();
     void constructNonEmptyData();
+    void isfVersionNumber();
+
+  private:
+    QString testIsfData;
+    QByteArray byteTestIsfData;
 };
 
 #endif // TESTISFDRAWING_H

@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include "isfdrawing.h"
+#include "multibytecoding.h"
 
 #include <QtDebug>
 
@@ -34,12 +35,41 @@ IsfDrawing::IsfDrawing(QByteArray &isfData)
   : isNull_(false),
     isfData_( isfData )
 {
-  isNull_ = ( isfData_.size() == 0 );
+  parseIsfData(isfData);
 }
 
 bool IsfDrawing::isNull() const
 {
   return isNull_;
+}
+
+
+
+/**
+ * Return the ISF version number. "0" means "ISF 1.0", "1" means "ISF 1.1", etc.
+ */
+quint16 IsfDrawing::getIsfVersion() const
+{
+  return version_;
+}
+
+
+
+/**
+ * Parse ISF data held in the given byte array.
+ */
+void IsfDrawing::parseIsfData(const QByteArray &isfData)
+{
+  int byteIndex = 0;
+  
+  if ( isfData.size() == 0 )
+  {
+    isNull_ = true;
+    return;
+  }
+
+  // start by reading the ISF version.
+  version_ = (quint32)decodeUInt(isfData, byteIndex);
 }
 
 }

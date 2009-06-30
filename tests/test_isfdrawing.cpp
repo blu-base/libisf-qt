@@ -21,6 +21,18 @@
 
 using namespace Isf;
 
+TestIsfDrawing::TestIsfDrawing()
+{
+  testIsfData = QString("AP8CHAOAgAQdBLAC7gICDQRIEUVkB0gRRP8BRWQZFDIIAIAyAhzHsUIzCADgEgIcxzFCFauq00GrqtNBAF"
+                         "jVPgCAlT4eBwaC/HH43AAJAQp3vAGC/gDz+APbZq0iJcVLEsAksssBcqCVNmy2UAAAEC5T"
+                         "LJZLls0oVNSrZSpO4VKiwlgXNgJYsWAAgv4EC/gQO1bZ2ZsXNS2REpSLiEWRYMWCxYsShZZNlmy1"
+                         "ZSxZKJUQIZYuVYM0TWaZ3LKzUspYXNkNhUVKlsUJAAosPYL9yfuUAAEVKlibKAbCBJQWAIL+AIv4"
+                         "Ajlkqbl0KlyiVLJZYsJRZZZKKgAKJiuC/gAj+ACUWLJRaiwsWVKWJZKAgv4Aw/gDGWUDYkM2BsKK"
+                         "lSwACiUugv4A2/gDmWblgElKSgBLJuUsgv4Aw/gDEEAUVKWTLNllSpQACiElgv4BW/gFcAEAJUsq"
+                         "aACC/gC7+ALZSVdiy4BlJublWaAKFhKC/dn7rJJ6VdtroIL+AZP4BlsWAKQ=");
+  byteTestIsfData = QByteArray::fromBase64(testIsfData.toAscii());
+}
+
 void TestIsfDrawing::constructEmptyConstructor()
 {
   IsfDrawing *doc = new IsfDrawing();
@@ -39,16 +51,27 @@ void TestIsfDrawing::constructEmptyData()
 
 void TestIsfDrawing::constructNonEmptyData()
 {
-  QByteArray data = QByteArray::fromBase64("AP8CHAOAgAQdBLAC7gICDQRIEUVkB0gRRP8BRWQZFDIIAIAyAhzHsUIzCADgEgIcxzFCFauq00GrqtNBAF"
-                                           "jVPgCAlT4eBwaC/HH43AAJAQp3vAGC/gDz+APbZq0iJcVLEsAksssBcqCVNmy2UAAAEC5T"
-                                           "LJZLls0oVNSrZSpO4VKiwlgXNgJYsWAAgv4EC/gQO1bZ2ZsXNS2REpSLiEWRYMWCxYsShZZNlmy1"
-                                           "ZSxZKJUQIZYuVYM0TWaZ3LKzUspYXNkNhUVKlsUJAAosPYL9yfuUAAEVKlibKAbCBJQWAIL+AIv4"
-                                           "Ajlkqbl0KlyiVLJZYsJRZZZKKgAKJiuC/gAj+ACUWLJRaiwsWVKWJZKAgv4Aw/gDGWUDYkM2BsKK"
-                                           "lSwACiUugv4A2/gDmWblgElKSgBLJuUsgv4Aw/gDEEAUVKWTLNllSpQACiElgv4BW/gFcAEAJUsq"
-                                           "aACC/gC7+ALZSVdiy4BlJublWaAKFhKC/dn7rJJ6VdtroIL+AZP4BlsWAKQ=");
- 
-  IsfDrawing *doc = new IsfDrawing(data);
+  IsfDrawing *doc = new IsfDrawing(byteTestIsfData);
   QCOMPARE(doc->isNull(), false);
+  delete doc;
+}
+
+
+void TestIsfDrawing::isfVersionNumber()
+{
+  // try with our known good data
+  IsfDrawing *doc = new IsfDrawing(byteTestIsfData);
+  QVERIFY(doc != NULL);
+  QCOMPARE((char)doc->getIsfVersion(), (char)0x00);
+  delete doc;
+  
+  // try with some faked data.
+  QByteArray data;
+  data.append(0x03);
+  data.append(0x05);
+  doc = new IsfDrawing(data);
+  QVERIFY(doc != NULL);
+  QCOMPARE((char)doc->getIsfVersion(), (char)0x03);
   delete doc;
 }
 

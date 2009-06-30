@@ -39,12 +39,19 @@ class IsfDrawing : public QObject
 
     // true if this is a null IsfDocument, false otherwise.
     bool            isNull() const;
+    // get the ISF version number
+    quint16         getIsfVersion() const;
+
+  private:
+    void            parseIsfData(const QByteArray &data);
 
   private:
     // The raw ISF data.
     QByteArray      isfData_;
     // is this a null document?
     bool            isNull_;
+    // isf version
+    quint16         version_;
 
 };
 
