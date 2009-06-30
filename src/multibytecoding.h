@@ -2,6 +2,9 @@
  *   Copyright (C) 2008 by Valerio Pilo                                    *
  *   valerio@kmess.org                                                     *
  *                                                                         *
+ *   Copyright (C) 2009 by Adam Goossens                                   *
+ *   adam@kmess.org                                                        *
+ *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Lesser General Public License as        *
  *   published by the Free Software Foundation; either version 2.1 of the  *
@@ -18,8 +21,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef ISF_FORMAT_TYPES_H
-#define ISF_FORMAT_TYPES_H
+#ifndef MULTIBYTECODING_H
+#define MULTIBYTECODING_H
 
 #include <QByteArray>
 
@@ -47,6 +50,11 @@ namespace Isf
   qint64 decodeInt( const QByteArray &bytes, int pos );
 
 
+  
+  /**
+   * Encode a signed integer into a multibyte representation.
+   */
+  QByteArray encodeInt( qint64 value );
 
 }
 

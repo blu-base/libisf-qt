@@ -17,7 +17,7 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#include "types.h"
+#include "multibytecoding.h"
 
 #include <QDebug>
 
@@ -88,5 +88,28 @@ namespace Isf
   }
 
 
-
+  /**
+   * Encodes a signed 64-bit integer into a QByteArray with
+   * multibyte encoding.
+   * @param val The value to encode.
+   * @return a QByteArray instance where each index corresponds to a byte in the encoding.
+   */
+  QByteArray encodeInt( qint64 val )
+  {
+    // encoding process:
+    // get absolute value.
+    // shift left by 1.
+    // encode via multibyte encoding.
+    // set sign bit.
+    bool isNegative = ( val < 0 );
+    if ( isNegative ) val *= -1;
+    
+    val = val << 1;
+    
+    QByteArray result = encodeUInt( val );
+    
+    if ( isNegative ) result[0] = result[0] | 0x1;
+    
+    return result;
+  }
 }

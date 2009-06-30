@@ -12,6 +12,7 @@ endmacro(add_multiple_tests)
 
 add_multiple_tests(
   isfdrawing
+  multibyte_coding
 )
 
 #set(libisfTest_SRCS libisfTest.cpp)

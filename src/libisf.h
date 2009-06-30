@@ -26,5 +26,6 @@
 
 #include "libisftypes.h"
 #include "isfdrawing.h"
+#include "multibytecoding.h"
 
 #endif
