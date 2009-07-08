@@ -23,53 +23,135 @@
 
 #include <QtDebug>
 
+// FORWARD DECLARATONS
+class QByteArray;
+
 namespace Isf
 {
-  
+
+/**
+ * Construct a new NULL IsfDrawing instance.
+ *
+ * When you add a new stroke to the drawing the instance becomes non-NULL.
+ */
 IsfDrawing::IsfDrawing()
-  : isNull_( true )
+  : isNull_( true ),
+    parserError_( ISF_ERROR_NONE )
 {
 }
 
-IsfDrawing::IsfDrawing(QByteArray &isfData)
-  : isNull_(false),
-    isfData_( isfData )
-{
-  parseIsfData(isfData);
-}
-
+/**
+ * Return True if this instance of IsfDrawing is invalid (NULL), False otherwise.
+ *
+ * @return True if this is a NULL IsfDrawing, FALSE otherwise.
+ */
 bool IsfDrawing::isNull() const
 {
   return isNull_;
 }
 
-
-
 /**
- * Return the ISF version number. "0" means "ISF 1.0", "1" means "ISF 1.1", etc.
+ * Return the error from the ISF parser if this is a NULL IsfDrawing.
+ *
+ * If nothing went wrong, this returns ISF_ERROR_NONE.
+ *
+ * @return The last ISF parser error.
  */
-quint16 IsfDrawing::getIsfVersion() const
+IsfParserError IsfDrawing::parserError() const
 {
-  return version_;
+  return parserError_;
 }
 
-
-
 /**
- * Parse ISF data held in the given byte array.
+ * Creates and returns a new IsfDrawing object from some raw ISF input data.
+ *
+ * If the ISF data is invalid, a NULL IsfDrawing is returned.
+ *
+ * @param isfData Raw ISF data to interpret.
+ * @return A new IsfDrawing object representing the data.
  */
-void IsfDrawing::parseIsfData(const QByteArray &isfData)
+IsfDrawing IsfDrawing::fromIsfData(const QByteArray &isfData)
 {
-  int byteIndex = 0;
+  int byteIndex;
+  IsfDrawing drawing;
   
   if ( isfData.size() == 0 )
   {
-    isNull_ = true;
-    return;
+    drawing.isNull_ = true;
+    return drawing;
   }
-
-  // start by reading the ISF version.
-  version_ = (quint32)decodeUInt(isfData, byteIndex);
+  
+  // let's start by assuming that the data is valid.
+  drawing.isNull_ = false;
+  
+  byteIndex = 0;
+  int size = isfData.size();
+  IsfParserState state = ISF_PARSER_START;
+  
+  while ( ( byteIndex < size ) && ( state != ISF_PARSER_FINISH ) )
+  {
+    switch ( state )
+    {
+      case ISF_PARSER_START:
+      {
+        // step 1: read ISF version.
+        quint8 version = decodeUInt(isfData, byteIndex);
+        if ( version != SUPPORTED_ISF_VERSION )
+        {
+          drawing.parserError_ = ISF_ERROR_BAD_VERSION;
+          drawing.isNull_ = true;
+          state = ISF_PARSER_FINISH;
+        }
+        else
+        {
+          // version is OK. find ISF stream size next.
+          state = ISF_PARSER_STREAMSIZE;
+        }
+        
+        break;
+      }
+      
+      case ISF_PARSER_STREAMSIZE:
+      {
+        // read ISF stream size.
+        // check it matches the length of the data array.
+        quint64 streamSize = decodeUInt( isfData, byteIndex );
+        
+        if ( streamSize != ( isfData.size() - byteIndex ) )
+        {
+          // streamsize is bad.
+          drawing.parserError_ = ISF_ERROR_BAD_STREAMSIZE;
+          drawing.isNull_ = true;
+          state = ISF_PARSER_FINISH;
+        }
+        else
+        {
+          // start looking for ISF tags.
+          state = ISF_PARSER_TAG;
+        }
+        
+        break;
+      }
+      
+      // ******************
+      // This is the key point of the state machine. This will continually loop looking for ISF
+      // tags and farming off to the appropriate method.
+      // *******************
+      case ISF_PARSER_TAG:
+      {
+        quint8 tagIdx = decodeUInt( isfData, byteIndex );
+        if ( tagIdx == TAG_GUID_TABLE )
+        {
+          qDebug() << "FOUND GUID TABLE";
+        }
+        state = ISF_PARSER_FINISH;
+      }
+      
+      break;
+    }
+  }
+  
+  return drawing;
 }
 
 }

@@ -1,4 +1,11 @@
 2009-07-08 (Adam)
+ * Make decode(UInt|Int) take a reference as a position parameter. This
+   reference is then incremented as the integer is decoded.
+ * Re-work tests for IsfDrawing.
+ * Create IsfDrawing::fromIsfData() static method to create a new IsfDrawing
+   instance from a QByteArray containing ISF data.
+ * Begin state matchine for ISF parser.
+ * Add appropriate unit tests for ISF parser.
  * Added TODO file for libisf to keep track of things.
 
 2009-06-30 (Adam)

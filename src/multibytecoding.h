@@ -40,14 +40,14 @@ namespace Isf
   /**
    * Decodes a multibyte unsigned integer into a quint64.
    */
-  quint64 decodeUInt( const QByteArray &bytes, int pos );
+  quint64 decodeUInt( const QByteArray &bytes, int &pos );
 
 
 
   /**
    * Decodes a multibyte signed integer into a qint64.
    */
-  qint64 decodeInt( const QByteArray &bytes, int pos );
+  qint64 decodeInt( const QByteArray &bytes, int &pos );
 
 
   

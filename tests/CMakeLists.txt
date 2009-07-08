@@ -15,6 +15,9 @@ add_multiple_tests(
   multibyte_coding
 )
 
+# copy ISF test data over.
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test.isf ${CMAKE_CURRENT_BINARY_DIR}/test.isf COPYONLY)
+
 #set(libisfTest_SRCS libisfTest.cpp)
 #qt4_automoc(${libisfTest_SRCS})
 #add_executable(libisfTest ${libisfTest_SRCS})

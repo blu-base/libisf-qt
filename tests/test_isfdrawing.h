@@ -23,16 +23,16 @@ class TestIsfDrawing : public QObject
 Q_OBJECT
   public:
     TestIsfDrawing();
+    QByteArray readTestIsfData(const QString &file);
     
   private slots:
-    void constructEmptyConstructor();
-    void constructEmptyData();
-    void constructNonEmptyData();
-    void isfVersionNumber();
-
+    void emptyConstructor_NullDrawing();
+    void invalidVersion_NullDrawing();
+    void parserErrorNoneByDefault();
+    void invalidStreamSize_NullDrawing();
+    void parseValidRawIsfData();
   private:
-    QString testIsfData;
-    QByteArray byteTestIsfData;
+
 };
 
 #endif // TESTISFDRAWING_H

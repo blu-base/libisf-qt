@@ -55,7 +55,8 @@ void TestMultibyteCoding::unsignedDecode()
   QByteArray data;
   data.append(0x7d); // 125.
   
-  quint64 result = Isf::decodeUInt(data, 0);
+  int pos = 0;
+  quint64 result = Isf::decodeUInt(data, pos);
   
   QVERIFY(result == Q_UINT64_C(0x7d));
   
@@ -63,7 +64,8 @@ void TestMultibyteCoding::unsignedDecode()
   data.clear();
   data.append(0x80);
   data.append(0x01);
-  result = Isf::decodeUInt(data, 0);  
+  pos = 0;
+  result = Isf::decodeUInt(data, pos);  
   QVERIFY(result == Q_UINT64_C(0x80));
   
   // test a definite multibyte.
@@ -71,7 +73,8 @@ void TestMultibyteCoding::unsignedDecode()
   data.append(0xFF);
   data.append(0xFF);
   data.append(0x03);
-  result = Isf::decodeUInt(data, 0);
+  pos = 0;
+  result = Isf::decodeUInt(data, pos);
   QVERIFY(result == Q_UINT64_C(0xFFFF));
 }
 
@@ -89,28 +92,32 @@ void TestMultibyteCoding::signedDecode()
   QByteArray data;
   // -10 (0xA in hex, shift 1 to left, set sign bit)
   data.append((0xA << 1) | 0x01);
-  qint64 result = Isf::decodeInt(data, 0);
+  int pos = 0;
+  qint64 result = Isf::decodeInt(data, pos);
   QVERIFY(result == Q_INT64_C(-10));
   
   // edge case, -64.
   data.clear();
   data.append(0x81);
   data.append(0x01);
-  result = Isf::decodeInt(data, 0);
+  pos = 0;
+  result = Isf::decodeInt(data, pos);
   QVERIFY(result == Q_INT64_C(-64));
   
   // a positive number, 100
   data.clear();
   data.append((char)0xC8);
   data.append(0x01);
-  result = Isf::decodeInt(data, 0);
+  pos = 0;
+  result = Isf::decodeInt(data, pos);
   QVERIFY(result == Q_INT64_C(100));
   
   // a decent negative number, -500
   data.clear();
   data.append((char)0xE9);
   data.append(0x07);
-  result = Isf::decodeInt(data, 0);
+  pos = 0;
+  result = Isf::decodeInt(data, pos);
   QVERIFY(result == Q_INT64_C(-500));
 }
 

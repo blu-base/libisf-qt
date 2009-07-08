@@ -1,18 +1,22 @@
-/*
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
-   License version 2 as published by the Free Software Foundation.
-
-   This library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
-
-   You should have received a copy of the GNU Library General Public License
-   along with this library; see the file COPYING.LIB.  If not, write to
-   the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110-1301, USA.*/
-
+/***************************************************************************
+ *   Copyright (C) 2009 by Adam Goossens                                   *
+ *   adam@kmess.org                                                        *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU Lesser General Public License as        *
+ *   published by the Free Software Foundation; either version 2.1 of the  *
+ *   License, or (at your option) any later version.                       *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU Lesser General Public      *
+ *   License along with this program; if not, write to the                 *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
 #include "test_isfdrawing.h"
 
 #include <QtTest/QtTest>
@@ -23,56 +27,73 @@ using namespace Isf;
 
 TestIsfDrawing::TestIsfDrawing()
 {
-  testIsfData = QString("AP8CHAOAgAQdBLAC7gICDQRIEUVkB0gRRP8BRWQZFDIIAIAyAhzHsUIzCADgEgIcxzFCFauq00GrqtNBAF"
-                         "jVPgCAlT4eBwaC/HH43AAJAQp3vAGC/gDz+APbZq0iJcVLEsAksssBcqCVNmy2UAAAEC5T"
-                         "LJZLls0oVNSrZSpO4VKiwlgXNgJYsWAAgv4EC/gQO1bZ2ZsXNS2REpSLiEWRYMWCxYsShZZNlmy1"
-                         "ZSxZKJUQIZYuVYM0TWaZ3LKzUspYXNkNhUVKlsUJAAosPYL9yfuUAAEVKlibKAbCBJQWAIL+AIv4"
-                         "Ajlkqbl0KlyiVLJZYsJRZZZKKgAKJiuC/gAj+ACUWLJRaiwsWVKWJZKAgv4Aw/gDGWUDYkM2BsKK"
-                         "lSwACiUugv4A2/gDmWblgElKSgBLJuUsgv4Aw/gDEEAUVKWTLNllSpQACiElgv4BW/gFcAEAJUsq"
-                         "aACC/gC7+ALZSVdiy4BlJublWaAKFhKC/dn7rJJ6VdtroIL+AZP4BlsWAKQ=");
-  byteTestIsfData = QByteArray::fromBase64(testIsfData.toAscii());
 }
 
-void TestIsfDrawing::constructEmptyConstructor()
+void TestIsfDrawing::emptyConstructor_NullDrawing()
 {
-  IsfDrawing *doc = new IsfDrawing();
-  QVERIFY(doc != NULL);
-  QCOMPARE(doc->isNull(), true);
-  delete doc;
+  IsfDrawing doc;
+  QCOMPARE(doc.isNull(), true);
 }
 
-void TestIsfDrawing::constructEmptyData()
+// invalid ISF version numbers should return a null IsfDrawing
+void TestIsfDrawing::invalidVersion_NullDrawing()
 {
   QByteArray data;
-  IsfDrawing *doc = new IsfDrawing(data);
-  QCOMPARE(doc->isNull(), true);
-  delete doc;
-}
-
-void TestIsfDrawing::constructNonEmptyData()
-{
-  IsfDrawing *doc = new IsfDrawing(byteTestIsfData);
-  QCOMPARE(doc->isNull(), false);
-  delete doc;
-}
-
-
-void TestIsfDrawing::isfVersionNumber()
-{
-  // try with our known good data
-  IsfDrawing *doc = new IsfDrawing(byteTestIsfData);
-  QVERIFY(doc != NULL);
-  QCOMPARE((char)doc->getIsfVersion(), (char)0x00);
-  delete doc;
+  data.append(0x0B);  // isf version 11 - invalid.
   
-  // try with some faked data.
+  IsfDrawing drawing = IsfDrawing::fromIsfData(data);
+  QCOMPARE(drawing.isNull(), true);
+  QCOMPARE(drawing.parserError(), ISF_ERROR_BAD_VERSION);
+}
+
+// by default the parser error should be ISF_ERROR_NONE
+void TestIsfDrawing::parserErrorNoneByDefault()
+{
+  IsfDrawing drawing;
+  QCOMPARE(drawing.parserError(), ISF_ERROR_NONE);
+}
+
+// an invalid stream size should give a null drawing.
+void TestIsfDrawing::invalidStreamSize_NullDrawing()
+{
   QByteArray data;
-  data.append(0x03);
-  data.append(0x05);
-  doc = new IsfDrawing(data);
-  QVERIFY(doc != NULL);
-  QCOMPARE((char)doc->getIsfVersion(), (char)0x03);
-  delete doc;
+  data.append((char)0x00);  // ISF version 1.0.
+  data.append(0x01);  // stream size of 1 byte, but only 3 bytes of data.
+  
+  IsfDrawing drawing = IsfDrawing::fromIsfData(data);
+  QCOMPARE(drawing.isNull(), true);
+  QCOMPARE(drawing.parserError(), ISF_ERROR_BAD_STREAMSIZE);
+}
+
+// valid ISF test data should generate a non-null
+// drawing with the appropriate number of strokes.
+void TestIsfDrawing::parseValidRawIsfData()
+{
+  QByteArray data = readTestIsfData("tests/test.isf");
+  IsfDrawing drawing = IsfDrawing::fromIsfData(data);
+  QCOMPARE(drawing.isNull(), false);
+}
+
+// read some test raw ISF data from a file on the filesystem and
+// return it as a QByteArray.
+QByteArray TestIsfDrawing::readTestIsfData( const QString &filename )
+{
+  QFile file( filename );
+  if ( !file.exists() )
+  {
+    qWarning() << "Test ISF file" << filename << "does not exist.";
+    return QByteArray();
+  }
+  
+  // read file and convert to qbytearray.
+  if ( !file.open( QIODevice::ReadOnly ) )
+  {
+    qWarning() << "Failed to open ISF data file" << filename;
+    return QByteArray();
+  }
+  
+  QByteArray data = file.readAll();
+  return data;
 }
 
 QTEST_MAIN(TestIsfDrawing)
