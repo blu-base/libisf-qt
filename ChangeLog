@@ -1,3 +1,6 @@
+2009-07-08 (Adam)
+ * Added TODO file for libisf to keep track of things.
+
 2009-06-30 (Adam)
  * Parse ISF version number properly; add unit tests for it.
  * Fix CMakeLists.txt to build with debug info by default

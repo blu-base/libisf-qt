@@ -1,0 +1,25 @@
+libISF (Ink Serialized Format) TODO
+-----------------------------------
+
+IN PROGRESS
+-----------
+- State machine for parsing ISF data (IN PROGRESS)
+
+OUTSTANDING
+-----------
+- Add new strokes to an IsfDrawing
+- Stroke attributes: width, colour, pressure?
+- Delete strokes.
+- Properly parse generated ISF test data
+- Parse ISF data from WLM.
+- Huffman codec:
+    - Encoding
+    - Decoding
+- Gorilla codec:
+    - Encoding
+    - Decoding
+- Export IsfDrawing to raw-isf, isf-base64 (and fortified-gif?)
+
+DONE
+----
+- Multibyte encoding/decoding (DONE)
