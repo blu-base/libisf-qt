@@ -21,7 +21,7 @@
 #ifndef ISFCOMPRESSION_GORILLA_H
 #define ISFCOMPRESSION_GORILLA_H
 
-#include <QByteArray>
+#include "isfdata.h"
 
 
 
@@ -30,9 +30,9 @@ namespace Isf
   namespace Compress
   {
     /// Compress data using the Gorilla algorithm
-    bool deflateGorilla( const QByteArray &source, quint32 &pos, QByteArray &decodedData );
+    bool deflateGorilla( IsfData &source, quint32 &length, QByteArray &encodedData );
     /// Decompress data using the Gorilla algorithm
-    bool inflateGorilla( const QByteArray &source, quint32 &pos, QByteArray &decodedData );
+    bool inflateGorilla( IsfData &source, quint32 &length, QByteArray &decodedData );
   }
 }
 

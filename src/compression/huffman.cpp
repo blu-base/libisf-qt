@@ -20,7 +20,13 @@
 
 #include "huffman.h"
 
+#include <math.h>
+
 #include <QDebug>
+
+
+#define HUFFMAN_BASES_NUM   8
+#define HUFFMAN_BASE_SIZE  11
 
 
 
@@ -28,8 +34,33 @@ namespace Isf
 {
   namespace Compress
   {
-    // Compress data using the Huffman algorithm
-    bool deflateHuffman( const QByteArray &source, quint32 &pos, QByteArray &decodedData )
+    const int bitAmounts_[HUFFMAN_BASES_NUM][HUFFMAN_BASE_SIZE] =
+    {
+        {0, 1, 2,  4,  6,  8, 12, 16, 24, 32, -1},
+        {0, 1, 1,  2,  4,  8, 12, 16, 24, 32, -1},
+        {0, 1, 1,  1,  2,  4,  8, 14, 22, 32, -1},
+        {0, 2, 2,  3,  5,  8, 12, 16, 24, 32, -1},
+        {0, 3, 4,  5,  8, 12, 16, 24, 32, -1, -1},
+        {0, 4, 6,  8, 12, 16, 24, 32, -1, -1, -1},
+        {0, 6, 8, 12, 16, 24, 32, -1, -1, -1, -1},
+        {0, 7, 8, 12, 16, 24, 32, -1, -1, -1, -1},
+    };
+
+    const int huffmanBases_[HUFFMAN_BASES_NUM][HUFFMAN_BASE_SIZE] =
+    {
+        {0, 1,  2,   4,   12,    44,     172,    2220,   34988, 8423596, -1},
+        {0, 1,  2,   3,    5,    13,     141,    2189,   34957, 8423565, -1},
+        {0, 1,  2,   3,    4,     6,      14,     142,    8334, 2105486, -1},
+        {0, 1,  3,   5,    9,    25,     153,    2201,   34969, 8423577, -1},
+        {0, 1,  5,  13,   29,   157,    2205,   34973, 8423581,      -1, -1},
+        {0, 1,  9,  41,  169,  2217,   34985, 8423593,      -1,      -1, -1},
+        {0, 1, 33, 161, 2209, 34977, 8423585,      -1,      -1,      -1, -1},
+        {0, 1, 65, 193, 2241, 35009, 8423617,      -1,      -1,      -1, -1},
+    };
+
+
+    // Compress data using the Adaptive-Huffman algorithm
+    bool deflateHuffman( IsfData &source, quint32 &length, QByteArray &encodedData )
     {
       return true;
     }
@@ -37,8 +68,86 @@ namespace Isf
 
 
     // Decompress data using the Huffman algorithm
-    bool inflateHuffman( const QByteArray &source, quint32 &pos, QByteArray &decodedData )
+    bool inflateHuffman( IsfData &source, quint32 &length, QByteArray &decodedData )
     {
+      QVector<int> huffmanBases( HUFFMAN_BASE_SIZE );
+      QVector<int> bitAmounts( HUFFMAN_BASE_SIZE );
+
+      // Initialize the bit amounts vector
+      memcpy( bitAmounts.data(), bitAmounts_[ source.getBitIndex() ], sizeof(int)*HUFFMAN_BASE_SIZE );
+
+      int base = 1;
+      huffmanBases << 0;
+
+      // Fill up the huffman bases vector
+      foreach( int value, bitAmounts )
+      {
+        if( value == 0 )
+        {
+          continue;
+        }
+
+        huffmanBases << base;
+        base += pow( 2, value - 1 );
+      }
+
+      quint32 count = 0;
+      int value;
+      bool bit;
+
+      while( decodedData.size() < length )
+      {
+        bit = source.getBit();
+
+        if( bit )
+        {
+          count++;
+          continue;
+        }
+
+        if( count == 0 )
+        {
+          value = 0;
+        }
+        else if( count < bitAmounts.size() )
+        {
+          quint32 offset = source.getBits( bitAmounts[ count ] );
+          bool sign = offset & 0x1;
+          offset /= 2;
+          value = huffmanBases[ count ] + offset;
+          value *= sign ? -1 : +1;
+        }
+        else if( count == bitAmounts.size() )
+        {
+          // TODO: Implement 64-bit data decompression :)
+#ifdef LIBISF_DEBUG
+          qDebug() << "Unsupported 64-bit value found!";
+#endif
+          value = 0;
+        }
+        else
+        {
+#ifdef LIBISF_DEBUG
+          qDebug() << "Decompression error!";
+#endif
+          value = 0;
+        }
+
+        decodedData.append( value );
+      }
+
+      // Delta-delta inverse transformation
+
+      int previousDelta = 0, currentDelta = 0;
+      for( int i = 0; i < decodedData.size(); ++i )
+      {
+        int delta = ( currentDelta * 2 ) - previousDelta + decodedData.at( i );
+        previousDelta = currentDelta;
+        currentDelta = delta;
+
+        decodedData[ i ] = delta;
+      }
+
       return true;
     }
 

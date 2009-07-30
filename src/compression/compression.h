@@ -21,7 +21,7 @@
 #ifndef ISFCOMPRESSION_H
 #define ISFCOMPRESSION_H
 
-#include <QByteArray>
+#include "isfdata.h"
 
 
 
@@ -48,9 +48,9 @@ namespace Isf
   namespace Compress
   {
     /// Decompress data autodetecting the algorithm to use
-    bool deflate( const QByteArray &source, quint32 &pos, QByteArray &decodedData );
+    bool deflate( IsfData &source, quint32 &length, QByteArray &decodedData );
     /// Compress data autodetecting the algorithm to use
-    bool inflate( const QByteArray &source, quint32 &pos, QByteArray &encodedData );
+    bool inflate( IsfData &source, quint32 &length, QByteArray &encodedData );
   }
 }
 

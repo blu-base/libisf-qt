@@ -31,24 +31,24 @@ namespace Isf
   namespace Compress
   {
     // Decompress data autodetecting the algorithm to use
-    bool deflate( const QByteArray &source, quint32 &pos, QByteArray &decodedData )
+    bool deflate( IsfData &source, quint32 &length, QByteArray &decodedData )
     {
-      uchar byte = source[ pos++ ];
+      char byte = source.getByte();
 
       switch( byte )
       {
         case Gorilla:
-          return deflateGorilla( source, pos, decodedData );
+          return deflateGorilla( source, length, decodedData );
 
         case Huffman:
-          return deflateHuffman( source, pos, decodedData );
+          return deflateHuffman( source, length, decodedData );
 
         default:
 #ifdef LIBISF_DEBUG
           qDebug() << "Encoding algorithm not recognized! (byte:" << byte << ")";
 #endif
           // Go back to the previous read position
-          --pos;
+          source.seekByteBack();
           return false;
       }
 
@@ -58,7 +58,7 @@ namespace Isf
 
 
     // Compress data autodetecting the algorithm to use
-    bool inflate( const QByteArray &source, quint64 &pos, QByteArray &encodedData )
+    bool inflate( const IsfData &source, quint64 &length, QByteArray &encodedData )
     {
       return true;
     }

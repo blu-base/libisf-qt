@@ -29,7 +29,7 @@ namespace Isf
   namespace Compress
   {
     // Compress data using the Gorilla algorithm
-    bool deflateGorilla( const QByteArray &source, quint32 &pos, QByteArray &decodedData )
+    bool deflateGorilla( IsfData &source, quint32 &length, QByteArray &encodedData )
     {
       return true;
     }
@@ -37,7 +37,7 @@ namespace Isf
 
 
     // Decompress data using the Gorilla algorithm
-    bool inflateGorilla( const QByteArray &source, quint32 &pos, QByteArray &decodedData )
+    bool inflateGorilla( IsfData &source, quint32 &length, QByteArray &decodedData )
     {
       return true;
     }

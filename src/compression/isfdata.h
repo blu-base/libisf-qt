@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Valerio Pilo                                    *
+ *   Copyright (C) 2009 by Valerio Pilo                                    *
  *   valerio@kmess.org                                                     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -18,10 +18,11 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef ISFCOMPRESSION_HUFFMAN_H
-#define ISFCOMPRESSION_HUFFMAN_H
+#ifndef ISFCOMPRESSION_ISFDATA_H
+#define ISFCOMPRESSION_ISFDATA_H
 
-#include "isfdata.h"
+#include <QBitArray>
+#include <QBuffer>
 
 
 
@@ -29,10 +30,44 @@ namespace Isf
 {
   namespace Compress
   {
-    /// Compress data using the Huffman algorithm
-    bool deflateHuffman( IsfData &source, quint32 &length, QByteArray &encodedData );
-    /// Decompress data using the Huffman algorithm
-    bool inflateHuffman( IsfData &source, quint32 &length, QByteArray &decodedData );
+    /// Class to handle a QBuffer at bit level
+    class IsfData
+    {
+
+      public: // Public methods
+
+        /// Constructor
+                    IsfData( QByteArray &data );
+        /// Destructor
+                   ~IsfData();
+
+        /// Retrieve the next bit from the data
+        bool        getBit();
+        /// Retrieve the next <amount> bits from the data
+        quint32     getBits( quint8 amount );
+        /// Retrieve the index of the current bit
+        quint8      getBitIndex();
+        /// Retrieve the next byte from the data
+        char        getByte();
+        /// Go back one byte in the stream
+        void        seekByteBack();
+
+
+      private: // Private methods
+
+        // Move a byte into the bit array
+        void       moveByteToBitArray();
+
+      private: // Private properties
+
+        // Main data buffer
+        QBuffer     buffer_;
+        // Current bit within the bit array
+        quint8      currentBitIndex_;
+        // Current byte
+        QBitArray   currentByte_;
+
+    };
   }
 }
 
