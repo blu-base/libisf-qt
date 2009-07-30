@@ -60,10 +60,11 @@ namespace Isf
 
 
     // Compress data using the Adaptive-Huffman algorithm
-    bool deflateHuffman( IsfData &source, quint8 length, QByteArray &encodedData )
+    bool deflateHuffman( IsfData &source, quint32 length, quint8 index, QByteArray &encodedData )
     {
       Q_UNUSED( source );
       Q_UNUSED( length );
+      Q_UNUSED( index );
       Q_UNUSED( encodedData );
       return true;
     }
@@ -71,13 +72,13 @@ namespace Isf
 
 
     // Decompress data using the Huffman algorithm
-    bool inflateHuffman( IsfData &source, quint8 length, QByteArray &decodedData )
+    bool inflateHuffman( IsfData &source, quint32 length, quint8 index, QByteArray &decodedData )
     {
       QVector<int> huffmanBases( HUFFMAN_BASE_SIZE );
       QVector<int> bitAmounts( HUFFMAN_BASE_SIZE );
 
       // Initialize the bit amounts vector
-      memcpy( bitAmounts.data(), bitAmounts_[ source.getBitIndex() ], sizeof(int)*HUFFMAN_BASE_SIZE );
+      memcpy( bitAmounts.data(), bitAmounts_[ index ], sizeof(int)*HUFFMAN_BASE_SIZE );
 
       int base = 1;
       huffmanBases << 0;

@@ -18,66 +18,46 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "compression.h"
-#include "gorilla.h"
-#include "huffman.h"
+#ifndef ISFTAGS_H
+#define ISFTAGS_H
 
-#include <QDebug>
+#include "libisftypes.h"
+
+#include <QString>
 
 
 
 namespace Isf
 {
+
+
+  // Forward declarations
   namespace Compress
+  {
+    class IsfData;
+  }
+  using Compress::IsfData;
+
+
+
+  namespace Tags
   {
 
 
-
-    // Decompress data autodetecting the algorithm to use
-    bool deflate( IsfData &source, quint32 length, QByteArray &decodedData )
-    {
-      char byte = source.getByte();
-      char algorithm      = ( byte & MaskByte );
-      char needsTransform = ( byte & TransformationFlag );
-      char blockSize      = ( byte & BlockSizeFlag );
-
-      switch( algorithm )
-      {
-        case Gorilla:
-          if( needsTransform )
-          {
-#ifdef LIBISF_DEBUG
-            qDebug() << "Required gorilla transformation!";
-#endif
-            return false;
-          }
-
-          return deflateGorilla( source, length, blockSize, decodedData );
-
-        case Huffman:
-          return deflateHuffman( source, length, blockSize, decodedData );
-
-        default:
-#ifdef LIBISF_DEBUG
-          qDebug() << "Encoding algorithm not recognized! (byte:" << algorithm << ")";
-#endif
-          // Go back to the previous read position
-          source.seekByteBack();
-          return false;
-      }
-
-      return true;
-    }
+    /// Read the table of GUIDs from the data
+    IsfError parseGuidTable( IsfData &source );
+    /// Read payload: Persistent Format
+    IsfError parsePersistentFormat( IsfData &source );
 
 
+    // Debugging methods
 
-    // Compress data autodetecting the algorithm to use
-    bool inflate( IsfData &source, quint32 length, QByteArray &encodedData )
-    {
-      return true;
-    }
-
-
+    // Print the payload of an unknown tag
+    void analyzePayload( IsfData &source, const QString &tagName );
 
   }
-};
+}
+
+
+
+#endif

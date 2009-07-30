@@ -18,9 +18,10 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "compression.h"
-#include "gorilla.h"
-#include "huffman.h"
+#include "tags.h"
+
+#include "compression/isfdata.h"
+#include "multibytecoding.h"
 
 #include <QDebug>
 
@@ -28,56 +29,69 @@
 
 namespace Isf
 {
-  namespace Compress
+  namespace Tags
   {
 
 
 
-    // Decompress data autodetecting the algorithm to use
-    bool deflate( IsfData &source, quint32 length, QByteArray &decodedData )
+    /// Read the table of GUIDs from the data
+    IsfError parseGuidTable( IsfData &source )
     {
-      char byte = source.getByte();
-      char algorithm      = ( byte & MaskByte );
-      char needsTransform = ( byte & TransformationFlag );
-      char blockSize      = ( byte & BlockSizeFlag );
+      // Unknown content
+      analyzePayload( source, "GUID Table" );
+      return ISF_ERROR_NONE;
+    }
 
-      switch( algorithm )
+
+
+    /// Read payload: Persistent Format
+    IsfError parsePersistentFormat( IsfData &source )
+    {
+      // Unknown content
+      analyzePayload( source, "Persistent Format" );
+      return ISF_ERROR_NONE;
+    }
+
+
+
+    // Print the payload of an unknown tag
+    void analyzePayload( IsfData &source, const QString &tagName )
+    {
+      qint64 payloadSize = Isf::Compress::decodeUInt( source );
+
+      if( payloadSize == 0 )
       {
-        case Gorilla:
-          if( needsTransform )
-          {
-#ifdef LIBISF_DEBUG
-            qDebug() << "Required gorilla transformation!";
-#endif
-            return false;
-          }
-
-          return deflateGorilla( source, length, blockSize, decodedData );
-
-        case Huffman:
-          return deflateHuffman( source, length, blockSize, decodedData );
-
-        default:
-#ifdef LIBISF_DEBUG
-          qDebug() << "Encoding algorithm not recognized! (byte:" << algorithm << ")";
-#endif
-          // Go back to the previous read position
-          source.seekByteBack();
-          return false;
+        qWarning() << "Got empty payload for tag" << tagName << "!";
+        return;
       }
 
-      return true;
+      qint64 pos = 0;
+      QByteArray output;
+
+      qDebug() << "------------ Payload contents for tag" << tagName << "------------";
+      while( ! source.atEnd() && pos < payloadSize )
+      {
+        quint8 byte = source.getByte();
+        output.append( QByteArray::number( byte, 16 ).rightJustified( 2, '0').toUpper() + " " );
+
+        if( ( ( pos + 1 ) % 24 ) == 0 )
+        {
+          qDebug() << output;
+          output.clear();
+        }
+
+        ++pos;
+      }
+
+      if( ! output.isEmpty() )
+      {
+        qDebug() << output;
+      }
+
+      qDebug() << "------------ Payload contents for tag" << tagName << "------------";
     }
-
-
-
-    // Compress data autodetecting the algorithm to use
-    bool inflate( IsfData &source, quint32 length, QByteArray &encodedData )
-    {
-      return true;
-    }
-
-
 
   }
-};
+}
+
+

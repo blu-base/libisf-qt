@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include "isfdrawing.h"
+#include "tags.h"
 #include "compression/isfdata.h"
 #include "multibytecoding.h"
 
@@ -70,7 +71,7 @@ bool Drawing::isNull() const
  *
  * @return The last ISF parser error.
  */
-ParserError Drawing::parserError() const
+IsfError Drawing::parserError() const
 {
   return parserError_;
 }
@@ -155,6 +156,7 @@ Drawing Drawing::fromIsfData( const QByteArray &rawData )
       {
 //         state = ISF_PARSER_FINISH;
 
+        IsfError result = ISF_ERROR_NONE;
         quint8 tagIndex = Compress::decodeUInt( isfData );
 
         // Thanks, thanks a lot to the TclISF authors!
@@ -171,7 +173,7 @@ Drawing Drawing::fromIsfData( const QByteArray &rawData )
 #ifdef PARSER_DEBUG_VERBOSE
               qDebug() << "Got tag: TAG_GUID_TABLE";
 #endif
-              // err =  getGUIDTable ();
+              result = Tags::parseGuidTable( isfData );
               break;
 
           case TAG_DRAW_ATTRS_TABLE:
@@ -360,7 +362,7 @@ Drawing Drawing::fromIsfData( const QByteArray &rawData )
 #ifdef PARSER_DEBUG_VERBOSE
               qDebug() << "Got tag: TAG_PERSISTENT_FORMAT";
 #endif
-              // err = getPersistentFormat ();
+              result = Tags::parsePersistentFormat( isfData );
               break;
 
           case TAG_HIMETRIC_SIZE:
@@ -381,7 +383,16 @@ Drawing Drawing::fromIsfData( const QByteArray &rawData )
 #ifdef PARSER_DEBUG_VERBOSE
               qWarning() << "got unknown tag" << tagIndex;
 #endif
+              Tags::analyzePayload( isfData, "Unknown " + QString::number( tagIndex ) );
               break;
+        }
+
+        if( result != ISF_ERROR_NONE )
+        {
+#ifdef PARSER_DEBUG_VERBOSE
+          qWarning() << "Error in last operation, stopping";
+#endif
+          state = ISF_PARSER_FINISH;
         }
 
       }

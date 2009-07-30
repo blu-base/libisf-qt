@@ -32,7 +32,7 @@ namespace Isf
 
 
     // Compress data using the Gorilla algorithm
-    bool deflateGorilla( IsfData &source, quint8 length, QByteArray &encodedData )
+    bool deflateGorilla( IsfData &source, quint32 length, quint8 blockSize, QByteArray &encodedData )
     {
       Q_UNUSED( length );
       Q_UNUSED( encodedData );
@@ -42,41 +42,42 @@ namespace Isf
 
 
     // Decompress data using the Gorilla algorithm
-    bool inflateGorilla( IsfData &source, quint8 length, QByteArray &decodedData )
+    bool inflateGorilla( IsfData &source, quint32 length, quint8 blockSize, QByteArray &decodedData )
     {
       Q_UNUSED( source );
       Q_UNUSED( length );
       Q_UNUSED( decodedData );
-/*
- * \param length number of packets to read                              *
- * \param blockSize    size of each data block                                *
- * \param arr array    where we store the decoded integers                    *
- * \param buffer       pointer to a buffer we store the current Byte read     *
- * \param offset       offset of the current bit to be read in #buffer.       *
-    int err = OK;* the error code *
-    INT64 i=0,
-          tmp,
-          signMask;
 
-     * \b Algorithm:
-     * -# Read width bits from the stream into value.
-     * -# Construct a sign-mask by taking the value 0xFFFFFFFFFFFFFFFF and
-     *    left-shift it by width - 1.
-     * -# If value ANDed with the mask is non-zero, OR the value with the mask.
-     * What this means is that if the mask matched, the sign bit is set, and by
-     * ORing the value with the mask we effectively fill all the bits to the
-     * left of the sign bit with 1s, turning it into a true 64-bit signed integer.
-     *
+      if( blockSize > 64 )
+      {
+        qWarning() << "A block size of" << blockSize << "is too high!";
+        blockSize = 64; // Fuck it!
+      }
 
-    signMask = 0XFFFFFFFFFFFFFFFF << (blockSize-1);
+      quint32 pos = 0;
+      quint64 signMask = 0XFFFFFFFFFFFFFFFFLL << ( blockSize - 1 );
 
-    while (err == OK && i < length)
-    {
-        err = readNBits (pDecISF, blockSize, buffer, offset, &tmp);
-        *(arr+i) = (tmp & signMask)?tmp|signMask:tmp;
-        i++;
-    }
-*/
+      while( ! source.atEnd() && pos < length )
+      {
+        quint8 valuePos = 0;
+        quint64 value = 0;
+
+        while( ! source.atEnd() && valuePos < blockSize )
+        {
+          value |= ( source.getBit() << valuePos++ );
+        }
+
+        // If the maks matches, ths sign bit is set, so ORing value and mask will
+        // set all leftmost bits to 1, making it a real 64bit signed integer
+        if( value & signMask )
+        {
+          value |= signMask;
+        }
+
+        source.append( QByteArray( (char*)&value, sizeof(quint64) ) );
+        pos++;
+      }
+
       return true;
     }
 

@@ -3,6 +3,7 @@ include_directories(${QT_INCLUDES})
 
 set ( libisf_sources
       isfdrawing.cpp
+      tags.cpp
       multibytecoding.cpp
       compression/compression.cpp
       compression/gorilla.cpp
