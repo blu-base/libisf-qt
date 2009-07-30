@@ -33,6 +33,17 @@ class QByteArray;
 namespace Isf
 {
 
+
+
+  // Forward declarations
+  namespace Compress
+  {
+    class IsfData;
+  }
+  using Compress::IsfData;
+
+
+
   /**
    * ISF parser state machine states
    */
@@ -83,6 +94,8 @@ namespace Isf
 
       // Whether the drawing is invalid or valid
       bool                 isNull_;
+      // Maximum GUID available in the drawing
+      quint64              maxGuid_;
       // Parser error (if there is one)
       IsfError             parserError_;
 

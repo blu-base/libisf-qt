@@ -81,7 +81,7 @@ void TestIsfDrawing::invalidStreamSize_NullDrawing()
 // drawing with the appropriate number of strokes.
 void TestIsfDrawing::parseValidRawIsfData()
 {
-  QByteArray data = readTestIsfData("tests/test.isf");
+  QByteArray data = readTestIsfData("tests/test1.isf");
   Drawing drawing = Drawing::fromIsfData(data);
   QCOMPARE(drawing.isNull(), false);
 }

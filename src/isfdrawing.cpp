@@ -26,13 +26,6 @@
 #include <QtDebug>
 
 
-/**
- * Uncomment to get a ton of debugging messages about
- * whatever was found in the data
- */
-#define PARSER_DEBUG_VERBOSE
-
-
 
 namespace Isf
 {
@@ -45,8 +38,9 @@ namespace Isf
  * When you add a new stroke to the drawing the instance becomes non-NULL.
  */
 Drawing::Drawing()
-  : isNull_( true ),
-    parserError_( ISF_ERROR_NONE )
+  : isNull_( true )
+  , maxGuid_( 0 )
+  , parserError_( ISF_ERROR_NONE )
 {
 }
 
@@ -107,7 +101,7 @@ Drawing Drawing::fromIsfData( const QByteArray &rawData )
       {
         // step 1: read ISF version.
         quint8 version = Compress::decodeUInt( isfData );
-#ifdef PARSER_DEBUG_VERBOSE
+#ifdef ISF_DEBUG_VERBOSE
         qDebug() << "Got version" << version;
 #endif
         if ( version != SUPPORTED_ISF_VERSION )
@@ -163,233 +157,239 @@ Drawing Drawing::fromIsfData( const QByteArray &rawData )
         switch( tagIndex )
         {
           case TAG_INK_SPACE_RECT:
-#ifdef PARSER_DEBUG_VERBOSE
-              qWarning() << "Got tag: TAG_INK_SPACE_RECT";
+#ifdef ISF_DEBUG_VERBOSE
+            qWarning() << "Got tag: TAG_INK_SPACE_RECT";
 #endif
-              // TODO
-              break;
+            result = Tags::parseUnsupported( isfData, "TAG_INK_SPACE_RECT" );
+            break;
 
           case TAG_GUID_TABLE:
-#ifdef PARSER_DEBUG_VERBOSE
-              qDebug() << "Got tag: TAG_GUID_TABLE";
+#ifdef ISF_DEBUG_VERBOSE
+            qDebug() << "Got tag: TAG_GUID_TABLE";
 #endif
-              result = Tags::parseGuidTable( isfData );
-              break;
+            result = Tags::parseGuidTable( isfData, drawing.maxGuid_ );
+            break;
 
           case TAG_DRAW_ATTRS_TABLE:
-#ifdef PARSER_DEBUG_VERBOSE
-              qDebug() << "Got tag: TAG_DRAW_ATTRS_TABLE";
+#ifdef ISF_DEBUG_VERBOSE
+            qDebug() << "Got tag: TAG_DRAW_ATTRS_TABLE";
 #endif
-              // err = getDrawAttrsTable ();
-              break;
+            result = Tags::parseUnsupported( isfData, "TAG_DRAW_ATTRS_TABLE" );
+            break;
 
           case TAG_DRAW_ATTRS_BLOCK:
-#ifdef PARSER_DEBUG_VERBOSE
-              qDebug() << "Got tag: TAG_DRAW_ATTRS_BLOCK";
+#ifdef ISF_DEBUG_VERBOSE
+            qDebug() << "Got tag: TAG_DRAW_ATTRS_BLOCK";
 #endif
-              // err = getDrawAttrsBlock ();
-              break;
+            result = Tags::parseUnsupported( isfData, "TAG_DRAW_ATTRS_BLOCK" );
+            break;
 
           case TAG_STROKE_DESC_TABLE:
-#ifdef PARSER_DEBUG_VERBOSE
-              qWarning() << "Got tag: TAG_STROKE_DESC_TABLE";
+#ifdef ISF_DEBUG_VERBOSE
+            qWarning() << "Got tag: TAG_STROKE_DESC_TABLE";
 #endif
-              // TODO
-              break;
+            result = Tags::parseUnsupported( isfData, "TAG_STROKE_DESC_TABLE" );
+            break;
 
           case TAG_STROKE_DESC_BLOCK:
-#ifdef PARSER_DEBUG_VERBOSE
-              qDebug() << "Got tag: TAG_STROKE_DESC_BLOCK";
+#ifdef ISF_DEBUG_VERBOSE
+            qDebug() << "Got tag: TAG_STROKE_DESC_BLOCK";
 #endif
-              // err = getStrokeDescBlock ();
-              break;
+            result = Tags::parseUnsupported( isfData, "TAG_STROKE_DESC_BLOCK" );
+            break;
 
           case TAG_BUTTONS:
-#ifdef PARSER_DEBUG_VERBOSE
-              qWarning() << "Got tag: TAG_BUTTONS";
+#ifdef ISF_DEBUG_VERBOSE
+            qWarning() << "Got tag: TAG_BUTTONS";
 #endif
-              // TODO
-              break;
+            result = Tags::parseUnsupported( isfData, "TAG_BUTTONS" );
+            break;
 
           case TAG_NO_X:
-#ifdef PARSER_DEBUG_VERBOSE
-              qWarning() << "Got tag: TAG_NO_X";
+#ifdef ISF_DEBUG_VERBOSE
+            qWarning() << "Got tag: TAG_NO_X";
 #endif
-              // TODO
-              break;
+            result = Tags::parseUnsupported( isfData, "TAG_NO_X" );
+            break;
 
           case TAG_NO_Y:
-#ifdef PARSER_DEBUG_VERBOSE
-              qWarning() << "Got tag: TAG_NO_Y";
+#ifdef ISF_DEBUG_VERBOSE
+            qWarning() << "Got tag: TAG_NO_Y";
 #endif
-              // TODO
-              break;
+            result = Tags::parseUnsupported( isfData, "TAG_NO_Y" );
+            break;
 
           case TAG_DIDX:
-#ifdef PARSER_DEBUG_VERBOSE
-              qDebug() << "Got tag: TAG_DIDX";
+#ifdef ISF_DEBUG_VERBOSE
+            qDebug() << "Got tag: TAG_DIDX";
 #endif
-              // err = getDIDX ();
-              break;
+            result = Tags::parseUnsupported( isfData, "TAG_DIDX" );
+            break;
 
           case TAG_STROKE:
-#ifdef PARSER_DEBUG_VERBOSE
-              qDebug() << "Got tag: TAG_STROKE";
+#ifdef ISF_DEBUG_VERBOSE
+            qDebug() << "Got tag: TAG_STROKE";
 #endif
-              // err = getStroke ();
-              break;
+            result = Tags::parseUnsupported( isfData, "TAG_STROKE" );
+            break;
 
           case TAG_STROKE_PROPERTY_LIST:
-#ifdef PARSER_DEBUG_VERBOSE
-              qWarning() << "Got tag: TAG_STROKE_PROPERTY_LIST";
+#ifdef ISF_DEBUG_VERBOSE
+            qWarning() << "Got tag: TAG_STROKE_PROPERTY_LIST";
 #endif
-              // TODO
-              break;
+            result = Tags::parseUnsupported( isfData, "TAG_STROKE_PROPERTY_LIST" );
+            break;
 
           case TAG_POINT_PROPERTY:
-#ifdef PARSER_DEBUG_VERBOSE
-              qWarning() << "Got tag: TAG_POINT_PROPERTY";
+#ifdef ISF_DEBUG_VERBOSE
+            qWarning() << "Got tag: TAG_POINT_PROPERTY";
 #endif
-              // TODO
-              break;
+            result = Tags::parseUnsupported( isfData, "TAG_POINT_PROPERTY" );
+            break;
 
           case TAG_SIDX:
-#ifdef PARSER_DEBUG_VERBOSE
-              qWarning() << "Got tag: TAG_SIDX";
+#ifdef ISF_DEBUG_VERBOSE
+            qWarning() << "Got tag: TAG_SIDX";
 #endif
-              // TODO
-              break;
+            result = Tags::parseUnsupported( isfData, "TAG_SIDX" );
+            break;
 
           case TAG_COMPRESSION_HEADER:
-#ifdef PARSER_DEBUG_VERBOSE
-              qWarning() << "Got tag: TAG_COMPRESSION_HEADER";
+#ifdef ISF_DEBUG_VERBOSE
+            qWarning() << "Got tag: TAG_COMPRESSION_HEADER";
 #endif
-              // TODO
-              break;
+            result = Tags::parseUnsupported( isfData, "TAG_COMPRESSION_HEADER" );
+            break;
 
           case TAG_TRANSFORM_TABLE:
-#ifdef PARSER_DEBUG_VERBOSE
-              qDebug() << "Got tag: TAG_TRANSFORM_TABLE";
+#ifdef ISF_DEBUG_VERBOSE
+            qDebug() << "Got tag: TAG_TRANSFORM_TABLE";
 #endif
-              // err = getTransformTable ();
-              break;
+            result = Tags::parseUnsupported( isfData, "TAG_TRANSFORM_TABLE" );
+            break;
 
           case TAG_TRANSFORM:
-#ifdef PARSER_DEBUG_VERBOSE
-              qDebug() << "Got tag: TAG_TRANSFORM";
+#ifdef ISF_DEBUG_VERBOSE
+            qDebug() << "Got tag: TAG_TRANSFORM";
 #endif
-              // err = getTransform ();
-              break;
+            result = Tags::parseUnsupported( isfData, "TAG_TRANSFORM" );
+            break;
 
           case TAG_TRANSFORM_ISOTROPIC_SCALE:
-#ifdef PARSER_DEBUG_VERBOSE
-              qDebug() << "Got tag: TAG_TRANSFORM_ISOTROPIC_SCALE";
+#ifdef ISF_DEBUG_VERBOSE
+            qDebug() << "Got tag: TAG_TRANSFORM_ISOTROPIC_SCALE";
 #endif
-              // err = getTransformIsotropicScale ();
-              break;
+            result = Tags::parseUnsupported( isfData, "TAG_TRANSFORM_ISOTROPIC_SCALE" );
+            break;
 
           case TAG_TRANSFORM_ANISOTROPIC_SCALE:
-#ifdef PARSER_DEBUG_VERBOSE
-              qDebug() << "Got tag: TAG_TRANSFORM_ANISOTROPIC_SCALE";
+#ifdef ISF_DEBUG_VERBOSE
+            qDebug() << "Got tag: TAG_TRANSFORM_ANISOTROPIC_SCALE";
 #endif
-              // err = getTransformAnisotropicScale ();
-              break;
+            result = Tags::parseUnsupported( isfData, "TAG_TRANSFORM_ANISOTROPIC_SCALE" );
+            break;
 
           case TAG_TRANSFORM_ROTATE:
-#ifdef PARSER_DEBUG_VERBOSE
-              qDebug() << "Got tag: TAG_TRANSFORM_ROTATE";
+#ifdef ISF_DEBUG_VERBOSE
+            qDebug() << "Got tag: TAG_TRANSFORM_ROTATE";
 #endif
-              // err = getTransformRotate ();
-              break;
+            result = Tags::parseUnsupported( isfData, "TAG_TRANSFORM_ROTATE" );
+            break;
 
           case TAG_TRANSFORM_TRANSLATE:
-#ifdef PARSER_DEBUG_VERBOSE
-              qDebug() << "Got tag: TAG_TRANSFORM_TRANSLATE";
+#ifdef ISF_DEBUG_VERBOSE
+            qDebug() << "Got tag: TAG_TRANSFORM_TRANSLATE";
 #endif
-              // err = getTransformTranslate ();
-              break;
+            result = Tags::parseUnsupported( isfData, "TAG_TRANSFORM_TRANSLATE" );
+            break;
 
           case TAG_TRANSFORM_SCALE_AND_TRANSLATE:
-#ifdef PARSER_DEBUG_VERBOSE
-              qDebug() << "Got tag: TAG_TRANSFORM_SCALE_AND_TRANSLATE";
+#ifdef ISF_DEBUG_VERBOSE
+            qDebug() << "Got tag: TAG_TRANSFORM_SCALE_AND_TRANSLATE";
 #endif
-              // err = getTransformScaleAndTranslate ();
-              break;
+            result = Tags::parseUnsupported( isfData, "TAG_TRANSFORM_SCALE_AND_TRANSLATE" );
+            break;
 
           case TAG_TRANSFORM_QUAD:
-#ifdef PARSER_DEBUG_VERBOSE
-              qWarning() << "Got tag: TAG_TRANSFORM_QUAD";
+#ifdef ISF_DEBUG_VERBOSE
+            qWarning() << "Got tag: TAG_TRANSFORM_QUAD";
 #endif
-              // TODO
-              break;
+            result = Tags::parseUnsupported( isfData, "TAG_TRANSFORM_QUAD" );
+            break;
 
           case TAG_TIDX:
-#ifdef PARSER_DEBUG_VERBOSE
-              qDebug() << "Got tag: TAG_TIDX";
+#ifdef ISF_DEBUG_VERBOSE
+            qDebug() << "Got tag: TAG_TIDX";
 #endif
-              // err = getTIDX ();
-              break;
+            result = Tags::parseUnsupported( isfData, "TAG_TIDX" );
+            break;
 
           case TAG_METRIC_TABLE:
-#ifdef PARSER_DEBUG_VERBOSE
-              qWarning() << "Got tag: TAG_METRIC_TABLE";
+#ifdef ISF_DEBUG_VERBOSE
+            qWarning() << "Got tag: TAG_METRIC_TABLE";
 #endif
-              // TODO
-              break;
+            result = Tags::parseUnsupported( isfData, "TAG_METRIC_TABLE" );
+            break;
 
           case TAG_METRIC_BLOCK:
-#ifdef PARSER_DEBUG_VERBOSE
-              qDebug() << "Got tag: TAG_METRIC_BLOCK";
+#ifdef ISF_DEBUG_VERBOSE
+            qDebug() << "Got tag: TAG_METRIC_BLOCK";
 #endif
-              // err = getMetricBlock ();
-              break;
+            result = Tags::parseUnsupported( isfData, "TAG_METRIC_BLOCK" );
+            break;
 
           case TAG_MIDX:
-#ifdef PARSER_DEBUG_VERBOSE
-              qWarning() << "Got tag: TAG_MIDX";
+#ifdef ISF_DEBUG_VERBOSE
+            qWarning() << "Got tag: TAG_MIDX";
 #endif
-              // TODO
-              break;
+            result = Tags::parseUnsupported( isfData, "TAG_MIDX" );
+            break;
 
           case TAG_MANTISSA:
-#ifdef PARSER_DEBUG_VERBOSE
-              qWarning() << "Got tag: TAG_MANTISSA";
+#ifdef ISF_DEBUG_VERBOSE
+            qWarning() << "Got tag: TAG_MANTISSA";
 #endif
-              // TODO
-              break;
+            result = Tags::parseUnsupported( isfData, "TAG_MANTISSA" );
+            break;
 
           case TAG_PERSISTENT_FORMAT:
-#ifdef PARSER_DEBUG_VERBOSE
-              qDebug() << "Got tag: TAG_PERSISTENT_FORMAT";
+#ifdef ISF_DEBUG_VERBOSE
+            qDebug() << "Got tag: TAG_PERSISTENT_FORMAT";
 #endif
-              result = Tags::parsePersistentFormat( isfData );
-              break;
+            result = Tags::parsePersistentFormat( isfData );
+            break;
 
           case TAG_HIMETRIC_SIZE:
-#ifdef PARSER_DEBUG_VERBOSE
-              qDebug() << "Got tag: TAG_HIMETRIC_SIZE";
+#ifdef ISF_DEBUG_VERBOSE
+            qDebug() << "Got tag: TAG_HIMETRIC_SIZE";
 #endif
-              // err = getHimetricSize ();
-              break;
+            result = Tags::parseUnsupported( isfData, "TAG_HIMETRIC_SIZE" );
+            break;
 
           case TAG_STROKE_IDS:
-#ifdef PARSER_DEBUG_VERBOSE
-              qDebug() << "Got tag: TAG_STROKE_IDS";
+#ifdef ISF_DEBUG_VERBOSE
+            qDebug() << "Got tag: TAG_STROKE_IDS";
 #endif
-              // err = getStrokeIds ();
-              break;
+            result = Tags::parseUnsupported( isfData, "TAG_STROKE_IDS" );
+            break;
 
           default:
-#ifdef PARSER_DEBUG_VERBOSE
-              qWarning() << "got unknown tag" << tagIndex;
-#endif
+            // If the tag *should* be known, record it differently
+            if( drawing.maxGuid_ > 0 && tagIndex >= 100 && tagIndex <= drawing.maxGuid_ )
+            {
+              Tags::analyzePayload( isfData, "TAG_GUID_" + QString::number( tagIndex ) );
+              //  err = getProperty (pDecISF, tag);
+            }
+            else
+            {
               Tags::analyzePayload( isfData, "Unknown " + QString::number( tagIndex ) );
-              break;
+            }
+            break;
         }
 
         if( result != ISF_ERROR_NONE )
         {
-#ifdef PARSER_DEBUG_VERBOSE
+#ifdef ISF_DEBUG_VERBOSE
           qWarning() << "Error in last operation, stopping";
 #endif
           state = ISF_PARSER_FINISH;

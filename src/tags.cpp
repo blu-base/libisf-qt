@@ -34,11 +34,30 @@ namespace Isf
 
 
 
-    /// Read the table of GUIDs from the data
-    IsfError parseGuidTable( IsfData &source )
+    /// Read away an unsupported tag
+    IsfError parseUnsupported( IsfData &source, const QString &tagName )
     {
-      // Unknown content
+      // Unsupported content
+#ifdef ISF_DEBUG_VERBOSE
+      analyzePayload( source, tagName );
+#endif
+      return ISF_ERROR_NONE;
+    }
+
+
+
+    /// Read the table of GUIDs from the data
+    IsfError parseGuidTable( IsfData &source, quint64 &maxGuid )
+    {
+      quint64 value = Isf::Compress::decodeUInt( source );
+
+      // GUIDs are 16 bytes long
+      maxGuid = 99 + value / 16;
+
+      // The rest of the payload is unknown
+#ifdef ISF_DEBUG_VERBOSE
       analyzePayload( source, "GUID Table" );
+#endif
       return ISF_ERROR_NONE;
     }
 
@@ -48,7 +67,9 @@ namespace Isf
     IsfError parsePersistentFormat( IsfData &source )
     {
       // Unknown content
+#ifdef ISF_DEBUG_VERBOSE
       analyzePayload( source, "Persistent Format" );
+#endif
       return ISF_ERROR_NONE;
     }
 
@@ -57,18 +78,19 @@ namespace Isf
     // Print the payload of an unknown tag
     void analyzePayload( IsfData &source, const QString &tagName )
     {
-      qint64 payloadSize = Isf::Compress::decodeUInt( source );
+      quint64 payloadSize = Isf::Compress::decodeUInt( source );
 
       if( payloadSize == 0 )
       {
-        qWarning() << "Got empty payload for tag" << tagName << "!";
         return;
       }
 
-      qint64 pos = 0;
+
+      quint64 pos = 0;
       QByteArray output;
 
-      qDebug() << "------------ Payload contents for tag" << tagName << "------------";
+      qDebug() << "Got tag: " << tagName << "with" << payloadSize << "bytes of payload";
+      qDebug() << "--------------------------------------------------------------------";
       while( ! source.atEnd() && pos < payloadSize )
       {
         quint8 byte = source.getByte();
@@ -88,8 +110,10 @@ namespace Isf
         qDebug() << output;
       }
 
-      qDebug() << "------------ Payload contents for tag" << tagName << "------------";
+      qDebug() << "--------------------------------------------------------------------";
     }
+
+
 
   }
 }

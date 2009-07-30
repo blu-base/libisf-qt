@@ -11,6 +11,7 @@
  * Completed Gorilla decompression support.
  * Started tag parsing work, made basic analysis methods.
  * Made the ParserError enum (now IsfError) the library's error enumeration system.
+ * Continued a bit the tag parsing work, added a couple tags and another testfile.
 
 2009-07-08 (Adam)
  * Make decode(UInt|Int) take a reference as a position parameter. This

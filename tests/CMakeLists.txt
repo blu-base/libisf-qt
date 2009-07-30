@@ -16,7 +16,8 @@ add_multiple_tests(
 )
 
 # copy ISF test data over.
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test.isf ${CMAKE_CURRENT_BINARY_DIR}/test.isf COPYONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test1.isf ${CMAKE_CURRENT_BINARY_DIR}/test1.isf COPYONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test2.isf ${CMAKE_CURRENT_BINARY_DIR}/test2.isf COPYONLY)
 
 #set(libisfTest_SRCS libisfTest.cpp)
 #qt4_automoc(${libisfTest_SRCS})

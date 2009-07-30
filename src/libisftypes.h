@@ -30,6 +30,14 @@
 #include <QSizeF>
 #include <QtGlobal>
 
+
+/**
+ * Uncomment this define to enable debugging output
+ */
+#define ISF_DEBUG_VERBOSE
+
+
+
 namespace Isf
 {
 

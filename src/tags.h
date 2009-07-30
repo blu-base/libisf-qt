@@ -45,15 +45,17 @@ namespace Isf
 
 
     /// Read the table of GUIDs from the data
-    IsfError parseGuidTable( IsfData &source );
+    IsfError parseGuidTable( IsfData &source, quint64 &maxGuid );
     /// Read payload: Persistent Format
     IsfError parsePersistentFormat( IsfData &source );
 
 
     // Debugging methods
 
+    /// Read away an unsupported tag
+    IsfError parseUnsupported( IsfData &source, const QString &tagName );
     // Print the payload of an unknown tag
-    void analyzePayload( IsfData &source, const QString &tagName );
+    void     analyzePayload( IsfData &source, const QString &tagName );
 
   }
 }

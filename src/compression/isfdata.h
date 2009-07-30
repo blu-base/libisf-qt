@@ -82,6 +82,7 @@ namespace Isf
         // Move a byte from the buffer into the bit array
         void        moveByteToBitArray();
 
+
       private: // Private properties
 
         // Main data buffer
