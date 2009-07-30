@@ -24,12 +24,15 @@
 
 #include <QDebug>
 
-using namespace Isf;
+
 
 namespace Isf
 {
   namespace Compress
   {
+
+
+
     // Decompress data autodetecting the algorithm to use
     bool deflate( IsfData &source, quint32 &length, QByteArray &decodedData )
     {
@@ -66,7 +69,4 @@ namespace Isf
 
 
   }
-
-
-
 };

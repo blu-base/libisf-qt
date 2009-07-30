@@ -14,7 +14,6 @@ OUTSTANDING
 - Parse ISF data from WLM.
 - Huffman codec:
     - Encoding
-    - Decoding
 - Gorilla codec:
     - Encoding
     - Decoding
@@ -23,3 +22,5 @@ OUTSTANDING
 DONE
 ----
 - Multibyte encoding/decoding (DONE)
+- Huffman codec:
+    - Decoding

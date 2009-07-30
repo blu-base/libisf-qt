@@ -83,11 +83,11 @@ class IsfDrawing
     // last parser error.
     IsfParserError       parserError() const;
 
-    
+
     /**** STATIC METHODS ****/
   public:
     // builds an ISF drawing object from raw ISF data.
-    static IsfDrawing      fromIsfData(const QByteArray &data);
+    static IsfDrawing      fromIsfData( const QByteArray &rawData );
 
     /***** MEMBER VARIABLES ****/
   private:

@@ -28,11 +28,23 @@ namespace Isf
 {
   namespace Compress
   {
-    // Constructor
-    IsfData::IsfData( QByteArray &data )
+
+
+    // Constructor with no initial data
+    IsfData::IsfData()
     : currentBitIndex_( 0 )
     {
-      buffer_.setBuffer( &data );
+      buffer_.open( QBuffer::ReadWrite );
+
+      currentByte_.resize( 8 );
+    }
+
+    // Constructor
+    IsfData::IsfData( const QByteArray &data )
+    : currentBitIndex_( 0 )
+    {
+      buffer_.setData( data );
+      buffer_.open( QBuffer::ReadWrite );
 
       currentByte_.resize( 8 );
 
@@ -49,7 +61,81 @@ namespace Isf
 
 
 
-    /// Retrieve the index of the current bit
+    // Insert a byte at the end of the data
+    void IsfData::append( char byte )
+    {
+      bool wasEmpty = ( buffer_.size() == 0 );
+      qint64 oldPosition = wasEmpty ? 0 : buffer_.pos();
+
+      if( buffer_.write( &byte, 1 ) != 1 )
+      {
+        qWarning() << "IsfData::append() - Write failed at buffer position" << buffer_.pos();
+
+        buffer_.seek( oldPosition );
+        return;
+      }
+
+      buffer_.seek( oldPosition );
+
+      // Prepare the first byte to be read
+      if( wasEmpty )
+      {
+        moveByteToBitArray();
+      }
+    }
+
+
+
+    // Insert bytes at the end of the data
+    void IsfData::append( const QByteArray &bytes )
+    {
+      bool wasEmpty = ( buffer_.size() == 0 );
+      qint64 oldPosition = wasEmpty ? 0 : buffer_.pos();
+
+      if( buffer_.write( bytes ) != bytes.size() )
+      {
+        qWarning() << "IsfData::append() - Write of" << bytes.size() << "bytes failed at buffer position" << buffer_.pos();
+
+        buffer_.seek( oldPosition );
+        return;
+      }
+
+      buffer_.seek( oldPosition );
+
+      // Prepare the first byte to be read
+      if( wasEmpty )
+      {
+        moveByteToBitArray();
+      }
+    }
+
+
+
+    // Get whether the buffer is finished
+    bool IsfData::atEnd() const
+    {
+      return buffer_.atEnd();
+    }
+
+
+
+    // Clear the data buffer
+    void IsfData::clear()
+    {
+      buffer_.close();
+      buffer_.setData( QByteArray() );
+      buffer_.open( QIODevice::ReadWrite );
+      buffer_.seek( 0 );
+
+      currentBitIndex_ = 0;
+
+      currentByte_.clear();
+      currentByte_.resize( 8 );
+    }
+
+
+
+    // Retrieve the index of the current bit
     quint8 IsfData::getBitIndex()
     {
       return currentBitIndex_;
@@ -57,7 +143,7 @@ namespace Isf
 
 
 
-    /// Retrieve the next bit from the data
+    // Retrieve the next bit from the data
     bool IsfData::getBit()
     {
       if( currentBitIndex_ >= 8 )
@@ -70,7 +156,7 @@ namespace Isf
 
 
 
-    /// Retrieve the next <amount> bits from the data
+    // Retrieve the next <amount> bits from the data
     quint32 IsfData::getBits( quint8 amount )
     {
       quint8 pos = 0;
@@ -86,7 +172,7 @@ namespace Isf
 
 
 
-    /// Retrieve the next byte from the data
+    // Retrieve the next byte from the data
     char IsfData::getByte()
     {
       quint8 pos = 0;
@@ -102,7 +188,7 @@ namespace Isf
 
 
 
-    // Move a byte into the bit array
+    // Move a byte from the buffer into the bit array
     void IsfData::moveByteToBitArray()
     {
       char byte = 0;
@@ -123,10 +209,42 @@ namespace Isf
 
 
 
-    /// Go back one byte in the stream
+    // Get the current position within the data
+    qint64 IsfData::pos() const
+    {
+      return buffer_.pos();
+    }
+
+
+
+    // Go back one byte in the stream
     void IsfData::seekByteBack()
     {
       buffer_.seek( -1 );
+    }
+
+
+
+    // Replace the data array with another
+    void IsfData::setData( const QByteArray &data )
+    {
+      buffer_.close();
+      buffer_.setData( data );
+      buffer_.open( QIODevice::ReadWrite );
+      buffer_.seek( 0 );
+
+      currentBitIndex_ = 0;
+
+      // Move the first byte from the new data in the bit array
+      moveByteToBitArray();
+    }
+
+
+
+    // Get the size of the data
+    qint64 IsfData::size() const
+    {
+      return buffer_.size();
     }
 
 

@@ -19,12 +19,12 @@
  ***************************************************************************/
 
 #include "isfdrawing.h"
+#include "compression/isfdata.h"
 #include "multibytecoding.h"
 
 #include <QtDebug>
 
-// FORWARD DECLARATONS
-class QByteArray;
+
 
 namespace Isf
 {
@@ -70,32 +70,32 @@ IsfParserError IsfDrawing::parserError() const
  * @param isfData Raw ISF data to interpret.
  * @return A new IsfDrawing object representing the data.
  */
-IsfDrawing IsfDrawing::fromIsfData(const QByteArray &isfData)
+IsfDrawing IsfDrawing::fromIsfData( const QByteArray &rawData )
 {
-  int byteIndex;
   IsfDrawing drawing;
-  
-  if ( isfData.size() == 0 )
+  Compress::IsfData isfData( rawData );
+
+  int size = isfData.size();
+
+  if ( size == 0 )
   {
     drawing.isNull_ = true;
     return drawing;
   }
-  
+
   // let's start by assuming that the data is valid.
   drawing.isNull_ = false;
-  
-  byteIndex = 0;
-  int size = isfData.size();
+
   IsfParserState state = ISF_PARSER_START;
-  
-  while ( ( byteIndex < size ) && ( state != ISF_PARSER_FINISH ) )
+
+  while ( ( ! isfData.atEnd() ) && ( state != ISF_PARSER_FINISH ) )
   {
     switch ( state )
     {
       case ISF_PARSER_START:
       {
         // step 1: read ISF version.
-        quint8 version = decodeUInt(isfData, byteIndex);
+        quint8 version = Compress::decodeUInt( isfData );
         if ( version != SUPPORTED_ISF_VERSION )
         {
           drawing.parserError_ = ISF_ERROR_BAD_VERSION;
@@ -107,17 +107,17 @@ IsfDrawing IsfDrawing::fromIsfData(const QByteArray &isfData)
           // version is OK. find ISF stream size next.
           state = ISF_PARSER_STREAMSIZE;
         }
-        
+
         break;
       }
-      
+
       case ISF_PARSER_STREAMSIZE:
       {
         // read ISF stream size.
         // check it matches the length of the data array.
-        quint64 streamSize = decodeUInt( isfData, byteIndex );
-        
-        if ( streamSize != ( isfData.size() - byteIndex ) )
+        quint64 streamSize = Compress::decodeUInt( isfData );
+
+        if ( streamSize != ( isfData.size() - isfData.pos() ) )
         {
           // streamsize is bad.
           drawing.parserError_ = ISF_ERROR_BAD_STREAMSIZE;
@@ -129,28 +129,28 @@ IsfDrawing IsfDrawing::fromIsfData(const QByteArray &isfData)
           // start looking for ISF tags.
           state = ISF_PARSER_TAG;
         }
-        
+
         break;
       }
-      
+
       // ******************
       // This is the key point of the state machine. This will continually loop looking for ISF
       // tags and farming off to the appropriate method.
       // *******************
       case ISF_PARSER_TAG:
       {
-        quint8 tagIdx = decodeUInt( isfData, byteIndex );
+        quint8 tagIdx = Compress::decodeUInt( isfData );
         if ( tagIdx == TAG_GUID_TABLE )
         {
           qDebug() << "FOUND GUID TABLE";
         }
         state = ISF_PARSER_FINISH;
       }
-      
+
       break;
     }
   }
-  
+
   return drawing;
 }
 

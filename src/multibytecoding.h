@@ -24,38 +24,48 @@
 #ifndef MULTIBYTECODING_H
 #define MULTIBYTECODING_H
 
+#include "compression/isfdata.h"
+
 #include <QByteArray>
 
 
 
 namespace Isf
 {
-  /**
-   * Encodes a multibyte unsigned integer into a 64-bit value.
-   */
-  QByteArray encodeUInt( quint64 value );
+  namespace Compress
+  {
 
 
 
-  /**
-   * Decodes a multibyte unsigned integer into a quint64.
-   */
-  quint64 decodeUInt( const QByteArray &bytes, int &pos );
+    /**
+     * Decodes a multibyte unsigned integer into a quint64.
+     */
+    quint64 decodeUInt( IsfData &source );
 
 
 
-  /**
-   * Decodes a multibyte signed integer into a qint64.
-   */
-  qint64 decodeInt( const QByteArray &bytes, int &pos );
+    /**
+     * Decodes a multibyte signed integer into a qint64.
+     */
+    qint64 decodeInt( IsfData &source );
 
 
-  
-  /**
-   * Encode a signed integer into a multibyte representation.
-   */
-  QByteArray encodeInt( qint64 value );
 
+    /**
+     * Encodes a multibyte unsigned integer into a 64-bit value.
+     */
+    QByteArray encodeUInt( quint64 value );
+
+
+
+    /**
+     * Encode a signed integer into a multibyte representation.
+     */
+    QByteArray encodeInt( qint64 value );
+
+
+
+  }
 }
 
 #endif

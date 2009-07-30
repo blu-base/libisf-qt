@@ -1,3 +1,11 @@
+
+2009-07-30 (Valerio)
+ * Added IsfData class to read and write bit-by-bit an array of bytes.
+ * Changed all the code to use it instead of plain QByteArrays.
+ * Completed huffman decompression support.
+ * Added algorithm data to help writing gorilla decompression.
+ * Added tests for the IsfData class.
+
 2009-07-08 (Adam)
  * Make decode(UInt|Int) take a reference as a position parameter. This
    reference is then incremented as the integer is decoded.

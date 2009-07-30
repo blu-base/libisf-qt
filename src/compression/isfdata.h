@@ -34,13 +34,35 @@ namespace Isf
     class IsfData
     {
 
-      public: // Public methods
 
-        /// Constructor
-                    IsfData( QByteArray &data );
+      public: // Constructors
+
+        /// Constructor with no initial data
+                    IsfData();
+        /// Constructor with initial data buffer
+                    IsfData( const QByteArray &data );
         /// Destructor
                    ~IsfData();
 
+
+      public: // Public status retrieval methods
+
+        /// Get whether the buffer is finished
+        bool        atEnd() const;
+        /// Get the current position within the data
+        qint64      pos() const;
+        /// Get the size of the data
+        qint64      size() const;
+
+
+      public: // Public data manipulation methods
+
+        /// Insert a byte at the end of the data
+        void        append( char byte );
+        /// Insert bytes at the end of the data
+        void        append( const QByteArray &bytes );
+        /// Clear the data buffer
+        void        clear();
         /// Retrieve the next bit from the data
         bool        getBit();
         /// Retrieve the next <amount> bits from the data
@@ -49,14 +71,16 @@ namespace Isf
         quint8      getBitIndex();
         /// Retrieve the next byte from the data
         char        getByte();
+        /// Replace the data array with another
+        void        setData( const QByteArray &data );
         /// Go back one byte in the stream
         void        seekByteBack();
 
 
       private: // Private methods
 
-        // Move a byte into the bit array
-        void       moveByteToBitArray();
+        // Move a byte from the buffer into the bit array
+        void        moveByteToBitArray();
 
       private: // Private properties
 
