@@ -24,7 +24,7 @@ Q_OBJECT
   public:
     TestIsfDrawing();
     QByteArray readTestIsfData(const QString &file);
-    
+
   private slots:
     void emptyConstructor_NullDrawing();
     void invalidVersion_NullDrawing();

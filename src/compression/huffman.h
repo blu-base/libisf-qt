@@ -30,9 +30,9 @@ namespace Isf
   namespace Compress
   {
     /// Compress data using the Huffman algorithm
-    bool deflateHuffman( IsfData &source, quint32 &length, QByteArray &encodedData );
+    bool deflateHuffman( IsfData &source, quint8 length, QByteArray &encodedData );
     /// Decompress data using the Huffman algorithm
-    bool inflateHuffman( IsfData &source, quint32 &length, QByteArray &decodedData );
+    bool inflateHuffman( IsfData &source, quint8 length, QByteArray &decodedData );
   }
 }
 

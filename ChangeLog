@@ -5,6 +5,9 @@
  * Completed huffman decompression support.
  * Added algorithm data to help writing gorilla decompression.
  * Added tests for the IsfData class.
+ * Added tag recognization.
+ * Fixed some IsfData bugs.
+ * Changed default CMake build type to debugfull.
 
 2009-07-08 (Adam)
  * Make decode(UInt|Int) take a reference as a position parameter. This

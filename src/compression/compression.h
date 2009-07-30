@@ -32,13 +32,19 @@ namespace Isf
    */
   enum Algorithm
   {
-    Huffman = 0x00    /// Adaptive Huffman compression
-  , Gorilla = 0x80    /// Gorilla compression
+    MaskByte = 0xC0   /// Mask byte used to identify the used algorithm
+  , Huffman  = 0x80   /// Adaptive Huffman compression
+  , Gorilla  = 0x00   /// Gorilla compression
   };
 
 
 
   /// Mask byte used to identify the used algorithm
+  enum Flags
+  {
+    BlockSizeFlag      = 0x1F   /// Find the block size of a packet
+  , TransformationFlag = 0x20   /// Gorilla compressed data requires an extra transformation
+  };
 
 
 

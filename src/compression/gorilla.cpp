@@ -32,16 +32,21 @@ namespace Isf
 
 
     // Compress data using the Gorilla algorithm
-    bool deflateGorilla( IsfData &source, quint32 &length, QByteArray &encodedData )
+    bool deflateGorilla( IsfData &source, quint8 length, QByteArray &encodedData )
     {
+      Q_UNUSED( length );
+      Q_UNUSED( encodedData );
       return true;
     }
 
 
 
     // Decompress data using the Gorilla algorithm
-    bool inflateGorilla( IsfData &source, quint32 &length, QByteArray &decodedData )
+    bool inflateGorilla( IsfData &source, quint8 length, QByteArray &decodedData )
     {
+      Q_UNUSED( source );
+      Q_UNUSED( length );
+      Q_UNUSED( decodedData );
 /*
  * \param length number of packets to read                              *
  * \param blockSize    size of each data block                                *

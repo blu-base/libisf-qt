@@ -23,6 +23,13 @@
 #include <QDebug>
 
 
+/**
+ * Uncomment to get a ton of debugging messages about
+ * data reading and writing
+ */
+#define ISFDATA_DEBUG_VERBOSE
+
+
 
 namespace Isf
 {
@@ -45,6 +52,7 @@ namespace Isf
     {
       buffer_.setData( data );
       buffer_.open( QBuffer::ReadWrite );
+      buffer_.seek( 0 );
 
       currentByte_.resize( 8 );
 
@@ -107,6 +115,7 @@ namespace Isf
       {
         moveByteToBitArray();
       }
+
     }
 
 
@@ -114,7 +123,9 @@ namespace Isf
     // Get whether the buffer is finished
     bool IsfData::atEnd() const
     {
-      return buffer_.atEnd();
+      // There's no more data only when both the buffer AND all the bits
+      // have been read
+      return buffer_.atEnd() && ( currentBitIndex_ >= 7 );
     }
 
 
@@ -193,6 +204,14 @@ namespace Isf
     {
       char byte = 0;
 
+      if( buffer_.size() == 0 )
+      {
+        qWarning() << "IsfData:moveByteToBitArray() - The buffer is empty!";
+        currentByte_.clear();
+        currentBitIndex_ = 0;
+        return;
+      }
+
       if( buffer_.read( &byte, 1 ) != 1 )
       {
         qWarning() << "IsfData::moveByteToBitArray() - Read failed at buffer position" << buffer_.pos();
@@ -220,7 +239,15 @@ namespace Isf
     // Go back one byte in the stream
     void IsfData::seekByteBack()
     {
-      buffer_.seek( -1 );
+      if( buffer_.pos() == 0 )
+      {
+#ifdef ISFDATA_DEBUG_VERBOSE
+        qWarning() << "Cannot seek back!";
+#endif
+        return;
+      }
+
+      buffer_.seek( buffer_.pos() - 1 );
     }
 
 

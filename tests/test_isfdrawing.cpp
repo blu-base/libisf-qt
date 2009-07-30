@@ -25,33 +25,43 @@
 
 using namespace Isf;
 
+
+
 TestIsfDrawing::TestIsfDrawing()
 {
 }
 
+
+
 void TestIsfDrawing::emptyConstructor_NullDrawing()
 {
-  IsfDrawing doc;
+  Drawing doc;
   QCOMPARE(doc.isNull(), true);
 }
 
-// invalid ISF version numbers should return a null IsfDrawing
+
+
+// invalid ISF version numbers should return a null Drawing
 void TestIsfDrawing::invalidVersion_NullDrawing()
 {
   QByteArray data;
   data.append(0x0B);  // isf version 11 - invalid.
-  
-  IsfDrawing drawing = IsfDrawing::fromIsfData(data);
-  QCOMPARE(drawing.isNull(), true);
-  QCOMPARE(drawing.parserError(), ISF_ERROR_BAD_VERSION);
+
+  Drawing drawing = Drawing::fromIsfData( data );
+  QCOMPARE( drawing.isNull(), true );
+  QVERIFY( drawing.parserError() == ISF_ERROR_BAD_VERSION );
 }
+
+
 
 // by default the parser error should be ISF_ERROR_NONE
 void TestIsfDrawing::parserErrorNoneByDefault()
 {
-  IsfDrawing drawing;
+  Drawing drawing;
   QCOMPARE(drawing.parserError(), ISF_ERROR_NONE);
 }
+
+
 
 // an invalid stream size should give a null drawing.
 void TestIsfDrawing::invalidStreamSize_NullDrawing()
@@ -59,20 +69,24 @@ void TestIsfDrawing::invalidStreamSize_NullDrawing()
   QByteArray data;
   data.append((char)0x00);  // ISF version 1.0.
   data.append(0x01);  // stream size of 1 byte, but only 3 bytes of data.
-  
-  IsfDrawing drawing = IsfDrawing::fromIsfData(data);
+
+  Drawing drawing = Drawing::fromIsfData(data);
   QCOMPARE(drawing.isNull(), true);
   QCOMPARE(drawing.parserError(), ISF_ERROR_BAD_STREAMSIZE);
 }
+
+
 
 // valid ISF test data should generate a non-null
 // drawing with the appropriate number of strokes.
 void TestIsfDrawing::parseValidRawIsfData()
 {
   QByteArray data = readTestIsfData("tests/test.isf");
-  IsfDrawing drawing = IsfDrawing::fromIsfData(data);
+  Drawing drawing = Drawing::fromIsfData(data);
   QCOMPARE(drawing.isNull(), false);
 }
+
+
 
 // read some test raw ISF data from a file on the filesystem and
 // return it as a QByteArray.
@@ -84,18 +98,22 @@ QByteArray TestIsfDrawing::readTestIsfData( const QString &filename )
     qWarning() << "Test ISF file" << filename << "does not exist.";
     return QByteArray();
   }
-  
+
   // read file and convert to qbytearray.
   if ( !file.open( QIODevice::ReadOnly ) )
   {
     qWarning() << "Failed to open ISF data file" << filename;
     return QByteArray();
   }
-  
+
   QByteArray data = file.readAll();
   return data;
 }
 
+
+
 QTEST_MAIN(TestIsfDrawing)
+
+
 
 #include "test_isfdrawing.moc"

@@ -37,18 +37,29 @@ namespace Isf
     bool deflate( IsfData &source, quint32 &length, QByteArray &decodedData )
     {
       char byte = source.getByte();
+      char algorithm      = ( byte & MaskByte );
+      char needsTransform = ( byte & TransformationFlag );
+      char blockSize      = ( byte & BlockSizeFlag );
 
-      switch( byte )
+      switch( algorithm )
       {
         case Gorilla:
-          return deflateGorilla( source, length, decodedData );
+          if( needsTransform )
+          {
+#ifdef LIBISF_DEBUG
+            qDebug() << "Required gorilla transformation!";
+#endif
+            return false;
+          }
+
+          return deflateGorilla( source, blockSize, decodedData );
 
         case Huffman:
-          return deflateHuffman( source, length, decodedData );
+          return deflateHuffman( source, blockSize, decodedData );
 
         default:
 #ifdef LIBISF_DEBUG
-          qDebug() << "Encoding algorithm not recognized! (byte:" << byte << ")";
+          qDebug() << "Encoding algorithm not recognized! (byte:" << algorithm << ")";
 #endif
           // Go back to the previous read position
           source.seekByteBack();
