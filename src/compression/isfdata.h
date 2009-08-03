@@ -47,8 +47,9 @@ namespace Isf
 
       public: // Public status retrieval methods
 
-        /// Get whether the buffer is finished
-        bool        atEnd() const;
+        /// Get whether the buffer is finished (use considerBits
+        /// to also check whether there are more bits to read or not)
+        bool        atEnd( bool considerBits = false ) const;
         /// Get the current position within the data
         qint64      pos() const;
         /// Get the size of the data
@@ -66,15 +67,19 @@ namespace Isf
         /// Retrieve the next bit from the data
         bool        getBit();
         /// Retrieve the next <amount> bits from the data
-        quint32     getBits( quint8 amount );
+        quint64     getBits( quint8 amount );
         /// Retrieve the index of the current bit
         quint8      getBitIndex();
         /// Retrieve the next byte from the data
         char        getByte();
+        /// Retrieve the next <amount> bytes from the data
+        QByteArray  getBytes( quint8 amount );
         /// Replace the data array with another
         void        setData( const QByteArray &data );
-        /// Go back one byte in the stream
-        void        seekByteBack();
+        /// Seek back and forth in the stream
+        void        seekRelative( int pos );
+        /// Skip the rest of the current byte
+        void        skipToNextByte();
 
 
       private: // Private methods

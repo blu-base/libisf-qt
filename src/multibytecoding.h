@@ -52,6 +52,13 @@ namespace Isf
 
 
     /**
+     * Decodes a float.
+     */
+    float decodeFloat( IsfData &source );
+
+
+
+    /**
      * Encodes a multibyte unsigned integer into a 64-bit value.
      */
     QByteArray encodeUInt( quint64 value );

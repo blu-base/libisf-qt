@@ -18,6 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include "../libisftypes.h"
 #include "compression.h"
 #include "gorilla.h"
 #include "huffman.h"
@@ -34,46 +35,67 @@ namespace Isf
 
 
     // Decompress data autodetecting the algorithm to use
-    bool deflate( IsfData &source, quint32 length, QByteArray &decodedData )
+    bool inflate( IsfData &source, quint64 length, QList<qint64> &decodedData )
     {
-      char byte = source.getByte();
-      char algorithm      = ( byte & MaskByte );
-      char needsTransform = ( byte & TransformationFlag );
-      char blockSize      = ( byte & BlockSizeFlag );
+      uchar      byte           = source.getByte();
+      uchar      algorithm      = ( byte & MaskByte );
+      uchar      needsTransform = ( byte & TransformationFlag );
+      quint8     blockSize      = ( byte & BlockSizeFlag );
+
+      if( blockSize == 0 )
+      {
+#ifdef ISF_DEBUG_VERBOSE
+        qDebug() << "Block size reset";
+#endif
+        blockSize = 32;
+      }
+
 
       switch( algorithm )
       {
         case Gorilla:
           if( needsTransform )
           {
-#ifdef LIBISF_DEBUG
+#ifdef ISF_DEBUG_VERBOSE
             qDebug() << "Required gorilla transformation!";
 #endif
             return false;
           }
 
-          return deflateGorilla( source, length, blockSize, decodedData );
+#ifdef ISF_DEBUG_VERBOSE
+          qDebug() << "Inflating" << length << "bytes using the gorilla algorithm and block size" << blockSize << ".";
+#endif
+
+          return inflateGorilla( source, length, blockSize, decodedData );
 
         case Huffman:
-          return deflateHuffman( source, length, blockSize, decodedData );
+#ifdef ISF_DEBUG_VERBOSE
+          qDebug() << "Inflating" << length << "bytes using the Huffman algorithm and block size" << blockSize << ".";
+#endif
+
+          return inflateHuffman( source, length, blockSize, decodedData );
 
         default:
-#ifdef LIBISF_DEBUG
-          qDebug() << "Encoding algorithm not recognized! (byte:" << algorithm << ")";
+#ifdef ISF_DEBUG_VERBOSE
+          qDebug() << "Decoding algorithm not recognized! (byte:" << algorithm << ")";
 #endif
           // Go back to the previous read position
-          source.seekByteBack();
+          source.seekRelative( -1 );
           return false;
       }
 
-      return true;
+      return false;
     }
 
 
 
     // Compress data autodetecting the algorithm to use
-    bool inflate( IsfData &source, quint32 length, QByteArray &encodedData )
+    bool deflate( IsfData &source, quint64 length, QList<qint64> &encodedData )
     {
+      Q_UNUSED( source );
+      Q_UNUSED( length );
+      Q_UNUSED( encodedData );
+
       return true;
     }
 

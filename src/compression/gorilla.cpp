@@ -18,7 +18,10 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include "../libisftypes.h"
 #include "gorilla.h"
+
+#include <math.h>
 
 #include <QDebug>
 
@@ -32,51 +35,53 @@ namespace Isf
 
 
     // Compress data using the Gorilla algorithm
-    bool deflateGorilla( IsfData &source, quint32 length, quint8 blockSize, QByteArray &encodedData )
+    bool deflateGorilla( IsfData &source, quint64 length, quint8 blockSize, QList<qint64> &encodedData )
     {
+      Q_UNUSED( source );
       Q_UNUSED( length );
+      Q_UNUSED( blockSize );
       Q_UNUSED( encodedData );
+
       return true;
     }
 
 
 
     // Decompress data using the Gorilla algorithm
-    bool inflateGorilla( IsfData &source, quint32 length, quint8 blockSize, QByteArray &decodedData )
+    bool inflateGorilla( IsfData &source, quint64 length, quint8 blockSize, QList<qint64> &decodedData )
     {
-      Q_UNUSED( source );
-      Q_UNUSED( length );
-      Q_UNUSED( decodedData );
-
       if( blockSize > 64 )
       {
         qWarning() << "A block size of" << blockSize << "is too high!";
-        blockSize = 64; // Fuck it!
+        blockSize = 64; // Fuck it :P
       }
 
-      quint32 pos = 0;
-      quint64 signMask = 0XFFFFFFFFFFFFFFFFLL << ( blockSize - 1 );
-
-      while( ! source.atEnd() && pos < length )
+      if( source.atEnd() )
       {
-        quint8 valuePos = 0;
-        quint64 value = 0;
+        qWarning() << "Cannot inflate: no more bits available!";
+        return true;
+      }
 
-        while( ! source.atEnd() && valuePos < blockSize )
-        {
-          value |= ( source.getBit() << valuePos++ );
-        }
+      qint64  value;
+      quint32 index    = 0;
+      quint64 signMask = (quint64)( 0xFFFFFFFF * pow( 2, blockSize - 1 ) ) & 0xFFFFFFFF;
 
-        // If the maks matches, ths sign bit is set, so ORing value and mask will
+      while( index++ < length )
+      {
+        value = source.getBits( blockSize );
+
+        // If the mask matches, the sign bit is set, so ORing value and mask will
         // set all leftmost bits to 1, making it a real 64bit signed integer
         if( value & signMask )
         {
           value |= signMask;
         }
 
-        source.append( QByteArray( (char*)&value, sizeof(quint64) ) );
-        pos++;
+        decodedData.append( value );
       }
+
+      // Discard any partially read bytes
+      source.skipToNextByte();
 
       return true;
     }

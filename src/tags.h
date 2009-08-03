@@ -23,6 +23,8 @@
 
 #include "libisftypes.h"
 
+#include <QMap>
+#include <QTransform>
 #include <QString>
 
 
@@ -40,14 +42,37 @@ namespace Isf
 
 
 
+  /**
+   * The methods in this namespace can parse the ISF tags data.
+   *
+   * @author Valerio Pilo (valerio@kmess.org)
+   */
   namespace Tags
   {
 
 
     /// Read the table of GUIDs from the data
     IsfError parseGuidTable( IsfData &source, quint64 &maxGuid );
+    /// Read the drawing dimensions
+    IsfError parseHiMetricSize( IsfData &source, QSize &size );
+    /// Read the ink canvas dimensions
+    IsfError parseInkSpaceRectangle( IsfData &source, QRect &rect );
+    /// Read a block of points attributes
+    IsfError parseAttributeBlock( IsfData &source, QList<PointInfo> &attributes, int blockIndex = 0 );
+    /// Read a table of points attributes
+    IsfError parseAttributeTable( IsfData &source, QList<PointInfo> &attributes );
     /// Read payload: Persistent Format
     IsfError parsePersistentFormat( IsfData &source );
+    /// Read payload: Metric Block
+    IsfError parseMetricBlock( IsfData &source );
+    /// Read payload: Metric Table
+    IsfError parseMetricTable( IsfData &source );
+    /// Read a drawing transformation matrix
+    IsfError parseTransformation( IsfData &source, QMap<DataTag,QTransform> transforms, DataTag transformType );
+    /// Read a table of transformation matrices
+    IsfError parseTransformationTable( IsfData &source, QMap<DataTag,QTransform> transforms );
+    /// Read a stroke
+    IsfError parseStroke( IsfData &source, QList<Stroke> &strokes );
 
 
     // Debugging methods
@@ -56,6 +81,8 @@ namespace Isf
     IsfError parseUnsupported( IsfData &source, const QString &tagName );
     // Print the payload of an unknown tag
     void     analyzePayload( IsfData &source, const QString &tagName );
+    // Print the payload of an unknown tag
+    void     analyzePayload( IsfData &source, const quint64 payloadSize, const QString &message );
 
   }
 }

@@ -24,6 +24,9 @@
 
 #include "libisftypes.h"
 
+#include <QMap>
+#include <QTransform>
+
 
 // Forward declarations
 class QByteArray;
@@ -61,6 +64,7 @@ namespace Isf
    * This class loads ISF (Ink Serialized Format) drawings.
    *
    * @author Adam Goossens (adam@kmess.org)
+   * @author Valerio Pilo (valerio@kmess.org)
    */
   class Drawing
   {
@@ -74,6 +78,8 @@ namespace Isf
 
       /// Constructor
       Drawing();
+      /// Convert the ISF drawing into a pixmap
+      QPixmap              getPixmap();
 
 
     public: // Public static methods
@@ -90,14 +96,34 @@ namespace Isf
       static Drawing       fromIsfData( const QByteArray &rawData );
 
 
+    private: // Private static methods
+
+      /// Parse a single ISF tag
+      static IsfError      parseTag( Drawing &drawing, IsfData &isfData, DataTag tag );
+
+
     private: // Private properties
 
+      // List of attributes of the points in the drawing
+      QList<PointInfo>      attributes_;
+      // Virtual drawing canvas dimensions
+      QRect                 canvas_;
+      // Whether the drawing contains X coordinates or not
+      bool                  hasXData_;
+      // Whether the drawing contains Y coordinates or not
+      bool                  hasYData_;
       // Whether the drawing is invalid or valid
-      bool                 isNull_;
+      bool                  isNull_;
+      // List of strokes composing this drawing
+      QList<Stroke>         strokes_;
+      // Transformation matrices
+      QMap<DataTag,QTransform> transforms_;
       // Maximum GUID available in the drawing
-      quint64              maxGuid_;
+      quint64               maxGuid_;
       // Parser error (if there is one)
-      IsfError             parserError_;
+      IsfError              parserError_;
+      // Pixel size of the drawing
+      QSize                 size_;
 
   };
 

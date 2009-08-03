@@ -13,7 +13,7 @@ set ( libisf_sources
 
 add_library( isf-qt SHARED  ${libisf_sources} )
 
-target_link_libraries( isf-qt ${QT_QTCORE_LIBRARY} )
+target_link_libraries( isf-qt ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} )
 
 set_target_properties( isf-qt PROPERTIES
                               VERSION ${LIBISFQT_VERSION}

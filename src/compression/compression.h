@@ -54,9 +54,9 @@ namespace Isf
   namespace Compress
   {
     /// Decompress data autodetecting the algorithm to use
-    bool deflate( IsfData &source, quint32 length, QByteArray &decodedData );
+    bool inflate( IsfData &source, quint64 length, QList<qint64> &decodedData );
     /// Compress data autodetecting the algorithm to use
-    bool inflate( IsfData &source, quint32 length, QByteArray &encodedData );
+    bool deflate( IsfData &source, quint64 length, QList<qint64> &decodedData );
   }
 }
 

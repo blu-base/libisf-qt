@@ -18,6 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include "../libisftypes.h"
 #include "huffman.h"
 
 #include <math.h>
@@ -60,7 +61,7 @@ namespace Isf
 
 
     // Compress data using the Adaptive-Huffman algorithm
-    bool deflateHuffman( IsfData &source, quint32 length, quint8 index, QByteArray &encodedData )
+    bool deflateHuffman( IsfData &source, quint64 length, quint8 index, QList<qint64> &encodedData )
     {
       Q_UNUSED( source );
       Q_UNUSED( length );
@@ -72,34 +73,44 @@ namespace Isf
 
 
     // Decompress data using the Huffman algorithm
-    bool inflateHuffman( IsfData &source, quint32 length, quint8 index, QByteArray &decodedData )
+    bool inflateHuffman( IsfData &source, quint64 length, quint8 index, QList<qint64> &decodedData )
     {
-      QVector<int> huffmanBases( HUFFMAN_BASE_SIZE );
+      QVector<int> huffmanBases;
       QVector<int> bitAmounts( HUFFMAN_BASE_SIZE );
 
       // Initialize the bit amounts vector
       memcpy( bitAmounts.data(), bitAmounts_[ index ], sizeof(int)*HUFFMAN_BASE_SIZE );
 
       int base = 1;
-      huffmanBases << 0;
+      huffmanBases.append( 0 );
 
       // Fill up the huffman bases vector
-      foreach( int value, bitAmounts )
+      for( quint8 i = 0; i < bitAmounts.size(); ++i )
       {
+        int value = bitAmounts[ i ];
+
+        // The bit amounts sequence ends in -1
+        if( value == -1 )
+        {
+          bitAmounts.resize( i );
+          break;
+        }
+
         if( value == 0 )
         {
           continue;
         }
 
-        huffmanBases << base;
+        huffmanBases.append( base );
         base += pow( 2, value - 1 );
       }
 
+
       quint32 count = 0;
-      int value;
+      qint64 value = 0;
       bool bit;
 
-      while( decodedData.size() < length )
+      while( decodedData.length() < length )
       {
         bit = source.getBit();
 
@@ -115,33 +126,33 @@ namespace Isf
         }
         else if( count < bitAmounts.size() )
         {
-          quint32 offset = source.getBits( bitAmounts[ count ] );
+          quint64 offset = source.getBits( bitAmounts[ count ] );
           bool sign = offset & 0x1;
           offset /= 2;
           value = huffmanBases[ count ] + offset;
-          value *= sign ? -1 : +1;
+          value *= ( sign ? -1 : +1 );
         }
         else if( count == bitAmounts.size() )
         {
           // TODO: Implement 64-bit data decompression :)
-#ifdef LIBISF_DEBUG
+#ifdef ISF_DEBUG_VERBOSE
           qDebug() << "Unsupported 64-bit value found!";
 #endif
           value = 0;
         }
         else
         {
-#ifdef LIBISF_DEBUG
+#ifdef ISF_DEBUG_VERBOSE
           qDebug() << "Decompression error!";
 #endif
           value = 0;
         }
 
         decodedData.append( value );
+        count = 0;
       }
 
-      // Delta-delta inverse transformation
-
+      // Perform the delta-delta inverse transformation on the values
       int previousDelta = 0, currentDelta = 0;
       for( int i = 0; i < decodedData.size(); ++i )
       {
@@ -151,6 +162,9 @@ namespace Isf
 
         decodedData[ i ] = delta;
       }
+
+      // Discard any partially read bytes
+      source.skipToNextByte();
 
       return true;
     }

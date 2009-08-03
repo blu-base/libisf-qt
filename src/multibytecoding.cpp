@@ -57,16 +57,50 @@ namespace Isf
     {
       qint64 value = decodeUInt( source );
 
-      bool isNegative = ( value & 1 );
-
-      value >>= 1;
-
-      if( isNegative )
+      if( value & 1 )
       {
         value *= -1;
       }
 
+      value >>= 1;
+
       return value;
+    }
+
+
+
+    // Decodes a float.
+    float decodeFloat( IsfData &source )
+    {
+      quint8 byte;
+      qint8  index;
+
+      // Union used to decode the float transparently
+      union
+      {
+        float value;
+        uchar bytes[4];
+      } data;
+
+#if Q_BYTE_ORDER == Q_BIG_ENDIAN
+      index = 3;
+      do
+      {
+        data.bytes[ index-- ] = source.getByte();
+      }
+      while( index >= 0 );
+#else
+      index = 0;
+      do
+      {
+        data.bytes[ index++ ] = source.getByte();
+      }
+      while( index <= 3 );
+#endif
+
+      qDebug() << "Read floating point value:" << data.value;
+
+      return data.value;
     }
 
 

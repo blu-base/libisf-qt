@@ -121,11 +121,16 @@ namespace Isf
 
 
     // Get whether the buffer is finished
-    bool IsfData::atEnd() const
+    bool IsfData::atEnd( bool considerBits ) const
     {
-      // There's no more data only when both the buffer AND all the bits
-      // have been read
-      return buffer_.atEnd() && ( currentBitIndex_ >= 7 );
+      if( considerBits )
+      {
+        // There's no more data only when both the buffer AND all the bits
+        // have been read
+        return buffer_.atEnd() && ( currentBitIndex_ >= 7 );
+      }
+
+      return buffer_.atEnd();
     }
 
 
@@ -168,14 +173,29 @@ namespace Isf
 
 
     // Retrieve the next <amount> bits from the data
-    quint32 IsfData::getBits( quint8 amount )
+    quint64 IsfData::getBits( quint8 amount )
     {
-      quint8 pos = 0;
-      quint32 value = 0;
-
-      while( pos < amount )
+      if( amount > 64 )
       {
-        value |= ( getBit() << pos++ );
+        qWarning() << "IsfData:getBits() - Cannot retrieve" << amount << "bits, the maximum is 64 bits!";
+        return 0;
+      }
+
+      quint8 bitIndex = 0;
+      quint64 value = 0;
+
+      while( ! atEnd( true ) && bitIndex < amount )
+      {
+        if( getBit() )
+        {
+#if Q_BYTE_ORDER == Q_BIG_ENDIAN
+          value |= 1 << bitIndex;
+#else
+          value |= 1 << ( amount - bitIndex - 1 );
+#endif
+        }
+
+        ++bitIndex;
       }
 
       return value;
@@ -191,7 +211,11 @@ namespace Isf
 
       while( pos < 8 )
       {
+#if Q_BYTE_ORDER == Q_BIG_ENDIAN
         byte |= ( getBit() << pos++ );
+#else
+        byte |= ( getBit() << 7 - pos++ );
+#endif
       }
 
       return byte;
@@ -199,10 +223,27 @@ namespace Isf
 
 
 
+    // Retrieve the next <amount> bytes from the data
+    QByteArray IsfData::getBytes( quint8 amount )
+    {
+      QByteArray bytes;
+      quint8     index = 0;
+
+      while( ! atEnd() && index < amount )
+      {
+        bytes.append( getByte() );
+        ++index;
+      }
+
+      return bytes;
+    }
+
+
+
     // Move a byte from the buffer into the bit array
     void IsfData::moveByteToBitArray()
     {
-      char byte = 0;
+      uchar byte = 0;
 
       if( buffer_.size() == 0 )
       {
@@ -212,15 +253,28 @@ namespace Isf
         return;
       }
 
-      if( buffer_.read( &byte, 1 ) != 1 )
+      if( buffer_.atEnd() )
+      {
+        qWarning() << "IsfData:moveByteToBitArray() - The buffer was completely parsed!";
+        currentByte_.clear();
+        currentBitIndex_ = 0;
+        return;
+      }
+
+      if( buffer_.read( (char*)&byte, 1 ) != 1 )
       {
         qWarning() << "IsfData::moveByteToBitArray() - Read failed at buffer position" << buffer_.pos();
         return;
       }
 
+
       for( qint8 i = 0; i < 8; i++ )
       {
+#if Q_BYTE_ORDER == Q_BIG_ENDIAN
         currentByte_.setBit( i, byte & ( 1 << i ) );
+#else
+        currentByte_.setBit( 7 - i, byte & ( 1 << i ) );
+#endif
       }
 
       currentBitIndex_ = 0;
@@ -236,18 +290,25 @@ namespace Isf
 
 
 
-    // Go back one byte in the stream
-    void IsfData::seekByteBack()
+    // Seek back and forth in the stream
+    void IsfData::seekRelative( int pos )
     {
-      if( buffer_.pos() == 0 )
+      if( pos < 0 && buffer_.pos() <= 0 )
       {
 #ifdef ISFDATA_DEBUG_VERBOSE
         qWarning() << "Cannot seek back!";
 #endif
         return;
       }
+      if( pos > 0 && ( buffer_.size() - buffer_.pos() ) < pos )
+      {
+#ifdef ISFDATA_DEBUG_VERBOSE
+        qWarning() << "Cannot seek forward!";
+#endif
+        return;
+      }
 
-      buffer_.seek( buffer_.pos() - 1 );
+      buffer_.seek( buffer_.pos() + pos );
     }
 
 
@@ -263,6 +324,19 @@ namespace Isf
       currentBitIndex_ = 0;
 
       // Move the first byte from the new data in the bit array
+      moveByteToBitArray();
+    }
+
+
+
+    // Skip the rest of the current byte
+    void IsfData::skipToNextByte()
+    {
+      if( currentBitIndex_ == 0 )
+      {
+        return;
+      }
+
       moveByteToBitArray();
     }
 
