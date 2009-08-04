@@ -26,6 +26,7 @@
 
 #include <QMap>
 #include <QTransform>
+#include <QPaintDevice>
 
 
 // Forward declarations
@@ -101,6 +102,17 @@ namespace Isf
       /// Parse a single ISF tag
       static IsfError      parseTag( Drawing &drawing, IsfData &isfData, DataTag tag );
 
+      // convert a value in himetric units to pixels, given a qpaintdevice.
+      inline static float  himetricToPixels( float himetric, QPaintDevice &device )
+      {
+        return ( ( (float)device.width() / (float)device.widthMM() ) * ( himetric * 0.01 ) );
+      }
+      
+      // convert a value in pixels to himetric units, given a qpaintdevice.
+      inline static float  pixelsToHimetric( float pixels, QPaintDevice &device )
+      {
+        return ( pixels / ( (float)device.width() / (float)device.widthMM() ) / 0.01 );
+      }
 
     private: // Private properties
 

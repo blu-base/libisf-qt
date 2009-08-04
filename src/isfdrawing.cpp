@@ -464,7 +464,12 @@ QPixmap Drawing::getPixmap()
   }
 
   QBrush brush( attrs.color );
-  QPen pen( brush, attrs.penSize.width()/4, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin );
+  
+  float penSizePixels = Drawing::himetricToPixels( attrs.penSize.width(), pixmap );
+  
+  qDebug() << "Pen size: HiMetric=" << attrs.penSize.width() <<", pixels=" << penSizePixels;
+
+  QPen pen( brush, penSizePixels, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin );
   painter.setPen( pen );
 
   foreach( const Stroke &stroke, strokes_ )

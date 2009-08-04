@@ -1,4 +1,6 @@
 2009-08-04 (Adam)
+ * Re-save test ISF data with official Microsoft Ink classes.
+ * Add functions to convert between HiMetric units and pixels.
  * Antialiasing whilst drawing ISF to QPixmap.
  * Fix the drawing of ISF data to QPixmap: draw the lines correctly between points.
 
