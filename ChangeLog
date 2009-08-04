@@ -32,6 +32,9 @@
  * Finally linked the drawing attributes and stroke info to the strokes' data:
    libisf-qt is now correctly decoding all tests (except test 6).
  * Fixed all compiler warnings and improved the debugging output.
+ * Fixed point rendering didn't work when points are made by a line from a point
+   to the same point.
+ * Fixed broken main parser loop, continued forever.
 
 2009-07-30 (Valerio)
  * Added IsfData class to read and write bit-by-bit an array of bytes.

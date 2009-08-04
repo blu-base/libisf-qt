@@ -81,6 +81,8 @@ using namespace Isf;
     /// Read payload: Persistent Format
     IsfError Tags::parsePersistentFormat( IsfData &source, Drawing &drawing )
     {
+      Q_UNUSED( drawing )
+
       // Unknown content
 #ifdef ISF_DEBUG_VERBOSE
       analyzePayload( source, "Persistent Format" );
@@ -333,6 +335,8 @@ using namespace Isf;
     /// Read payload: Metric Block
     IsfError Tags::parseMetricBlock( IsfData &source, Drawing &drawing )
     {
+      Q_UNUSED( drawing )
+
       quint64 payloadSize = Isf::Compress::decodeUInt( source );
 
       if( payloadSize == 0 )

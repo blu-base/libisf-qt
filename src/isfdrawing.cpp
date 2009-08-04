@@ -101,7 +101,7 @@ Drawing Drawing::fromIsfData( const QByteArray &rawData )
 
   ParserState state = ISF_PARSER_START;
 
-  while( ( ! isfData.atEnd() ) )
+  while( ( ! isfData.atEnd() ) && ( state != ISF_PARSER_FINISH ) )
   {
     switch( state )
     {
@@ -187,8 +187,10 @@ Drawing Drawing::fromIsfData( const QByteArray &rawData )
           state = ISF_PARSER_FINISH;
         }
 
+        break;
       }
 
+      // Should never arrive here! It's here only to avoid compiler warnings.
       case ISF_PARSER_FINISH:
 #ifdef ISF_DEBUG_VERBOSE
         qDebug() << "Finished";
@@ -528,7 +530,9 @@ QPixmap Drawing::getPixmap()
   pen.setJoinStyle( Qt::RoundJoin );
 
 
+#ifdef ISF_DEBUG_VERBOSE
   qDebug() << "The drawing contains" << strokes_.count() << "strokes.";
+#endif
 
   // Keep record of the currently used properties, to avoid re-setting them for each stroke
   Metrics    *currentMetrics    = 0;
@@ -567,14 +571,18 @@ QPixmap Drawing::getPixmap()
 //       painter.setWorldTransform( *currentTransform, true );
     }
 
+#ifdef ISF_DEBUG_VERBOSE
     qDebug() << "Rendering stroke" << index << "containing" << stroke.points.count() << "points...";
     qDebug() << "- Stroke color:" << currentPointInfo->color.name() << "Pen size:" << pen.widthF();
+#endif
 
     if( stroke.points.count() > 1 )
     {
       Point lastPoint;
       foreach( const Point &point, stroke.points )
       {
+//       qDebug() << "Point:" << point.position;
+
         if( lastPoint.position.isNull() )
         {
           lastPoint = point;
@@ -588,8 +596,16 @@ QPixmap Drawing::getPixmap()
 //           painter.setPen( pen );
         }
 
-//         qDebug() << "Point:" << point.position;
-        painter.drawLine( lastPoint.position, point.position );
+        // How nice of QPainter! Lines drawn from and to the same point
+        // won't be drawn at all
+        if( point.position == lastPoint.position )
+        {
+          painter.drawPoint( point.position );
+        }
+        else
+        {
+          painter.drawLine( lastPoint.position, point.position );
+        }
 
         lastPoint = point;
       }
