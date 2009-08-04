@@ -208,54 +208,54 @@ IsfError Drawing::parseTag( Drawing &drawing, IsfData &isfData, DataTag tag )
 #ifdef ISF_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_INK_SPACE_RECT";
 #endif
-      result = Tags::parseInkSpaceRectangle( isfData, drawing.canvas_ );
+      result = Tags::parseInkSpaceRectangle( isfData, drawing );
       break;
 
     case TAG_GUID_TABLE:
 #ifdef ISF_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_GUID_TABLE";
 #endif
-      result = Tags::parseGuidTable( isfData, drawing.maxGuid_ );
+      result = Tags::parseGuidTable( isfData, drawing );
       break;
 
     case TAG_DRAW_ATTRS_TABLE:
 #ifdef ISF_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_DRAW_ATTRS_TABLE";
 #endif
-      result = Tags::parseAttributeTable( isfData, drawing.attributes_ );
+      result = Tags::parseAttributeTable( isfData, drawing );
       break;
 
     case TAG_DRAW_ATTRS_BLOCK:
 #ifdef ISF_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_DRAW_ATTRS_BLOCK";
 #endif
-      result = Tags::parseAttributeBlock( isfData, drawing.attributes_ );
+      result = Tags::parseAttributeBlock( isfData, drawing );
       break;
 
     case TAG_STROKE_DESC_TABLE:
 #ifdef ISF_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_STROKE_DESC_TABLE";
 #endif
-      result = Tags::parseStrokeDescTable( isfData, drawing.strokes_, drawing.hasXData_, drawing.hasYData_, drawing.hasPressureData_  );
+      result = Tags::parseStrokeDescTable( isfData, drawing );
       break;
 
     case TAG_STROKE_DESC_BLOCK:
 #ifdef ISF_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_STROKE_DESC_BLOCK";
 #endif
-      result = Tags::parseStrokeDescBlock( isfData, drawing.strokes_, drawing.hasXData_, drawing.hasYData_, drawing.hasPressureData_ );
+      result = Tags::parseStrokeDescBlock( isfData, drawing );
       break;
 
     case TAG_BUTTONS:
 #ifdef ISF_DEBUG_VERBOSE
-      qWarning() << "Got tag: TAG_BUTTONS";
+      qDebug() << "Got tag: TAG_BUTTONS";
 #endif
       result = Tags::parseUnsupported( isfData, "TAG_BUTTONS" );
       break;
 
     case TAG_NO_X:
 #ifdef ISF_DEBUG_VERBOSE
-      qWarning() << "Got tag: TAG_NO_X";
+      qDebug() << "Got tag: TAG_NO_X";
 #endif
       result = ISF_ERROR_NONE;
 
@@ -264,7 +264,7 @@ IsfError Drawing::parseTag( Drawing &drawing, IsfData &isfData, DataTag tag )
 
     case TAG_NO_Y:
 #ifdef ISF_DEBUG_VERBOSE
-      qWarning() << "Got tag: TAG_NO_Y";
+      qDebug() << "Got tag: TAG_NO_Y";
 #endif
       drawing.hasYData_ = false;
       break;
@@ -280,33 +280,33 @@ IsfError Drawing::parseTag( Drawing &drawing, IsfData &isfData, DataTag tag )
 #ifdef ISF_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_STROKE";
 #endif
-      result = Tags::parseStroke( isfData, drawing.strokes_, drawing.attributes_, drawing.hasPressureData_ );
+      result = Tags::parseStroke( isfData, drawing );
       break;
 
     case TAG_STROKE_PROPERTY_LIST:
 #ifdef ISF_DEBUG_VERBOSE
-      qWarning() << "Got tag: TAG_STROKE_PROPERTY_LIST";
+      qDebug() << "Got tag: TAG_STROKE_PROPERTY_LIST";
 #endif
       result = Tags::parseUnsupported( isfData, "TAG_STROKE_PROPERTY_LIST" );
       break;
 
     case TAG_POINT_PROPERTY:
 #ifdef ISF_DEBUG_VERBOSE
-      qWarning() << "Got tag: TAG_POINT_PROPERTY";
+      qDebug() << "Got tag: TAG_POINT_PROPERTY";
 #endif
       result = Tags::parseUnsupported( isfData, "TAG_POINT_PROPERTY" );
       break;
 
     case TAG_SIDX:
 #ifdef ISF_DEBUG_VERBOSE
-      qWarning() << "Got tag: TAG_SIDX";
+      qDebug() << "Got tag: TAG_SIDX";
 #endif
       result = Tags::parseUnsupported( isfData, "TAG_SIDX" );
       break;
 
     case TAG_COMPRESSION_HEADER:
 #ifdef ISF_DEBUG_VERBOSE
-      qWarning() << "Got tag: TAG_COMPRESSION_HEADER";
+      qDebug() << "Got tag: TAG_COMPRESSION_HEADER";
 #endif
       result = Tags::parseUnsupported( isfData, "TAG_COMPRESSION_HEADER" );
       break;
@@ -315,56 +315,56 @@ IsfError Drawing::parseTag( Drawing &drawing, IsfData &isfData, DataTag tag )
 #ifdef ISF_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_TRANSFORM_TABLE";
 #endif
-      result = Tags::parseTransformationTable( isfData, drawing.transforms_ );
+      result = Tags::parseTransformationTable( isfData, drawing );
       break;
 
     case TAG_TRANSFORM:
 #ifdef ISF_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_TRANSFORM";
 #endif
-      result = Tags::parseTransformation( isfData, drawing.transforms_, tag );
+      result = Tags::parseTransformation( isfData, drawing, tag );
       break;
 
     case TAG_TRANSFORM_ISOTROPIC_SCALE:
 #ifdef ISF_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_TRANSFORM_ISOTROPIC_SCALE";
 #endif
-      result = Tags::parseTransformation( isfData, drawing.transforms_, tag );
+      result = Tags::parseTransformation( isfData, drawing, tag );
       break;
 
     case TAG_TRANSFORM_ANISOTROPIC_SCALE:
 #ifdef ISF_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_TRANSFORM_ANISOTROPIC_SCALE";
 #endif
-      result = Tags::parseTransformation( isfData, drawing.transforms_, tag );
+      result = Tags::parseTransformation( isfData, drawing, tag );
       break;
 
     case TAG_TRANSFORM_ROTATE:
 #ifdef ISF_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_TRANSFORM_ROTATE";
 #endif
-      result = Tags::parseTransformation( isfData, drawing.transforms_, tag );
+      result = Tags::parseTransformation( isfData, drawing, tag );
       break;
 
     case TAG_TRANSFORM_TRANSLATE:
 #ifdef ISF_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_TRANSFORM_TRANSLATE";
 #endif
-      result = Tags::parseTransformation( isfData, drawing.transforms_, tag );
+      result = Tags::parseTransformation( isfData, drawing, tag );
       break;
 
     case TAG_TRANSFORM_SCALE_AND_TRANSLATE:
 #ifdef ISF_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_TRANSFORM_SCALE_AND_TRANSLATE";
 #endif
-      result = Tags::parseTransformation( isfData, drawing.transforms_, tag );
+      result = Tags::parseTransformation( isfData, drawing, tag );
       break;
 
     case TAG_TRANSFORM_QUAD:
 #ifdef ISF_DEBUG_VERBOSE
-      qWarning() << "Got tag: TAG_TRANSFORM_QUAD";
+      qDebug() << "Got tag: TAG_TRANSFORM_QUAD";
 #endif
-      result = Tags::parseTransformation( isfData, drawing.transforms_, tag );
+      result = Tags::parseTransformation( isfData, drawing, tag );
       break;
 
     case TAG_TIDX:
@@ -376,28 +376,28 @@ IsfError Drawing::parseTag( Drawing &drawing, IsfData &isfData, DataTag tag )
 
     case TAG_METRIC_TABLE:
 #ifdef ISF_DEBUG_VERBOSE
-      qWarning() << "Got tag: TAG_METRIC_TABLE";
+      qDebug() << "Got tag: TAG_METRIC_TABLE";
 #endif
-      result = Tags::parseMetricTable( isfData );
+      result = Tags::parseMetricTable( isfData, drawing );
       break;
 
     case TAG_METRIC_BLOCK:
 #ifdef ISF_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_METRIC_BLOCK";
 #endif
-      result = Tags::parseMetricBlock( isfData );
+      result = Tags::parseMetricBlock( isfData, drawing );
       break;
 
     case TAG_MIDX:
 #ifdef ISF_DEBUG_VERBOSE
-      qWarning() << "Got tag: TAG_MIDX";
+      qDebug() << "Got tag: TAG_MIDX";
 #endif
       result = Tags::parseUnsupported( isfData, "TAG_MIDX" );
       break;
 
     case TAG_MANTISSA:
 #ifdef ISF_DEBUG_VERBOSE
-      qWarning() << "Got tag: TAG_MANTISSA";
+      qDebug() << "Got tag: TAG_MANTISSA";
 #endif
       result = Tags::parseUnsupported( isfData, "TAG_MANTISSA" );
       break;
@@ -406,14 +406,14 @@ IsfError Drawing::parseTag( Drawing &drawing, IsfData &isfData, DataTag tag )
 #ifdef ISF_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_PERSISTENT_FORMAT";
 #endif
-      result = Tags::parsePersistentFormat( isfData );
+      result = Tags::parsePersistentFormat( isfData, drawing );
       break;
 
     case TAG_HIMETRIC_SIZE:
 #ifdef ISF_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_HIMETRIC_SIZE";
 #endif
-      result = Tags::parseHiMetricSize( isfData, drawing.size_ );
+      result = Tags::parseHiMetricSize( isfData, drawing );
       break;
 
     case TAG_STROKE_IDS:
@@ -427,11 +427,11 @@ IsfError Drawing::parseTag( Drawing &drawing, IsfData &isfData, DataTag tag )
       // If the tag *should* be known, record it differently
       if( drawing.maxGuid_ > 0 && tag >= 100 && tag <= drawing.maxGuid_ )
       {
-        Tags::analyzePayload( isfData, "TAG_GUID_" + QString::number( tag ) );
+        Tags::parseUnsupported( isfData, "TAG_GUID_" + QString::number( tag ) );
       }
       else
       {
-        Tags::analyzePayload( isfData, "Unknown " + QString::number( tag ) );
+        Tags::parseUnsupported( isfData, "Unknown " + QString::number( tag ) );
       }
       break;
   }
@@ -464,9 +464,9 @@ QPixmap Drawing::getPixmap()
   }
 
   QBrush brush( attrs.color );
-  
+
   float penSizePixels = Drawing::himetricToPixels( attrs.penSize.width(), pixmap );
-  
+
   qDebug() << "Pen size: HiMetric=" << attrs.penSize.width() <<", pixels=" << penSizePixels;
 
   QPen pen( brush, penSizePixels, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin );

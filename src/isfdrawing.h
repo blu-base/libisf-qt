@@ -69,75 +69,77 @@ namespace Isf
    */
   class Drawing
   {
+    friend class Tags;
 
     public:
 
       /// Supported ISF version number
-      static const unsigned short SUPPORTED_ISF_VERSION = 0;
+      static const ushort       SUPPORTED_ISF_VERSION = 0;
 
     public:
 
       /// Constructor
-      Drawing();
+                                Drawing();
       /// Convert the ISF drawing into a pixmap
-      QPixmap              getPixmap();
+      QPixmap                   getPixmap();
 
 
     public: // Public static methods
 
       /// Return whether this is a null Drawing
-      bool                 isNull() const;
+      bool                      isNull() const;
       /// Return the last parser error
-      IsfError             parserError() const;
+      IsfError                  parserError() const;
 
 
     public: // Public static methods
 
       /// builds an ISF drawing object from raw ISF data.
-      static Drawing       fromIsfData( const QByteArray &rawData );
+      static Drawing            fromIsfData( const QByteArray &rawData );
 
 
     private: // Private static methods
 
       /// Parse a single ISF tag
-      static IsfError      parseTag( Drawing &drawing, IsfData &isfData, DataTag tag );
+      static IsfError           parseTag( Drawing &drawing, IsfData &isfData, DataTag tag );
 
       // convert a value in himetric units to pixels, given a qpaintdevice.
-      inline static float  himetricToPixels( float himetric, QPaintDevice &device )
+      inline static float       himetricToPixels( float himetric, QPaintDevice &device )
       {
         return ( ( (float)device.width() / (float)device.widthMM() ) * ( himetric * 0.01 ) );
       }
-      
+
       // convert a value in pixels to himetric units, given a qpaintdevice.
-      inline static float  pixelsToHimetric( float pixels, QPaintDevice &device )
+      inline static float       pixelsToHimetric( float pixels, QPaintDevice &device )
       {
         return ( pixels / ( (float)device.width() / (float)device.widthMM() ) / 0.01 );
       }
 
+
     private: // Private properties
 
       // List of attributes of the points in the drawing
-      QList<PointInfo>      attributes_;
+      QList<PointInfo>          attributes_;
       // Virtual drawing canvas dimensions
-      QRect                 canvas_;
-      // Whether the drawing contains X coordinates or not
-      bool                  hasXData_;
-      // Whether the drawing contains Y coordinates or not
-      bool                  hasYData_;
+      QRect                     canvas_;
       // Whether the drawing contains pressure info or not
-      bool                  hasPressureData_;
+      bool                      hasPressureData_;
+      // Whether the drawing contains X coordinates or not
+      bool                      hasXData_;
+      // Whether the drawing contains Y coordinates or not
+      bool                      hasYData_;
       // Whether the drawing is invalid or valid
-      bool                  isNull_;
-      // List of strokes composing this drawing
-      QList<Stroke>         strokes_;
-      // Transformation matrices
-      QMap<DataTag,QTransform> transforms_;
+      bool                      isNull_;
       // Maximum GUID available in the drawing
-      quint64               maxGuid_;
+      quint64                   maxGuid_;
       // Parser error (if there is one)
-      IsfError              parserError_;
+      IsfError                  parserError_;
       // Pixel size of the drawing
-      QSize                 size_;
+      QSize                     size_;
+      // List of strokes composing this drawing
+      QList<Stroke>             strokes_;
+      // Transformation matrices
+      QMap<DataTag,QTransform>  transforms_;
 
   };
 

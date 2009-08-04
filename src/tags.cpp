@@ -22,21 +22,18 @@
 
 #include "compression/compression.h"
 #include "compression/isfdata.h"
+#include "isfdrawing.h"
 #include "multibytecoding.h"
 
 #include <QDebug>
 
+using namespace Isf;
 
-
-namespace Isf
-{
-  namespace Tags
-  {
 
 
 
     /// Read away an unsupported tag
-    IsfError parseUnsupported( IsfData &source, const QString &tagName )
+    IsfError Tags::parseUnsupported( IsfData &source, const QString &tagName )
     {
       // Unsupported content
 #ifdef ISF_DEBUG_VERBOSE
@@ -48,14 +45,14 @@ namespace Isf
 
 
     /// Read the table of GUIDs from the data
-    IsfError parseGuidTable( IsfData &source, quint64 &maxGuid )
+    IsfError Tags::parseGuidTable( IsfData &source, Drawing &drawing )
     {
       quint64 guidTableSize = Isf::Compress::decodeUInt( source );
 
       // GUIDs are 16 bytes long
       quint8 numGuids = guidTableSize / 16;
       // Maximum GUID present in the file
-      maxGuid = 99 + numGuids;
+      drawing.maxGuid_ = 99 + numGuids;
 
 #ifdef ISF_DEBUG_VERBOSE
       qDebug() << "- GUID table has" << numGuids << "entries for total" << guidTableSize << "bytes:";
@@ -74,7 +71,7 @@ namespace Isf
 
 
     /// Read payload: Persistent Format
-    IsfError parsePersistentFormat( IsfData &source )
+    IsfError Tags::parsePersistentFormat( IsfData &source, Drawing &drawing )
     {
       // Unknown content
 #ifdef ISF_DEBUG_VERBOSE
@@ -86,7 +83,7 @@ namespace Isf
 
 
     /// Read the drawing dimensions
-    IsfError parseHiMetricSize( IsfData &source, QSize &size )
+    IsfError Tags::parseHiMetricSize( IsfData &source, Drawing &drawing )
     {
       quint64 payloadSize = Isf::Compress::decodeUInt( source );
 
@@ -98,13 +95,13 @@ namespace Isf
         return ISF_ERROR_INVALID_PAYLOAD;
       }
 
-      size.setWidth ( Isf::Compress::decodeInt( source ) );
-      size.setHeight( Isf::Compress::decodeInt( source ) );
+      drawing.size_.setWidth ( Isf::Compress::decodeInt( source ) );
+      drawing.size_.setHeight( Isf::Compress::decodeInt( source ) );
 
 #ifdef ISF_DEBUG_VERBOSE
-      qDebug() << "Drawing dimensions:" << size << "("
-               << (size.width()  / HiMetricToPixel) << "x"
-               << (size.height() / HiMetricToPixel) << "pixels )";
+      qDebug() << "- Drawing dimensions:" << drawing.size_ << "("
+               << (drawing.size_.width()  / HiMetricToPixel) << "x"
+               << (drawing.size_.height() / HiMetricToPixel) << "pixels )";
 #endif
 
       return ISF_ERROR_NONE;
@@ -113,7 +110,7 @@ namespace Isf
 
 
     /// Read a block of points attributes
-    IsfError parseAttributeBlock( IsfData &source, QList<PointInfo> &attributes, int blockIndex )
+    IsfError Tags::parseAttributeBlock( IsfData &source, Drawing &drawing, int blockIndex )
     {
       quint64 payloadSize = Isf::Compress::decodeUInt( source );
 
@@ -125,15 +122,11 @@ namespace Isf
       return ISF_ERROR_INVALID_PAYLOAD;
       }
 
-      if( attributes.count() >= blockIndex )
+      if( drawing.attributes_.count() >= blockIndex )
       {
-        attributes.append( PointInfo() );
+        drawing.attributes_.append( PointInfo() );
       }
-      PointInfo &attrs = attributes[ blockIndex ];
-
-#ifdef ISF_DEBUG_VERBOSE
-      qDebug() << "Drawing attributes size:" << payloadSize;
-#endif
+      PointInfo &attrs = drawing.attributes_[ blockIndex ];
 
       quint64 payloadEnd = source.pos() + payloadSize;
       while( source.pos() < payloadEnd && ! source.atEnd() )
@@ -262,7 +255,7 @@ namespace Isf
 
 
     /// Read a table of points attributes
-    IsfError parseAttributeTable( IsfData &source, QList<PointInfo> &attributes )
+    IsfError Tags::parseAttributeTable( IsfData &source, Drawing &drawing )
     {
       IsfError result = ISF_ERROR_NONE;
       quint64 payloadSize = Isf::Compress::decodeUInt( source );
@@ -278,7 +271,10 @@ namespace Isf
       quint64 payloadEnd = source.pos() + payloadSize;
       while( result == ISF_ERROR_NONE && source.pos() < payloadEnd && ! source.atEnd() )
       {
-        result = parseAttributeBlock( source, attributes );
+#ifdef ISF_DEBUG_VERBOSE
+        qDebug() << "Got tag: TAG_DRAW_ATTRS_BLOCK";
+#endif
+        result = parseAttributeBlock( source, drawing );
       }
 
       return result;
@@ -287,16 +283,16 @@ namespace Isf
 
 
     /// Read the ink canvas dimensions
-    IsfError parseInkSpaceRectangle( IsfData &source, QRect &rect )
+    IsfError Tags::parseInkSpaceRectangle( IsfData &source, Drawing &drawing )
     {
       // This tag has a fixed 4-byte size
-      rect.setLeft  ( Isf::Compress::decodeInt( source ) );
-      rect.setTop   ( Isf::Compress::decodeInt( source ) );
-      rect.setRight ( Isf::Compress::decodeInt( source ) );
-      rect.setBottom( Isf::Compress::decodeInt( source ) );
+      drawing.canvas_.setLeft  ( Isf::Compress::decodeInt( source ) );
+      drawing.canvas_.setTop   ( Isf::Compress::decodeInt( source ) );
+      drawing.canvas_.setRight ( Isf::Compress::decodeInt( source ) );
+      drawing.canvas_.setBottom( Isf::Compress::decodeInt( source ) );
 
 #ifdef ISF_DEBUG_VERBOSE
-      qDebug() << "Got drawing canvas:" << rect;
+      qDebug() << "Got drawing canvas:" << drawing.canvas_;
 #endif
 
       return ISF_ERROR_NONE;
@@ -305,7 +301,7 @@ namespace Isf
 
 
     /// Read payload: Metric Table
-    IsfError parseMetricTable( IsfData &source )
+    IsfError Tags::parseMetricTable( IsfData &source, Drawing &drawing )
     {
       IsfError result = ISF_ERROR_NONE;
       quint64 payloadSize = Isf::Compress::decodeUInt( source );
@@ -321,7 +317,7 @@ namespace Isf
       quint64 payloadEnd = source.pos() + payloadSize;
       while( result == ISF_ERROR_NONE && source.pos() < payloadEnd && ! source.atEnd() )
       {
-        result = parseMetricBlock( source );
+        result = parseMetricBlock( source, drawing );
       }
 
       return result;
@@ -330,7 +326,7 @@ namespace Isf
 
 
     /// Read payload: Metric Block
-    IsfError parseMetricBlock( IsfData &source )
+    IsfError Tags::parseMetricBlock( IsfData &source, Drawing &drawing )
     {
       quint64 payloadSize = Isf::Compress::decodeUInt( source );
 
@@ -355,7 +351,7 @@ namespace Isf
 
 
     /// Read a table of transformation matrices
-    IsfError parseTransformationTable( IsfData &source, QMap<DataTag,QTransform> transforms )
+    IsfError Tags::parseTransformationTable( IsfData &source, Drawing &drawing )
     {
       IsfError result = ISF_ERROR_NONE;
       quint64 payloadSize = Isf::Compress::decodeUInt( source );
@@ -374,7 +370,7 @@ namespace Isf
         // Read the type of the next transformation
         DataTag tagIndex = (DataTag) Compress::decodeUInt( source );
 
-        result = parseTransformation( source, transforms, tagIndex );
+        result = parseTransformation( source, drawing, tagIndex );
       }
 
       return result;
@@ -383,7 +379,7 @@ namespace Isf
 
 
     /// Read a drawing transformation matrix
-    IsfError parseTransformation( IsfData &source, QMap<DataTag,QTransform> transforms, DataTag transformType )
+    IsfError Tags::parseTransformation( IsfData &source, Drawing &drawing, DataTag transformType )
     {
       QTransform transform;
 
@@ -436,11 +432,7 @@ namespace Isf
           return ISF_ERROR_INVALID_BLOCK;
       }
 
-      transforms[ transformType ] = transform;
-
-#ifdef ISF_DEBUG_VERBOSE
-      qDebug() << "Got transformation matrix:" << transform;
-#endif
+      drawing.transforms_[ transformType ] = transform;
 
       return ISF_ERROR_NONE;
     }
@@ -448,7 +440,7 @@ namespace Isf
 
 
     /// Read a stroke
-    IsfError parseStroke( IsfData &source, QList<Stroke> &strokes, QList<PointInfo> &attributes, bool hasPressureData )
+    IsfError Tags::parseStroke( IsfData &source, Drawing &drawing )
     {
       quint64 payloadSize = Isf::Compress::decodeUInt( source );
       quint64 initialPos = source.pos();
@@ -485,7 +477,8 @@ namespace Isf
 #endif
       }
 
-      if( hasPressureData && ! Isf::Compress::inflate( source, numPoints, pressureData ) )
+      if(   drawing.hasPressureData_
+      &&  ! Isf::Compress::inflate( source, numPoints, pressureData ) )
       {
 #ifdef ISF_DEBUG_VERBOSE
         qWarning() << "Decompression failure while extracting pressure data!";
@@ -501,7 +494,7 @@ namespace Isf
 #endif
       }
 
-      if( hasPressureData && pressureData.size() != numPoints )
+      if( drawing.hasPressureData_ && pressureData.size() != numPoints )
       {
 #ifdef ISF_DEBUG_VERBOSE
         qWarning() << "The pressure data has a size of" << pressureData.size()
@@ -510,8 +503,8 @@ namespace Isf
       }
 
       // Add a new stroke
-      strokes.append( Stroke() );
-      Stroke &stroke = strokes[ strokes.size() - 1 ];
+      drawing.strokes_.append( Stroke() );
+      Stroke &stroke = drawing.strokes_[ drawing.strokes_.size() - 1 ];
 
       for( int i = 0; i < numPoints; ++i )
       {
@@ -521,12 +514,12 @@ namespace Isf
         point.position.setX( xPointsData[ i ] );
         point.position.setY( yPointsData[ i ] );
 
-        if( hasPressureData )
+        if( drawing.hasPressureData_ )
         {
           point.pressureLevel = pressureData[ i ];
         }
 
-        point.info = &attributes.last();
+        point.info = &drawing.attributes_.last();
       }
 
       qint64 remainingPayloadSize = payloadSize - ( source.pos() - initialPos );
@@ -544,7 +537,7 @@ namespace Isf
 
 
     /// Read a stroke description block
-    IsfError parseStrokeDescBlock( IsfData &source, QList<Stroke> &strokes, bool &hasXData, bool &hasYData, bool &hasPressureData )
+    IsfError Tags::parseStrokeDescBlock( IsfData &source, Drawing &drawing )
     {
       quint64 payloadSize = Isf::Compress::decodeUInt( source );
 
@@ -571,14 +564,14 @@ namespace Isf
 #ifdef ISF_DEBUG_VERBOSE
             qDebug() << "- Strokes contain no X coordinates";
 #endif
-            hasXData = false;
+            drawing.hasXData_ = false;
             break;
 
           case TAG_NO_Y:
 #ifdef ISF_DEBUG_VERBOSE
             qDebug() << "- Strokes contain no Y coordinates";
 #endif
-            hasYData = false;
+            drawing.hasYData_ = false;
             break;
 
           case TAG_BUTTONS:
@@ -597,7 +590,7 @@ namespace Isf
 #ifdef ISF_DEBUG_VERBOSE
             qDebug() << "- Packet properties list:" << QString::number( tag, 10 );
 #endif
-            hasPressureData = true;
+            drawing.hasPressureData_ = true;
             // TODO How is this list made?
 /*
             for( quint64 i = 0; i < GUID_NUM; ++i )
@@ -618,7 +611,7 @@ namespace Isf
 
 
     /// Read a stroke description table
-    IsfError parseStrokeDescTable( IsfData &source, QList<Stroke> &strokes, bool &hasXData, bool &hasYData, bool &hasPressureData )
+    IsfError Tags::parseStrokeDescTable( IsfData &source, Drawing &drawing )
     {
       IsfError result = ISF_ERROR_NONE;
       quint64 payloadSize = Isf::Compress::decodeUInt( source );
@@ -634,7 +627,7 @@ namespace Isf
       quint64 payloadEnd = source.pos() + payloadSize;
       while( result == ISF_ERROR_NONE && source.pos() < payloadEnd && ! source.atEnd() )
       {
-        result = parseStrokeDescBlock( source, strokes, hasXData, hasYData, hasPressureData );
+        result = parseStrokeDescBlock( source, drawing );
       }
 
       return result;
@@ -643,7 +636,7 @@ namespace Isf
 
 
     // Print the payload of an unknown tag
-    void analyzePayload( IsfData &source, const QString &tagName )
+    void Tags::analyzePayload( IsfData &source, const QString &tagName )
     {
       quint64 payloadSize = Isf::Compress::decodeUInt( source );
 
@@ -655,7 +648,7 @@ namespace Isf
 
 
     // Print the payload of an unknown tag
-    void analyzePayload( IsfData &source, const quint64 payloadSize, const QString &message )
+    void Tags::analyzePayload( IsfData &source, const quint64 payloadSize, const QString &message )
     {
       if( payloadSize == 0 )
       {
@@ -688,10 +681,5 @@ namespace Isf
 
       qDebug() << "--------------------------------------------------------------------";
     }
-
-
-
-  }
-}
 
 

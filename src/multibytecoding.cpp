@@ -99,8 +99,6 @@ namespace Isf
       while( index <= 3 );
 #endif
 
-      qDebug() << "Read floating point value:" << data.value;
-
       return data.value;
     }
 

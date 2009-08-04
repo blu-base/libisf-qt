@@ -45,7 +45,7 @@ namespace Isf
       if( blockSize == 0 )
       {
 #ifdef ISF_DEBUG_VERBOSE
-        qDebug() << "Block size reset";
+        qWarning() << "Block size invalid, was reset to 32";
 #endif
         blockSize = 32;
       }
@@ -57,20 +57,20 @@ namespace Isf
           if( needsTransform )
           {
 #ifdef ISF_DEBUG_VERBOSE
-            qDebug() << "Required gorilla transformation!";
+            qWarning() << "Gorilla transformation is required, aborting!";
 #endif
             return false;
           }
 
 #ifdef ISF_DEBUG_VERBOSE
-          qDebug() << "Inflating" << length << "items using the Gorilla algorithm and a block size of" << blockSize;
+          qDebug() << "- Inflating" << length << "items using the Gorilla algorithm and a block size of" << blockSize;
 #endif
 
           return inflateGorilla( source, length, blockSize, decodedData );
 
         case Huffman:
 #ifdef ISF_DEBUG_VERBOSE
-          qDebug() << "Inflating" << length << "items using the Huffman algorithm and a block size of" << blockSize;
+          qDebug() << "- Inflating" << length << "items using the Huffman algorithm and a block size of" << blockSize;
 #endif
 
           return inflateHuffman( source, length, blockSize, decodedData );
