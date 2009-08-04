@@ -20,6 +20,10 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test1.isf ${CMAKE_CURRENT_BINARY_DIR}
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test2.isf ${CMAKE_CURRENT_BINARY_DIR}/test2.isf COPYONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test3.isf ${CMAKE_CURRENT_BINARY_DIR}/test3.isf COPYONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test4.isf ${CMAKE_CURRENT_BINARY_DIR}/test4.isf COPYONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test5.isf ${CMAKE_CURRENT_BINARY_DIR}/test5.isf COPYONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test6.isf ${CMAKE_CURRENT_BINARY_DIR}/test6.isf COPYONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test7.isf ${CMAKE_CURRENT_BINARY_DIR}/test7.isf COPYONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test8.isf ${CMAKE_CURRENT_BINARY_DIR}/test8.isf COPYONLY)
 
 #set(libisfTest_SRCS libisfTest.cpp)
 #qt4_automoc(${libisfTest_SRCS})
