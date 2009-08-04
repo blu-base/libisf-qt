@@ -1,3 +1,6 @@
+2009-08-05 (Adam)
+ * Correct an issue with incorrect colours for strokes.
+
 2009-08-04 (Adam)
  * Re-save test ISF data with official Microsoft Ink classes.
  * Add functions to convert between HiMetric units and pixels.

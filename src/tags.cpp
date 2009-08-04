@@ -134,8 +134,15 @@ using namespace Isf;
 
       drawing.attributes_.append( PointInfo() );
       PointInfo &info = drawing.attributes_.last();
-      drawing.currentPointInfo_ = &info;
 
+      // set this once when we get the first DRAW_ATTRS_BLOCK. then,
+      // everytime we get a DIDX we can update it. if we don't do this
+      // then the first stroke will have the same colour as the last stroke.
+      if ( drawing.currentPointInfo_  == &drawing.defaultPointInfo_ )
+      {
+        drawing.currentPointInfo_ = &info;
+      }
+      
       qint64 payloadEnd = source.pos() + payloadSize;
       while( source.pos() < payloadEnd && ! source.atEnd() )
       {
