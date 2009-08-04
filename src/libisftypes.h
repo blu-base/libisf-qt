@@ -85,6 +85,56 @@ namespace Isf
   Q_DECLARE_FLAGS( DataTags, DataTag )
   Q_DECLARE_OPERATORS_FOR_FLAGS( DataTags )
 
+
+
+  /**
+   * List of predefined packet properties
+   */
+  enum StrokePacketProperty
+  {
+    GUID_X                      =  0
+  , GUID_Y
+  , GUID_Z
+  , GUID_PACKET_STATUS
+  , GUID_TIMER_TICK
+  , GUID_SERIAL_NUMBER
+  , GUID_NORMAL_PRESSURE
+  , GUID_TANGENT_PRESSURE
+  , GUID_BUTTON_PRESSURE        =  8
+  , GUID_X_TILT_ORIENTATION
+  , GUID_Y_TILT_ORIENTATION
+  , GUID_AZIMUTH_ORIENTATION
+  , GUID_ALTITUDE_ORIENTATION
+  , GUID_TWIST_ORIENTATION
+  , GUID_PITCH_ROTATION
+  , GUID_ROLL_ROTATION
+  , GUID_YAW_ROTATION           = 16
+  , GUID_PEN_STYLE
+  , GUID_COLORREF
+  , GUID_PEN_WIDTH
+  , GUID_PEN_HEIGHT
+  , GUID_PEN_TIP
+  , GUID_DRAWING_FLAGS
+  , GUID_CURSORID
+  , GUID_WORD_ALTERNATES        = 24
+  , GUID_CHAR_ALTERNATES
+  , GUID_INKMETRICS
+  , GUID_GUIDE_STRUCTURE
+  , GUID_TIME_STAMP
+  , GUID_LANGUAGE
+  , GUID_TRANSPARENCY
+  , GUID_CURVE_FITTING_ERROR
+  , GUID_RECO_LATTICE            = 32
+  , GUID_CURSORDOWN
+  , GUID_SECONDARYTIPSWITCH
+  , GUID_BARRELDOWN
+  , GUID_TABLETPICK
+  , GUID_ROP
+  , GUID_NUM
+  };
+  Q_DECLARE_FLAGS( StrokePacketProperties, StrokePacketProperty )
+  Q_DECLARE_OPERATORS_FOR_FLAGS( StrokePacketProperties )
+
 /*
   const GUID FAR KNOWN_GUIDS[38] =
   {
@@ -205,7 +255,7 @@ namespace Isf
     /// Pressure information
     qint64  pressureLevel;
     /// Drawing attributes structure used to display the stroke
-    PointInfo drawAttrs;
+    PointInfo *drawAttrs;
   };
 
 

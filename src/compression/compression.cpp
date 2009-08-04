@@ -63,14 +63,14 @@ namespace Isf
           }
 
 #ifdef ISF_DEBUG_VERBOSE
-          qDebug() << "Inflating" << length << "bytes using the gorilla algorithm and block size" << blockSize << ".";
+          qDebug() << "Inflating" << length << "items using the Gorilla algorithm and a block size of" << blockSize;
 #endif
 
           return inflateGorilla( source, length, blockSize, decodedData );
 
         case Huffman:
 #ifdef ISF_DEBUG_VERBOSE
-          qDebug() << "Inflating" << length << "bytes using the Huffman algorithm and block size" << blockSize << ".";
+          qDebug() << "Inflating" << length << "items using the Huffman algorithm and a block size of" << blockSize;
 #endif
 
           return inflateHuffman( source, length, blockSize, decodedData );

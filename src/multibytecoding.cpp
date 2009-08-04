@@ -20,6 +20,7 @@
 #include "multibytecoding.h"
 
 #include <QDebug>
+#include <math.h>
 
 
 
@@ -41,8 +42,8 @@ namespace Isf
       do
       {
         byte   = source.getByte();
-        flag   = byte & 0X80;
-        value |= (byte & 0X7F) << count;
+        flag   = byte & 0x80;
+        value |= (byte & 0x7F) << count;
         count += 7;
       }
       while( flag );

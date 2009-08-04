@@ -18,6 +18,8 @@
  * Added float decoding method to multibytecoding.cpp.
  * Added new test ISF files - more complex - and sorted all test ISF files by complexity.
  * Added new test application "test_decode", which displays a parsed ISF file.
+ * Added pressure data recognization.
+ * Added stroke description blocks recognization.
 
 2009-07-30 (Valerio)
  * Added IsfData class to read and write bit-by-bit an array of bytes.

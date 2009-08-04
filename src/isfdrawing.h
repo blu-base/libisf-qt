@@ -112,6 +112,8 @@ namespace Isf
       bool                  hasXData_;
       // Whether the drawing contains Y coordinates or not
       bool                  hasYData_;
+      // Whether the drawing contains pressure info or not
+      bool                  hasPressureData_;
       // Whether the drawing is invalid or valid
       bool                  isNull_;
       // List of strokes composing this drawing

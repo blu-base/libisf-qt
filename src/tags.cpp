@@ -95,7 +95,7 @@ namespace Isf
 #ifdef ISF_DEBUG_VERBOSE
         qDebug() << "Invalid payload for TAG_HIMETRIC_SIZE";
 #endif
-      return ISF_ERROR_INVALID_PAYLOAD;
+        return ISF_ERROR_INVALID_PAYLOAD;
       }
 
       size.setWidth ( Isf::Compress::decodeInt( source ) );
@@ -117,12 +117,6 @@ namespace Isf
     {
       quint64 payloadSize = Isf::Compress::decodeUInt( source );
 
-      if( attributes.count() >= blockIndex )
-      {
-        attributes.append( PointInfo() );
-      }
-      PointInfo &attrs = attributes[ blockIndex ];
-
       if( payloadSize == 0 )
       {
 #ifdef ISF_DEBUG_VERBOSE
@@ -130,6 +124,12 @@ namespace Isf
 #endif
       return ISF_ERROR_INVALID_PAYLOAD;
       }
+
+      if( attributes.count() >= blockIndex )
+      {
+        attributes.append( PointInfo() );
+      }
+      PointInfo &attrs = attributes[ blockIndex ];
 
 #ifdef ISF_DEBUG_VERBOSE
       qDebug() << "Drawing attributes size:" << payloadSize;
@@ -152,7 +152,7 @@ namespace Isf
 
           case PEN_COLOR:
           {
-            QRgb invertedColor = value;
+            QRgb invertedColor = value & 0xFFFFFF;
             // The color value is stored in BGR order, so we need to read it back inverted,
             // as QRgb stores the value in BGR order: QRgb(RRGGBB) <-- value(BBGGRR).
             // TODO: It also contains an alpha value, ignored here for now because it's unknown if
@@ -171,17 +171,17 @@ namespace Isf
             qDebug() << "- Got pen width" << QString::number( (float)value, 'g', 16 )
                      << "(" << (value/HiMetricToPixel) << "pixels )";
 #endif
-            attrs.penSize.setWidth( (float)value / HiMetricToPixel );
+            attrs.penSize.setWidth( (float)value );
 
             // In square/round pens the width will be the only value present.
-            attrs.penSize.setHeight( (float)value / HiMetricToPixel );
+            attrs.penSize.setHeight( (float)value );
             break;
 
           case PEN_HEIGHT:
 #ifdef ISF_DEBUG_VERBOSE
             qDebug() << "- Got pen height" << QString::number( (float)value, 'g', 16 );
 #endif
-            attrs.penSize.setHeight( (float)value / HiMetricToPixel );
+            attrs.penSize.setHeight( (float)value );
             break;
 
           case PEN_TIP:
@@ -272,7 +272,7 @@ namespace Isf
 #ifdef ISF_DEBUG_VERBOSE
         qDebug() << "Invalid payload for TAG_DRAW_ATTRS_TABLE";
 #endif
-      return ISF_ERROR_INVALID_PAYLOAD;
+        return ISF_ERROR_INVALID_PAYLOAD;
       }
 
       quint64 payloadEnd = source.pos() + payloadSize;
@@ -289,8 +289,6 @@ namespace Isf
     /// Read the ink canvas dimensions
     IsfError parseInkSpaceRectangle( IsfData &source, QRect &rect )
     {
-      IsfError result = ISF_ERROR_NONE;
-
       // This tag has a fixed 4-byte size
       rect.setLeft  ( Isf::Compress::decodeInt( source ) );
       rect.setTop   ( Isf::Compress::decodeInt( source ) );
@@ -317,7 +315,7 @@ namespace Isf
 #ifdef ISF_DEBUG_VERBOSE
         qDebug() << "Invalid payload for TAG_METRIC_TABLE";
 #endif
-      return ISF_ERROR_INVALID_PAYLOAD;
+        return ISF_ERROR_INVALID_PAYLOAD;
       }
 
       quint64 payloadEnd = source.pos() + payloadSize;
@@ -326,7 +324,7 @@ namespace Isf
         result = parseMetricBlock( source );
       }
 
-      return ISF_ERROR_NONE;
+      return result;
     }
 
 
@@ -341,7 +339,7 @@ namespace Isf
 #ifdef ISF_DEBUG_VERBOSE
         qDebug() << "Invalid payload for TAG_METRIC_BLOCK";
 #endif
-      return ISF_ERROR_INVALID_PAYLOAD;
+        return ISF_ERROR_INVALID_PAYLOAD;
       }
 
       // Skip it, its usefulness is lesser than making the parser to actually work :)
@@ -367,7 +365,7 @@ namespace Isf
 #ifdef ISF_DEBUG_VERBOSE
         qDebug() << "Invalid payload for TAG_TRANSFORM_TABLE";
 #endif
-      return ISF_ERROR_INVALID_PAYLOAD;
+        return ISF_ERROR_INVALID_PAYLOAD;
       }
 
       quint64 payloadEnd = source.pos() + payloadSize;
@@ -379,7 +377,7 @@ namespace Isf
         result = parseTransformation( source, transforms, tagIndex );
       }
 
-      return ISF_ERROR_NONE;
+      return result;
     }
 
 
@@ -450,18 +448,17 @@ namespace Isf
 
 
     /// Read a stroke
-    IsfError parseStroke( IsfData &source, QList<Stroke> &strokes )
+    IsfError parseStroke( IsfData &source, QList<Stroke> &strokes, QList<PointInfo> &attributes, bool hasPressureData )
     {
-      IsfError result = ISF_ERROR_NONE;
       quint64 payloadSize = Isf::Compress::decodeUInt( source );
-      quint64 pos = source.pos();
+      quint64 initialPos = source.pos();
 
       if( payloadSize == 0 )
       {
 #ifdef ISF_DEBUG_VERBOSE
         qDebug() << "Invalid payload for TAG_STROKE";
 #endif
-      return ISF_ERROR_INVALID_PAYLOAD;
+        return ISF_ERROR_INVALID_PAYLOAD;
       }
 
       // Get the number of points which comprise this stroke
@@ -471,7 +468,7 @@ namespace Isf
       qDebug() << "- Tag size:" << payloadSize << "Points stored:" << numPoints;
 #endif
 
-      QList<qint64> xPointsData, yPointsData;
+      QList<qint64> xPointsData, yPointsData, pressureData;
       if( ! Isf::Compress::inflate( source, numPoints, xPointsData ) )
       {
 #ifdef ISF_DEBUG_VERBOSE
@@ -488,11 +485,27 @@ namespace Isf
 #endif
       }
 
+      if( hasPressureData && ! Isf::Compress::inflate( source, numPoints, pressureData ) )
+      {
+#ifdef ISF_DEBUG_VERBOSE
+        qWarning() << "Decompression failure while extracting pressure data!";
+        return ISF_ERROR_INVALID_PAYLOAD;
+#endif
+      }
+
       if( xPointsData.size() != numPoints || yPointsData.size() != numPoints )
       {
 #ifdef ISF_DEBUG_VERBOSE
         qWarning() << "The points arrays have sizes x=" << xPointsData.size() << "y=" << yPointsData.size()
                    << "which do not match with the advertised size of" << numPoints;
+#endif
+      }
+
+      if( hasPressureData && pressureData.size() != numPoints )
+      {
+#ifdef ISF_DEBUG_VERBOSE
+        qWarning() << "The pressure data has a size of" << pressureData.size()
+                   << "which does not match with the advertised size of" << numPoints;
 #endif
       }
 
@@ -507,15 +520,120 @@ namespace Isf
 
         point.position.setX( xPointsData[ i ] );
         point.position.setY( yPointsData[ i ] );
-        qDebug() << "Point:" << point.position;
+
+        if( hasPressureData )
+        {
+          point.pressureLevel = pressureData[ i ];
+        }
+
+        point.drawAttrs = &attributes.last();
       }
 
-      qint64 remainingPayloadSize = payloadSize - (source.pos() - pos);
+      qint64 remainingPayloadSize = payloadSize - (source.pos() - initialPos);
       analyzePayload( source, remainingPayloadSize,
                       "Remaining stroke data: " + QString::number(remainingPayloadSize) +
                       " bytes" );
 
       return ISF_ERROR_NONE;
+    }
+
+
+
+    /// Read a stroke description block
+    IsfError parseStrokeDescBlock( IsfData &source, QList<Stroke> &strokes, bool &hasXData, bool &hasYData, bool &hasPressureData )
+    {
+      quint64 payloadSize = Isf::Compress::decodeUInt( source );
+
+      if( payloadSize == 0 )
+      {
+#ifdef ISF_DEBUG_VERBOSE
+        qDebug() << "Invalid payload for TAG_STROKE_DESC_BLOCK";
+#endif
+        return ISF_ERROR_INVALID_PAYLOAD;
+      }
+
+#ifdef ISF_DEBUG_VERBOSE
+      qDebug() << "  - Finding stroke description properties in the next" << payloadSize << "bytes";
+#endif
+
+      quint64 payloadEnd = source.pos() + payloadSize;
+      while( source.pos() < payloadEnd && ! source.atEnd() )
+      {
+        quint64 tag = Isf::Compress::decodeUInt( source );
+
+        switch( tag )
+        {
+          case TAG_NO_X:
+#ifdef ISF_DEBUG_VERBOSE
+            qDebug() << "- Strokes contain no X coordinates";
+#endif
+            hasXData = false;
+            break;
+
+          case TAG_NO_Y:
+#ifdef ISF_DEBUG_VERBOSE
+            qDebug() << "- Strokes contain no Y coordinates";
+#endif
+            hasYData = false;
+            break;
+
+          case TAG_BUTTONS:
+#ifdef ISF_DEBUG_VERBOSE
+            qDebug() << "- Buttons...";
+#endif
+            break;
+
+          case TAG_STROKE_PROPERTY_LIST:
+#ifdef ISF_DEBUG_VERBOSE
+            qDebug() << "- Property list...";
+#endif
+            break;
+
+          default: // List of Stroke packet properties present
+#ifdef ISF_DEBUG_VERBOSE
+            qDebug() << "- Packet properties list:" << QString::number( tag, 10 );
+#endif
+            hasPressureData = true;
+            // TODO How is this list made?
+/*
+            for( quint64 i = 0; i < GUID_NUM; ++i )
+            {
+              if( tag & ( 1 << i ) )
+              {
+                qDebug() << "match:" << i;
+              }
+            }
+*/
+            break;
+        }
+      }
+
+      return ISF_ERROR_NONE;
+    }
+
+
+
+    /// Read a stroke description table
+    IsfError parseStrokeDescTable( IsfData &source, QList<Stroke> &strokes, bool &hasXData, bool &hasYData, bool &hasPressureData )
+    {
+      IsfError result = ISF_ERROR_NONE;
+      quint64 payloadSize = Isf::Compress::decodeUInt( source );
+
+      if( payloadSize == 0 )
+      {
+#ifdef ISF_DEBUG_VERBOSE
+        qDebug() << "Invalid payload for TAG_STROKE_DESC_TABLE";
+#endif
+        return ISF_ERROR_INVALID_PAYLOAD;
+      }
+
+      quint64 payloadEnd = source.pos() + payloadSize;
+      while( result == ISF_ERROR_NONE && source.pos() < payloadEnd && ! source.atEnd() )
+      {
+        result = parseStrokeDescBlock( source, strokes, hasXData, hasYData, hasPressureData );
+      }
+
+      return result;
     }
 
 

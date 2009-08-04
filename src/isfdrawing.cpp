@@ -42,6 +42,7 @@ namespace Isf
 Drawing::Drawing()
   : hasXData_( true )
   , hasYData_( true )
+  , hasPressureData_( false )
   , isNull_( true )
   , maxGuid_( 0 )
   , parserError_( ISF_ERROR_NONE )
@@ -233,16 +234,16 @@ IsfError Drawing::parseTag( Drawing &drawing, IsfData &isfData, DataTag tag )
 
     case TAG_STROKE_DESC_TABLE:
 #ifdef ISF_DEBUG_VERBOSE
-      qWarning() << "Got tag: TAG_STROKE_DESC_TABLE";
+      qDebug() << "Got tag: TAG_STROKE_DESC_TABLE";
 #endif
-      result = Tags::parseUnsupported( isfData, "TAG_STROKE_DESC_TABLE" );
+      result = Tags::parseStrokeDescTable( isfData, drawing.strokes_, drawing.hasXData_, drawing.hasYData_, drawing.hasPressureData_  );
       break;
 
     case TAG_STROKE_DESC_BLOCK:
 #ifdef ISF_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_STROKE_DESC_BLOCK";
 #endif
-      result = Tags::parseUnsupported( isfData, "TAG_STROKE_DESC_BLOCK" );
+      result = Tags::parseStrokeDescBlock( isfData, drawing.strokes_, drawing.hasXData_, drawing.hasYData_, drawing.hasPressureData_ );
       break;
 
     case TAG_BUTTONS:
@@ -279,7 +280,7 @@ IsfError Drawing::parseTag( Drawing &drawing, IsfData &isfData, DataTag tag )
 #ifdef ISF_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_STROKE";
 #endif
-      result = Tags::parseStroke( isfData, drawing.strokes_ );
+      result = Tags::parseStroke( isfData, drawing.strokes_, drawing.attributes_, drawing.hasPressureData_ );
       break;
 
     case TAG_STROKE_PROPERTY_LIST:
@@ -447,21 +448,24 @@ QPixmap Drawing::getPixmap()
   QPainter painter( &pixmap );
 
   painter.setWorldMatrixEnabled( true );
+  painter.setRenderHints( QPainter::Antialiasing | QPainter::SmoothPixmapTransform |
+                          QPainter::TextAntialiasing, true );
 
   foreach( const QTransform &matrix, transforms_ )
   {
     painter.setWorldTransform( matrix, true );
   }
 
-  if( ! attributes_.first().color.isValid() )
+  PointInfo attrs = attributes_.first();
+
+  if( ! attrs.color.isValid() )
   {
-    attributes_.first().color = Qt::black;
+    attrs.color = Qt::black;
   }
 
-  QBrush brush( attributes_.first().color );
-  QPen pen( brush, attributes_.first().penSize.width(), Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin );
+  QBrush brush( attrs.color );
+  QPen pen( brush, attrs.penSize.width()/4, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin );
   painter.setPen( pen );
-  painter.setRenderHints( QPainter::Antialiasing );
 
   foreach( const Stroke &stroke, strokes_ )
   {
@@ -476,6 +480,14 @@ QPixmap Drawing::getPixmap()
           continue;
         }
 
+/*
+        if( hasPressureData_ )
+        {
+          pen.setWidth( attrs.penSize.width() * point.pressureLevel );
+          painter.setPen( pen );
+        }
+*/
+
         painter.drawLine( lastPoint.position, point.position );
 
         lastPoint = point;
@@ -483,7 +495,12 @@ QPixmap Drawing::getPixmap()
     }
     else
     {
-      painter.drawPoint( stroke.points.first().position );
+      Point point = stroke.points.first();
+      if( hasPressureData_ )
+      {
+        pen.setWidth( attrs.penSize.width() * point.pressureLevel );
+      }
+      painter.drawPoint( point.position );
     }
   }
 

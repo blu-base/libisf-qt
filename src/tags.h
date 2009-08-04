@@ -72,7 +72,11 @@ namespace Isf
     /// Read a table of transformation matrices
     IsfError parseTransformationTable( IsfData &source, QMap<DataTag,QTransform> transforms );
     /// Read a stroke
-    IsfError parseStroke( IsfData &source, QList<Stroke> &strokes );
+    IsfError parseStroke( IsfData &source, QList<Stroke> &strokes, QList<PointInfo> &attributes, bool hasPressureData );
+    /// Read a stroke description block
+    IsfError parseStrokeDescBlock( IsfData &source, QList<Stroke> &strokes, bool &hasXData, bool &hasYData, bool &hasPressureData );
+    /// Read a stroke description table
+    IsfError parseStrokeDescTable( IsfData &source, QList<Stroke> &strokes, bool &hasXData, bool &hasYData, bool &hasPressureData );
 
 
     // Debugging methods
