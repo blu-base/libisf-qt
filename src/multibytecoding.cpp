@@ -73,8 +73,7 @@ namespace Isf
     // Decodes a float.
     float decodeFloat( IsfData &source )
     {
-      quint8 byte;
-      qint8  index;
+      qint8 index;
 
       // Union used to decode the float transparently
       union

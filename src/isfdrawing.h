@@ -101,7 +101,7 @@ namespace Isf
     private: // Private static methods
 
       /// Parse a single ISF tag
-      static IsfError           parseTag( Drawing &drawing, IsfData &isfData, DataTag tag );
+      static IsfError           parseTag( Drawing &drawing, IsfData &isfData, quint64 tag );
 
       // convert a value in himetric units to pixels, given a qpaintdevice.
       inline static float       himetricToPixels( float himetric, QPaintDevice &device )

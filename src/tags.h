@@ -69,7 +69,7 @@ namespace Isf
       /// Read payload: Metric Table
       static IsfError parseMetricTable( IsfData &source, Drawing &drawing );
       /// Read a drawing transformation matrix
-      static IsfError parseTransformation( IsfData &source, Drawing &drawing, DataTag transformType );
+      static IsfError parseTransformation( IsfData &source, Drawing &drawing, quint64 transformType );
       /// Read a table of transformation matrices
       static IsfError parseTransformationTable( IsfData &source, Drawing &drawing );
       /// Read a stroke

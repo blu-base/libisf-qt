@@ -101,7 +101,7 @@ Drawing Drawing::fromIsfData( const QByteArray &rawData )
 
   ParserState state = ISF_PARSER_START;
 
-  while( ( ! isfData.atEnd() ) && ( state != ISF_PARSER_FINISH ) )
+  while( ( ! isfData.atEnd() ) )
   {
     switch( state )
     {
@@ -133,7 +133,7 @@ Drawing Drawing::fromIsfData( const QByteArray &rawData )
         // check it matches the length of the data array.
         quint64 streamSize = Compress::decodeUInt( isfData );
 
-        if ( streamSize != ( isfData.size() - isfData.pos() ) )
+        if ( streamSize != (quint64)( isfData.size() - isfData.pos() ) )
         {
 #ifdef ISF_DEBUG_VERBOSE
           qDebug() << "Invalid stream size" << streamSize
@@ -176,10 +176,8 @@ Drawing Drawing::fromIsfData( const QByteArray &rawData )
           break;
         }
 
-        IsfError result;
-        DataTag tagIndex = (DataTag) Compress::decodeUInt( isfData );
-
-        result = parseTag( drawing, isfData, tagIndex );
+        quint64 tagIndex = Compress::decodeUInt( isfData );
+        IsfError result = parseTag( drawing, isfData, tagIndex );
 
         if( result != ISF_ERROR_NONE )
         {
@@ -190,6 +188,12 @@ Drawing Drawing::fromIsfData( const QByteArray &rawData )
         }
 
       }
+
+      case ISF_PARSER_FINISH:
+#ifdef ISF_DEBUG_VERBOSE
+        qDebug() << "Finished";
+#endif
+        break;
 
       break;
     }
@@ -207,7 +211,7 @@ Drawing Drawing::fromIsfData( const QByteArray &rawData )
  *
  * @return an ISF error.
  */
-IsfError Drawing::parseTag( Drawing &drawing, IsfData &isfData, DataTag tag )
+IsfError Drawing::parseTag( Drawing &drawing, IsfData &isfData, quint64 tag )
 {
   IsfError result = ISF_ERROR_NONE;
   quint64 value;
@@ -287,7 +291,7 @@ IsfError Drawing::parseTag( Drawing &drawing, IsfData &isfData, DataTag tag )
 
       value = Isf::Compress::decodeUInt( isfData );
 
-      if( value < drawing.attributes_.count() )
+      if( value < (uint)drawing.attributes_.count() )
       {
         drawing.currentPointInfo_ = &drawing.attributes_[ value ];
 #ifdef ISF_DEBUG_VERBOSE
@@ -328,7 +332,7 @@ IsfError Drawing::parseTag( Drawing &drawing, IsfData &isfData, DataTag tag )
 
       value = Isf::Compress::decodeUInt( isfData );
 
-      if( value < drawing.strokeInfo_.count() )
+      if( value < (uint)drawing.strokeInfo_.count() )
       {
         drawing.currentStrokeInfo_ = &drawing.strokeInfo_[ value ];
 #ifdef ISF_DEBUG_VERBOSE
@@ -411,7 +415,7 @@ IsfError Drawing::parseTag( Drawing &drawing, IsfData &isfData, DataTag tag )
 
       value = Isf::Compress::decodeUInt( isfData );
 
-      if( value < drawing.transforms_.count() )
+      if( value < (uint)drawing.transforms_.count() )
       {
         drawing.currentTransform_ = &drawing.transforms_[ value ];
 #ifdef ISF_DEBUG_VERBOSE
@@ -446,7 +450,7 @@ IsfError Drawing::parseTag( Drawing &drawing, IsfData &isfData, DataTag tag )
 
       value = Isf::Compress::decodeUInt( isfData );
 
-      if( value < drawing.metrics_.count() )
+      if( value < (uint)drawing.metrics_.count() )
       {
         drawing.currentMetrics_ = &drawing.metrics_[ value ];
 #ifdef ISF_DEBUG_VERBOSE
@@ -579,7 +583,7 @@ QPixmap Drawing::getPixmap()
 
         if( currentStrokeInfo->hasPressureData )
         {
-          qDebug() << "- Ignoring pressure data...";
+          // FIXME Ignoring pressure data - need to find out how pressure must be applied
 //           pen.setWidth( pen.widthF() + point.pressureLevel );
 //           painter.setPen( pen );
         }
@@ -595,7 +599,7 @@ QPixmap Drawing::getPixmap()
       Point point = stroke.points.first();
       if( currentStrokeInfo->hasPressureData )
       {
-        qDebug() << "- Ignoring pressure data...";
+        // FIXME Ignoring pressure data - need to find out how pressure must be applied
 //         pen.setWidth( pen.widthF() + point.pressureLevel );
 //         painter.setPen( pen );
       }
@@ -610,7 +614,6 @@ QPixmap Drawing::getPixmap()
 
   painter.end();
 
-qDebug() << "Done";
   return pixmap;
 }
 

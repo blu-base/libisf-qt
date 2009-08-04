@@ -214,7 +214,7 @@ namespace Isf
 #if Q_BYTE_ORDER == Q_BIG_ENDIAN
         byte |= ( getBit() << pos++ );
 #else
-        byte |= ( getBit() << 7 - pos++ );
+        byte |= ( getBit() << ( 7 - pos++ ) );
 #endif
       }
 

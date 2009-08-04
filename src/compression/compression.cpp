@@ -37,6 +37,7 @@ namespace Isf
     // Decompress data autodetecting the algorithm to use
     bool inflate( IsfData &source, quint64 length, QList<qint64> &decodedData )
     {
+      bool       result;
       uchar      byte           = source.getByte();
       uchar      algorithm      = ( byte & MaskByte );
       uchar      needsTransform = ( byte & TransformationFlag );
@@ -66,14 +67,16 @@ namespace Isf
           qDebug() << "- Inflating" << length << "items using the Gorilla algorithm and a block size of" << blockSize;
 #endif
 
-          return inflateGorilla( source, length, blockSize, decodedData );
+          result = inflateGorilla( source, length, blockSize, decodedData );
+          break;
 
         case Huffman:
 #ifdef ISF_DEBUG_VERBOSE
           qDebug() << "- Inflating" << length << "items using the Huffman algorithm and a block size of" << blockSize;
 #endif
 
-          return inflateHuffman( source, length, blockSize, decodedData );
+          result = inflateHuffman( source, length, blockSize, decodedData );
+          break;
 
         default:
 #ifdef ISF_DEBUG_VERBOSE
@@ -84,7 +87,13 @@ namespace Isf
           return false;
       }
 
-      return false;
+      // Discard any partially read bytes
+      if( ! source.atEnd() )
+      {
+        source.skipToNextByte();
+      }
+
+      return result;
     }
 
 

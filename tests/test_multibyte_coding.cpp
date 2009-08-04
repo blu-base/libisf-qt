@@ -77,7 +77,7 @@ void TestMultibyteCoding::unsignedEncode()
   QCOMPARE(result.size(), 1);
 
   // match the value
-  QVERIFY(result.at(0) == value);
+  QVERIFY((uint)result.at(0) == value);
 
   // now test the edge case between 1 and 2 bytes for encoding:
   value = Q_UINT64_C(0x80); // dec= 128

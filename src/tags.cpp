@@ -134,7 +134,7 @@ using namespace Isf;
       PointInfo &info = drawing.attributes_.last();
       drawing.currentPointInfo_ = &info;
 
-      quint64 payloadEnd = source.pos() + payloadSize;
+      qint64 payloadEnd = source.pos() + payloadSize;
       while( source.pos() < payloadEnd && ! source.atEnd() )
       {
         // Read the tag and its value
@@ -273,7 +273,7 @@ using namespace Isf;
         return ISF_ERROR_INVALID_PAYLOAD;
       }
 
-      quint64 payloadEnd = source.pos() + payloadSize;
+      qint64 payloadEnd = source.pos() + payloadSize;
       while( result == ISF_ERROR_NONE && source.pos() < payloadEnd && ! source.atEnd() )
       {
 #ifdef ISF_DEBUG_VERBOSE
@@ -319,7 +319,7 @@ using namespace Isf;
         return ISF_ERROR_INVALID_PAYLOAD;
       }
 
-      quint64 payloadEnd = source.pos() + payloadSize;
+      qint64 payloadEnd = source.pos() + payloadSize;
       while( result == ISF_ERROR_NONE && source.pos() < payloadEnd && ! source.atEnd() )
       {
         result = parseMetricBlock( source, drawing );
@@ -369,7 +369,7 @@ using namespace Isf;
         return ISF_ERROR_INVALID_PAYLOAD;
       }
 
-      quint64 payloadEnd = source.pos() + payloadSize;
+      qint64 payloadEnd = source.pos() + payloadSize;
       while( result == ISF_ERROR_NONE && source.pos() < payloadEnd && ! source.atEnd() )
       {
         // Read the type of the next transformation
@@ -384,7 +384,7 @@ using namespace Isf;
 
 
     /// Read a drawing transformation matrix
-    IsfError Tags::parseTransformation( IsfData &source, Drawing &drawing, DataTag transformType )
+    IsfError Tags::parseTransformation( IsfData &source, Drawing &drawing, quint64 transformType )
     {
       QTransform transform;
 
@@ -492,7 +492,7 @@ using namespace Isf;
 #endif
       }
 
-      if( xPointsData.size() != numPoints || yPointsData.size() != numPoints )
+      if( (uint)xPointsData.size() != numPoints || (uint)yPointsData.size() != numPoints )
       {
 #ifdef ISF_DEBUG_VERBOSE
         qWarning() << "The points arrays have sizes x=" << xPointsData.size() << "y=" << yPointsData.size()
@@ -501,7 +501,7 @@ using namespace Isf;
       }
 
       if( drawing.currentStrokeInfo_->hasPressureData
-      &&  pressureData.size() != numPoints )
+      &&  (uint)pressureData.size() != numPoints )
       {
 #ifdef ISF_DEBUG_VERBOSE
         qWarning() << "The pressure data has a size of" << pressureData.size()
@@ -513,7 +513,7 @@ using namespace Isf;
       drawing.strokes_.append( Stroke() );
       Stroke &stroke = drawing.strokes_[ drawing.strokes_.size() - 1 ];
 
-      for( int i = 0; i < numPoints; ++i )
+      for( quint64 i = 0; i < numPoints; ++i )
       {
         stroke.points.append( Point() );
         Point &point = stroke.points[ stroke.points.size() - 1 ];
@@ -567,7 +567,7 @@ using namespace Isf;
       StrokeInfo &info = drawing.strokeInfo_.last();
       drawing.currentStrokeInfo_ = &info;
 
-      quint64 payloadEnd = source.pos() + payloadSize;
+      qint64 payloadEnd = source.pos() + payloadSize;
       while( source.pos() < payloadEnd && ! source.atEnd() )
       {
         quint64 tag = Isf::Compress::decodeUInt( source );
@@ -638,7 +638,7 @@ using namespace Isf;
         return ISF_ERROR_INVALID_PAYLOAD;
       }
 
-      quint64 payloadEnd = source.pos() + payloadSize;
+      qint64 payloadEnd = source.pos() + payloadSize;
       while( result == ISF_ERROR_NONE && source.pos() < payloadEnd && ! source.atEnd() )
       {
         result = parseStrokeDescBlock( source, drawing );

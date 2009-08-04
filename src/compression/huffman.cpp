@@ -110,7 +110,7 @@ namespace Isf
       qint64 value = 0;
       bool bit;
 
-      while( decodedData.length() < length )
+      while( (uint)decodedData.length() < length )
       {
         bit = source.getBit();
 
@@ -124,7 +124,7 @@ namespace Isf
         {
           value = 0;
         }
-        else if( count < bitAmounts.size() )
+        else if( count < (uint)bitAmounts.size() )
         {
           quint64 offset = source.getBits( bitAmounts[ count ] );
           bool sign = offset & 0x1;
@@ -132,7 +132,7 @@ namespace Isf
           value = huffmanBases[ count ] + offset;
           value *= ( sign ? -1 : +1 );
         }
-        else if( count == bitAmounts.size() )
+        else if( count == (uint)bitAmounts.size() )
         {
           // TODO: Implement 64-bit data decompression :)
 #ifdef ISF_DEBUG_VERBOSE
@@ -162,9 +162,6 @@ namespace Isf
 
         decodedData[ i ] = delta;
       }
-
-      // Discard any partially read bytes
-      source.skipToNextByte();
 
       return true;
     }

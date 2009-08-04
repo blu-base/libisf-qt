@@ -80,9 +80,6 @@ namespace Isf
         decodedData.append( value );
       }
 
-      // Discard any partially read bytes
-      source.skipToNextByte();
-
       return true;
     }
 
