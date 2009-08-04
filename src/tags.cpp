@@ -526,13 +526,17 @@ namespace Isf
           point.pressureLevel = pressureData[ i ];
         }
 
-        point.drawAttrs = &attributes.last();
+        point.info = &attributes.last();
       }
 
-      qint64 remainingPayloadSize = payloadSize - (source.pos() - initialPos);
-      analyzePayload( source, remainingPayloadSize,
-                      "Remaining stroke data: " + QString::number(remainingPayloadSize) +
-                      " bytes" );
+      qint64 remainingPayloadSize = payloadSize - ( source.pos() - initialPos );
+      if( remainingPayloadSize > 0 )
+      {
+        analyzePayload( source,
+                        remainingPayloadSize,
+                        "Remaining stroke data: " + QString::number(remainingPayloadSize) +
+                        " bytes" );
+      }
 
       return ISF_ERROR_NONE;
     }

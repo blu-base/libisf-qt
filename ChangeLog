@@ -22,6 +22,8 @@
  * Added new test application "test_decode", which displays a parsed ISF file.
  * Added pressure data recognization.
  * Added stroke description blocks recognization.
+ * Fixed stroke payload parsing appearing when not needed (and wasting bytes).
+ * Added a set of data structures to hold metrics and to better contain stroke attributes.
 
 2009-07-30 (Valerio)
  * Added IsfData class to read and write bit-by-bit an array of bytes.

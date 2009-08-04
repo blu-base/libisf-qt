@@ -26,10 +26,12 @@
 
 #include <QColor>
 #include <QList>
-#include <QRectF>
+#include <QMap>
 #include <QPointF>
+#include <QRectF>
 #include <QSizeF>
 #include <QtGlobal>
+#include <QTransform>
 
 
 /**
@@ -231,16 +233,118 @@ namespace Isf
 
 
   /**
+   * Units used for metric measurements
+   */
+  enum MetricScale
+  {
+    CENTIMETERS = 1
+  , DEFAULT = 0
+  , DEGREES = 2
+  , NOT_APPLICABLE = -1
+  };
+
+
+
+  /**
+   * A metric: a set of values representing what kind of values some
+   * type of measurement will assume.
+   */
+  struct Metric
+  {
+    /// Constructor for invalid metrics
+    Metric()
+    {
+    }
+    /// Constructor
+    Metric( qint64 vMin, qint64 vMax, MetricScale vUnits, quint32 vResolution )
+    : min( vMin )
+    , max( vMax )
+    , units( vUnits )
+    , resolution( vResolution )
+    {
+    }
+
+    /// Minimum value
+    qint64       min;
+    /// Maximum value
+    qint64       max;
+    /// Measurement unit
+    MetricScale  units;
+    /// Resolution
+    quint32      resolution;
+  };
+
+
+
+  /**
+   * A table of metrics.
+   *
+   * The default metric values are hard-coded here, different values read from the stream
+   * will override these
+   */
+  struct Metrics
+  {
+    /// Constructor
+    Metrics()
+    {
+      metrics[ GUID_X                    ] = Metric(     0, 12699, CENTIMETERS,  1000 );
+      metrics[ GUID_Y                    ] = Metric(     0,  9649, CENTIMETERS,  1000 );
+      metrics[ GUID_Z                    ] = Metric( -1023,  1023, CENTIMETERS,  1000 );
+      metrics[ GUID_PACKET_STATUS        ] = Metric(     0,  1023, DEFAULT,         1 );
+      metrics[ GUID_TIMER_TICK           ] = Metric(     0,  1023, DEFAULT,         1 );
+      metrics[ GUID_SERIAL_NUMBER        ] = Metric(     0,  1023, DEFAULT,         1 );
+      metrics[ GUID_NORMAL_PRESSURE      ] = Metric(     0,  3600, DEGREES,        10 );
+      metrics[ GUID_TANGENT_PRESSURE     ] = Metric(     0,  3600, DEGREES,        10 );
+      metrics[ GUID_BUTTON_PRESSURE      ] = Metric(     0,  3600, DEGREES,        10 );
+      metrics[ GUID_X_TILT_ORIENTATION   ] = Metric(  -900,   900, DEGREES,        10 );
+      metrics[ GUID_Y_TILT_ORIENTATION   ] = Metric(     0,  3600, DEGREES,        10 );
+      metrics[ GUID_AZIMUTH_ORIENTATION  ] = Metric(    -1,    -1, NOT_APPLICABLE, -1 );
+      metrics[ GUID_ALTITUDE_ORIENTATION ] = Metric(    -1,    -1, NOT_APPLICABLE, -1 );
+      metrics[ GUID_TWIST_ORIENTATION    ] = Metric(    -1,    -1, NOT_APPLICABLE, -1 );
+      metrics[ GUID_PITCH_ROTATION       ] = Metric(    -1,    -1, NOT_APPLICABLE, -1 );
+      metrics[ GUID_ROLL_ROTATION        ] = Metric(    -1,    -1, NOT_APPLICABLE, -1 );
+      metrics[ GUID_YAW_ROTATION         ] = Metric(    -1,    -1, NOT_APPLICABLE, -1 );
+    }
+
+    /// The list of metrics defined in this table
+    QMap<int,Metric> metrics;
+  };
+
+
+
+  /**
    * Drawing attributes for points
    */
   struct PointInfo
   {
+    /// Constructor
+    PointInfo()
+    : flags( 0 )
+    {
+    }
+
     /// dimensions of the pencil in Himetric units
-    QSizeF penSize;
+    QSizeF       penSize;
     /// color in AABBGGRR format (Alpha channel: 00 is solid, FF is transparent)
-    QColor color;
+    QColor       color;
     /// mask of StrokeFlags
-    StrokeFlags flags;
+    StrokeFlags  flags;
+  };
+
+
+
+  /**
+   * Drawing attributes for strokes
+   */
+  struct StrokeInfo
+  {
+    /// Constructor
+    StrokeInfo()
+    {
+    }
+
+    /// placeholder
+//     QSizeF       placeholder;
   };
 
 
@@ -250,12 +354,19 @@ namespace Isf
    */
   struct Point
   {
+    /// Constructor
+    Point()
+    : info( 0 )
+    , pressureLevel( 0 )
+    {
+    }
+
+    /// Link to this point's attributes, if any
+    PointInfo  *info;
     /// coordinates
-    QPoint position;
+    QPoint      position;
     /// Pressure information
-    qint64  pressureLevel;
-    /// Drawing attributes structure used to display the stroke
-    PointInfo *drawAttrs;
+    qint64      pressureLevel;
   };
 
 
@@ -265,26 +376,24 @@ namespace Isf
    */
   struct Stroke
   {
-    /// List of points contained in this stroke
-    QList<Point> points;
+    /// Constructor
+    Stroke()
+    : info( 0 )
+    , metrics( 0 )
+    , transform( 0 )
+    {
+    }
+
     /// Its bounding box, ie the minimum sized rectangle which contains all of the stroke's points
-    QRectF boundingBox;
-  };
-
-
-
-  /**
-   * A complete ISF image
-   */
-  struct Image
-  {
-    /// Bounding box, the minimum sized rectangle which contains all the strokes
-    QRectF boundingBox;
-    /// highest pencil dimension used
-    QSizeF maxPenSize;
-
-    /// collection of strokes
-    QList<Stroke> strokes;
+    QRectF        boundingBox;
+    /// List of points
+    QList<Point>  points;
+    /// Link to this stroke's attributes, if any
+    StrokeInfo   *info;
+    /// Link to this stroke's metrics, if any
+    Metrics      *metrics;
+    /// Link to this stroke's transformation, if any
+    QTransform   *transform;
   };
 
 

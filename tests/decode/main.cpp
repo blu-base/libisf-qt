@@ -40,12 +40,24 @@ class TestDecode : public QMainWindow, private Ui::TestDecode
 
     void test()
     {
-      label_->setText( "Decoding failed :(" );
 
-      QByteArray data = readTestIsfData("tests/test2.isf");
+      if( qApp->arguments().count() < 2 )
+      {
+        label_->setText( "You must specify the name of an ISF file to test!" );
+        return;
+      }
+
+      QByteArray data = readTestIsfData( qApp->arguments().at( 1 ) );
       Drawing drawing = Drawing::fromIsfData(data);
 
-      label_->setPixmap( drawing.getPixmap() );
+      if( drawing.isNull() )
+      {
+        label_->setText( "Invalid file contents!" );
+      }
+      else
+      {
+        label_->setPixmap( drawing.getPixmap() );
+      }
     }
 
     TestDecode()
