@@ -476,6 +476,8 @@ QPixmap Drawing::getPixmap()
         }
 
         painter.drawLine( lastPoint.position, point.position );
+
+        lastPoint = point;
       }
     }
     else

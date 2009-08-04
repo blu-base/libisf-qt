@@ -1,3 +1,5 @@
+2009-08-04 (Adam)
+ * Fix the drawing of ISF data to QPixmap: draw the lines correctly between points.
 
 2009-08-04 (Valerio)
  * Fixed endianness problems when retrieving datastream bits with IsfData.
