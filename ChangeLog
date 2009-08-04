@@ -1,4 +1,5 @@
 2009-08-04 (Adam)
+ * Antialiasing whilst drawing ISF to QPixmap.
  * Fix the drawing of ISF data to QPixmap: draw the lines correctly between points.
 
 2009-08-04 (Valerio)

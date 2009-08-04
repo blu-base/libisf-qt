@@ -461,6 +461,7 @@ QPixmap Drawing::getPixmap()
   QBrush brush( attributes_.first().color );
   QPen pen( brush, attributes_.first().penSize.width(), Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin );
   painter.setPen( pen );
+  painter.setRenderHints( QPainter::Antialiasing );
 
   foreach( const Stroke &stroke, strokes_ )
   {
