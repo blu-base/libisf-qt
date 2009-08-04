@@ -59,7 +59,7 @@ namespace Isf
       /// Read the ink canvas dimensions
       static IsfError parseInkSpaceRectangle( IsfData &source, Drawing &drawing );
       /// Read a block of points attributes
-      static IsfError parseAttributeBlock( IsfData &source, Drawing &drawing, int blockIndex = 0 );
+      static IsfError parseAttributeBlock( IsfData &source, Drawing &drawing );
       /// Read a table of points attributes
       static IsfError parseAttributeTable( IsfData &source, Drawing &drawing );
       /// Read payload: Persistent Format

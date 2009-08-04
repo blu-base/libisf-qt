@@ -319,16 +319,18 @@ namespace Isf
   {
     /// Constructor
     PointInfo()
-    : flags( 0 )
+    : color( Qt::black )
+    , flags( 0 )
+    , penSize( 20, 20 ) // +/- 8px in HiMetric units
     {
     }
 
-    /// dimensions of the pencil in Himetric units
-    QSizeF       penSize;
     /// color in AABBGGRR format (Alpha channel: 00 is solid, FF is transparent)
     QColor       color;
     /// mask of StrokeFlags
     StrokeFlags  flags;
+    /// dimensions of the pencil in Himetric units
+    QSizeF       penSize;
   };
 
 
@@ -340,11 +342,18 @@ namespace Isf
   {
     /// Constructor
     StrokeInfo()
+    : hasPressureData( false )
+    , hasXData( true )
+    , hasYData( true )
     {
     }
 
-    /// placeholder
-//     QSizeF       placeholder;
+    /// Whether the stroke contains pressure info or not
+    bool hasPressureData;
+    /// Whether the stroke contains X coordinates or not
+    bool hasXData;
+    /// Whether the stroke contains Y coordinates or not
+    bool hasYData;
   };
 
 
@@ -356,13 +365,11 @@ namespace Isf
   {
     /// Constructor
     Point()
-    : info( 0 )
+    : position( 0, 0 )
     , pressureLevel( 0 )
     {
     }
 
-    /// Link to this point's attributes, if any
-    PointInfo  *info;
     /// coordinates
     QPoint      position;
     /// Pressure information
@@ -378,20 +385,21 @@ namespace Isf
   {
     /// Constructor
     Stroke()
-    : info( 0 )
+    : attributes( 0 )
+    , info( 0 )
     , metrics( 0 )
     , transform( 0 )
     {
     }
 
-    /// Its bounding box, ie the minimum sized rectangle which contains all of the stroke's points
-    QRectF        boundingBox;
-    /// List of points
-    QList<Point>  points;
+    /// Link to the attributes of this stroke's points, if any
+    PointInfo    *attributes;
     /// Link to this stroke's attributes, if any
     StrokeInfo   *info;
     /// Link to this stroke's metrics, if any
     Metrics      *metrics;
+    /// List of points
+    QList<Point>  points;
     /// Link to this stroke's transformation, if any
     QTransform   *transform;
   };

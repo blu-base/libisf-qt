@@ -26,6 +26,11 @@
  * Added a set of data structures to hold metrics and to better contain stroke attributes.
  * Reorganized the code of the Tags namespace, it's now a class with all static members;
    this simplifies quite a bit the passing of data between that and IsfDrawing.
+ * Fixed bug in the GUID Table tag parser.
+ * Added more compiler flags (and warnings) to ease debugging.
+ * Added the infrastructure to link metrics and transforms data to the strokes.
+ * Finally linked the drawing attributes and stroke info to the strokes' data:
+   libisf-qt is now correctly decoding all tests (except test 6).
 
 2009-07-30 (Valerio)
  * Added IsfData class to read and write bit-by-bit an array of bytes.

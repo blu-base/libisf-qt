@@ -59,9 +59,17 @@ using namespace Isf;
 #endif
 
       quint8 index = 0;
+
       while( ! source.atEnd() && index < numGuids )
       {
-        qDebug() << "  - Index" << Isf::Compress::decodeUInt( source ) << " -> " << source.getBytes( 16 ).toHex();
+        // 100 is the first index available for custom GUIDs
+        quint8 guidIndex = index + 100;
+
+#ifdef ISF_DEBUG_VERBOSE
+        qDebug() << "  - Index" << QString::number( guidIndex ).rightJustified( ' ', 5 )
+                 << "->" << source.getBytes( 16 ).toHex();
+#endif
+
         ++index;
       }
 
@@ -110,7 +118,7 @@ using namespace Isf;
 
 
     /// Read a block of points attributes
-    IsfError Tags::parseAttributeBlock( IsfData &source, Drawing &drawing, int blockIndex )
+    IsfError Tags::parseAttributeBlock( IsfData &source, Drawing &drawing )
     {
       quint64 payloadSize = Isf::Compress::decodeUInt( source );
 
@@ -119,14 +127,12 @@ using namespace Isf;
 #ifdef ISF_DEBUG_VERBOSE
         qDebug() << "Invalid payload for TAG_DRAW_ATTRS_BLOCK";
 #endif
-      return ISF_ERROR_INVALID_PAYLOAD;
+        return ISF_ERROR_INVALID_PAYLOAD;
       }
 
-      if( drawing.attributes_.count() >= blockIndex )
-      {
-        drawing.attributes_.append( PointInfo() );
-      }
-      PointInfo &attrs = drawing.attributes_[ blockIndex ];
+      drawing.attributes_.append( PointInfo() );
+      PointInfo &info = drawing.attributes_.last();
+      drawing.currentPointInfo_ = &info;
 
       quint64 payloadEnd = source.pos() + payloadSize;
       while( source.pos() < payloadEnd && ! source.atEnd() )
@@ -150,11 +156,11 @@ using namespace Isf;
             // as QRgb stores the value in BGR order: QRgb(RRGGBB) <-- value(BBGGRR).
             // TODO: It also contains an alpha value, ignored here for now because it's unknown if
             // it is needed or not
-            attrs.color = QColor( qBlue ( invertedColor ),
-                                  qGreen( invertedColor ),
-                                  qRed  ( invertedColor ) );
+            info.color = QColor( qBlue ( invertedColor ),
+                                 qGreen( invertedColor ),
+                                 qRed  ( invertedColor ) );
 #ifdef ISF_DEBUG_VERBOSE
-            qDebug() << "- Got pen color" << attrs.color;
+            qDebug() << "- Got pen color" << info.color;
 #endif
             break;
           }
@@ -164,17 +170,17 @@ using namespace Isf;
             qDebug() << "- Got pen width" << QString::number( (float)value, 'g', 16 )
                      << "(" << (value/HiMetricToPixel) << "pixels )";
 #endif
-            attrs.penSize.setWidth( (float)value );
+            info.penSize.setWidth( (float)value );
 
             // In square/round pens the width will be the only value present.
-            attrs.penSize.setHeight( (float)value );
+            info.penSize.setHeight( (float)value );
             break;
 
           case PEN_HEIGHT:
 #ifdef ISF_DEBUG_VERBOSE
             qDebug() << "- Got pen height" << QString::number( (float)value, 'g', 16 );
 #endif
-            attrs.penSize.setHeight( (float)value );
+            info.penSize.setHeight( (float)value );
             break;
 
           case PEN_TIP:
@@ -183,12 +189,12 @@ using namespace Isf;
 #endif
             if( value )
             {
-              attrs.flags |= IsRectangle;
+              info.flags |= IsRectangle;
             }
             break;
 
           case PEN_FLAGS:
-            attrs.flags = (StrokeFlags)( ( 0XFF00 & attrs.flags ) | (ushort) value );
+            info.flags = (StrokeFlags)( ( 0XFF00 & info.flags ) | (ushort) value );
 #ifdef ISF_DEBUG_VERBOSE
             qDebug() << "- Got flags value:" << value;
             if( value & FitToCurve )
@@ -220,14 +226,14 @@ using namespace Isf;
 #ifdef ISF_DEBUG_VERBOSE
             qDebug() << "- Got pen transparency" << value;
 #endif
-            attrs.color.setAlpha( value );
+            info.color.setAlpha( value );
             break;
 
           case PEN_ISHIGHLIGHTER:
 #ifdef ISF_DEBUG_VERBOSE
             qDebug() << "- Got pen highlighting flag";
 #endif
-            attrs.flags |= IsHighlighter;
+            info.flags |= IsHighlighter;
             // TODO There seems to be a total of 4 payload bytes, unknown.
             // We already read one of the 4 bytes, it's in the 'value' variable
             source.seekRelative( +3 );
@@ -237,8 +243,7 @@ using namespace Isf;
             qWarning() << "- Unknown tag" << tag;
 
             // If the tag *should* be known, record it differently
-            // FIXME have the maxGuid value here
-            if( /*drawing.maxGuid_ > 0 &&*/ tag >= 100 /*&& tag <= drawing.maxGuid_*/ )
+            if( drawing.maxGuid_ > 0 && tag >= 100 && tag <= drawing.maxGuid_ )
             {
               analyzePayload( source, "TAG_PROPERTY_" + QString::number( tag ) );
             }
@@ -292,7 +297,7 @@ using namespace Isf;
       drawing.canvas_.setBottom( Isf::Compress::decodeInt( source ) );
 
 #ifdef ISF_DEBUG_VERBOSE
-      qDebug() << "Got drawing canvas:" << drawing.canvas_;
+      qDebug() << "- Got drawing canvas:" << drawing.canvas_;
 #endif
 
       return ISF_ERROR_NONE;
@@ -432,7 +437,8 @@ using namespace Isf;
           return ISF_ERROR_INVALID_BLOCK;
       }
 
-      drawing.transforms_[ transformType ] = transform;
+      drawing.transforms_.append( transform );
+      drawing.currentTransform_ = &( drawing.transforms_.last() );
 
       return ISF_ERROR_NONE;
     }
@@ -477,7 +483,7 @@ using namespace Isf;
 #endif
       }
 
-      if(   drawing.hasPressureData_
+      if(   drawing.currentStrokeInfo_->hasPressureData
       &&  ! Isf::Compress::inflate( source, numPoints, pressureData ) )
       {
 #ifdef ISF_DEBUG_VERBOSE
@@ -494,7 +500,8 @@ using namespace Isf;
 #endif
       }
 
-      if( drawing.hasPressureData_ && pressureData.size() != numPoints )
+      if( drawing.currentStrokeInfo_->hasPressureData
+      &&  pressureData.size() != numPoints )
       {
 #ifdef ISF_DEBUG_VERBOSE
         qWarning() << "The pressure data has a size of" << pressureData.size()
@@ -514,13 +521,16 @@ using namespace Isf;
         point.position.setX( xPointsData[ i ] );
         point.position.setY( yPointsData[ i ] );
 
-        if( drawing.hasPressureData_ )
+        if( drawing.currentStrokeInfo_->hasPressureData )
         {
           point.pressureLevel = pressureData[ i ];
         }
-
-        point.info = &drawing.attributes_.last();
       }
+
+      stroke.attributes = drawing.currentPointInfo_;
+      stroke.info       = drawing.currentStrokeInfo_;
+      stroke.metrics    = drawing.currentMetrics_;
+      stroke.transform  = drawing.currentTransform_;
 
       qint64 remainingPayloadSize = payloadSize - ( source.pos() - initialPos );
       if( remainingPayloadSize > 0 )
@@ -550,8 +560,12 @@ using namespace Isf;
       }
 
 #ifdef ISF_DEBUG_VERBOSE
-      qDebug() << "  - Finding stroke description properties in the next" << payloadSize << "bytes";
+      qDebug() << "- Finding stroke description properties in the next" << payloadSize << "bytes";
 #endif
+
+      drawing.strokeInfo_.append( StrokeInfo() );
+      StrokeInfo &info = drawing.strokeInfo_.last();
+      drawing.currentStrokeInfo_ = &info;
 
       quint64 payloadEnd = source.pos() + payloadSize;
       while( source.pos() < payloadEnd && ! source.atEnd() )
@@ -562,16 +576,16 @@ using namespace Isf;
         {
           case TAG_NO_X:
 #ifdef ISF_DEBUG_VERBOSE
-            qDebug() << "- Strokes contain no X coordinates";
+            qDebug() << "- Stroke contains no X coordinates";
 #endif
-            drawing.hasXData_ = false;
+            info.hasXData = false;
             break;
 
           case TAG_NO_Y:
 #ifdef ISF_DEBUG_VERBOSE
-            qDebug() << "- Strokes contain no Y coordinates";
+            qDebug() << "- Stroke contains no Y coordinates";
 #endif
-            drawing.hasYData_ = false;
+            info.hasYData = false;
             break;
 
           case TAG_BUTTONS:
@@ -586,11 +600,11 @@ using namespace Isf;
 #endif
             break;
 
-          default: // List of Stroke packet properties present
+          default: // List of Stroke packet properties
 #ifdef ISF_DEBUG_VERBOSE
             qDebug() << "- Packet properties list:" << QString::number( tag, 10 );
 #endif
-            drawing.hasPressureData_ = true;
+            info.hasPressureData = true;
             // TODO How is this list made?
 /*
             for( quint64 i = 0; i < GUID_NUM; ++i )
@@ -667,7 +681,7 @@ using namespace Isf;
 
         if( ( ( pos + 1 ) % 24 ) == 0 )
         {
-          qDebug() << output;
+          qDebug() << output.trimmed();
           output.clear();
         }
 
@@ -676,7 +690,7 @@ using namespace Isf;
 
       if( ! output.isEmpty() )
       {
-        qDebug() << output;
+        qDebug() << output.trimmed();
       }
 
       qDebug() << "--------------------------------------------------------------------";

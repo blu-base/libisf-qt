@@ -122,8 +122,22 @@ namespace Isf
       QList<PointInfo>          attributes_;
       // Virtual drawing canvas dimensions
       QRect                     canvas_;
-      // Whether the drawing contains pressure info or not
-      bool                      hasPressureData_;
+      // Link to the currently used metric data
+      Metrics                  *currentMetrics_;
+      // Link to the currently used point info data
+      PointInfo                *currentPointInfo_;
+      // Link to the currently used stroke info data
+      StrokeInfo               *currentStrokeInfo_;
+      // Link to the currently used transformation
+      QTransform               *currentTransform_;
+      // Link to the default metric data
+      Metrics                   defaultMetrics_;
+      // Link to the default point info data
+      PointInfo                 defaultPointInfo_;
+      // Link to the default stroke info data
+      StrokeInfo                defaultStrokeInfo_;
+      // Link to the default transformation
+      QTransform                defaultTransform_;
       // Whether the drawing contains X coordinates or not
       bool                      hasXData_;
       // Whether the drawing contains Y coordinates or not
@@ -132,14 +146,18 @@ namespace Isf
       bool                      isNull_;
       // Maximum GUID available in the drawing
       quint64                   maxGuid_;
+      // List of metrics used in the drawing
+      QList<Metrics>            metrics_;
       // Parser error (if there is one)
       IsfError                  parserError_;
       // Pixel size of the drawing
       QSize                     size_;
+      // List of information about the drawing's strokes
+      QList<StrokeInfo>         strokeInfo_;
       // List of strokes composing this drawing
       QList<Stroke>             strokes_;
       // Transformation matrices
-      QMap<DataTag,QTransform>  transforms_;
+      QList<QTransform>         transforms_;
 
   };
 

@@ -40,12 +40,15 @@ namespace Isf
  * When you add a new stroke to the drawing the instance becomes non-NULL.
  */
 Drawing::Drawing()
-  : hasXData_( true )
-  , hasYData_( true )
-  , hasPressureData_( false )
-  , isNull_( true )
-  , maxGuid_( 0 )
-  , parserError_( ISF_ERROR_NONE )
+: currentMetrics_( 0 )
+, currentPointInfo_( 0 )
+, currentStrokeInfo_( 0 )
+, currentTransform_( 0 )
+, hasXData_( true )
+, hasYData_( true )
+, isNull_( true )
+, maxGuid_( 0 )
+, parserError_( ISF_ERROR_NONE )
 {
 }
 
@@ -147,6 +150,13 @@ Drawing Drawing::fromIsfData( const QByteArray &rawData )
 #endif
           // Validate the drawing
           drawing.isNull_ = false;
+
+          // Fill up the default properties
+          drawing.currentMetrics_    = &drawing.defaultMetrics_;
+          drawing.currentPointInfo_  = &drawing.defaultPointInfo_;
+          drawing.currentStrokeInfo_ = &drawing.defaultStrokeInfo_;
+          drawing.currentTransform_  = &drawing.defaultTransform_;
+
           // start looking for ISF tags.
           state = ISF_PARSER_TAG;
         }
@@ -200,6 +210,7 @@ Drawing Drawing::fromIsfData( const QByteArray &rawData )
 IsfError Drawing::parseTag( Drawing &drawing, IsfData &isfData, DataTag tag )
 {
   IsfError result = ISF_ERROR_NONE;
+  quint64 value;
 
   // Thanks, thanks a lot to the TclISF authors!
   switch( tag )
@@ -273,7 +284,20 @@ IsfError Drawing::parseTag( Drawing &drawing, IsfData &isfData, DataTag tag )
 #ifdef ISF_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_DIDX";
 #endif
-      result = Tags::parseUnsupported( isfData, "TAG_DIDX" );
+
+      value = Isf::Compress::decodeUInt( isfData );
+
+      if( value < drawing.attributes_.count() )
+      {
+        drawing.currentPointInfo_ = &drawing.attributes_[ value ];
+#ifdef ISF_DEBUG_VERBOSE
+        qDebug() << "- Next strokes will use drawing attributes #" << value;
+#endif
+      }
+      else
+      {
+        qWarning() << "Invalid drawing attribute ID!";
+      }
       break;
 
     case TAG_STROKE:
@@ -301,7 +325,20 @@ IsfError Drawing::parseTag( Drawing &drawing, IsfData &isfData, DataTag tag )
 #ifdef ISF_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_SIDX";
 #endif
-      result = Tags::parseUnsupported( isfData, "TAG_SIDX" );
+
+      value = Isf::Compress::decodeUInt( isfData );
+
+      if( value < drawing.strokeInfo_.count() )
+      {
+        drawing.currentStrokeInfo_ = &drawing.strokeInfo_[ value ];
+#ifdef ISF_DEBUG_VERBOSE
+        qDebug() << "- Next strokes will use stroke info #" << value;
+#endif
+      }
+      else
+      {
+        qWarning() << "Invalid stroke ID!";
+      }
       break;
 
     case TAG_COMPRESSION_HEADER:
@@ -371,7 +408,21 @@ IsfError Drawing::parseTag( Drawing &drawing, IsfData &isfData, DataTag tag )
 #ifdef ISF_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_TIDX";
 #endif
-      result = Tags::parseUnsupported( isfData, "TAG_TIDX" );
+
+      value = Isf::Compress::decodeUInt( isfData );
+
+      if( value < drawing.transforms_.count() )
+      {
+        drawing.currentTransform_ = &drawing.transforms_[ value ];
+#ifdef ISF_DEBUG_VERBOSE
+        qDebug() << "- Next strokes will use transform #" << value;
+#endif
+      }
+      else
+      {
+        qWarning() << "Invalid transform ID!";
+      }
+
       break;
 
     case TAG_METRIC_TABLE:
@@ -392,7 +443,21 @@ IsfError Drawing::parseTag( Drawing &drawing, IsfData &isfData, DataTag tag )
 #ifdef ISF_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_MIDX";
 #endif
-      result = Tags::parseUnsupported( isfData, "TAG_MIDX" );
+
+      value = Isf::Compress::decodeUInt( isfData );
+
+      if( value < drawing.metrics_.count() )
+      {
+        drawing.currentMetrics_ = &drawing.metrics_[ value ];
+#ifdef ISF_DEBUG_VERBOSE
+        qDebug() << "- Next strokes will use metrics #" << value;
+#endif
+      }
+      else
+      {
+        qWarning() << "Invalid metrics ID!";
+      }
+
       break;
 
     case TAG_MANTISSA:
@@ -448,32 +513,59 @@ QPixmap Drawing::getPixmap()
   QPainter painter( &pixmap );
 
   painter.setWorldMatrixEnabled( true );
-  painter.setRenderHints( QPainter::Antialiasing | QPainter::SmoothPixmapTransform |
-                          QPainter::TextAntialiasing, true );
+  painter.setRenderHints(   QPainter::Antialiasing
+                          | QPainter::SmoothPixmapTransform
+                          | QPainter::TextAntialiasing,
+                          true );
 
-  foreach( const QTransform &matrix, transforms_ )
-  {
-    painter.setWorldTransform( matrix, true );
-  }
+  QPen pen;
+  pen.setStyle    ( Qt::SolidLine );
+  pen.setCapStyle ( Qt::RoundCap  );
+  pen.setJoinStyle( Qt::RoundJoin );
 
-  PointInfo attrs = attributes_.first();
 
-  if( ! attrs.color.isValid() )
-  {
-    attrs.color = Qt::black;
-  }
+  qDebug() << "The drawing contains" << strokes_.count() << "strokes.";
 
-  QBrush brush( attrs.color );
+  // Keep record of the currently used properties, to avoid re-setting them for each stroke
+  Metrics    *currentMetrics    = 0;
+  PointInfo  *currentPointInfo  = 0;
+  StrokeInfo *currentStrokeInfo = 0;
+  QTransform *currentTransform  = 0;
 
-  float penSizePixels = Drawing::himetricToPixels( attrs.penSize.width(), pixmap );
-
-  qDebug() << "Pen size: HiMetric=" << attrs.penSize.width() <<", pixels=" << penSizePixels;
-
-  QPen pen( brush, penSizePixels, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin );
-  painter.setPen( pen );
-
+  int index = 0;
   foreach( const Stroke &stroke, strokes_ )
   {
+    if( currentMetrics != stroke.metrics )
+    {
+      currentMetrics = stroke.metrics;
+      // TODO need to convert all units somehow?
+//       painter.setSomething( currentMetrics );
+    }
+    if( currentPointInfo != stroke.attributes )
+    {
+      currentPointInfo = stroke.attributes;
+
+      float penSizePixels = Drawing::himetricToPixels( currentPointInfo->penSize.width(), pixmap );
+
+      pen.setColor( currentPointInfo->color );
+      pen.setWidthF( penSizePixels );
+      painter.setPen( pen );
+    }
+    if( currentStrokeInfo != stroke.info )
+    {
+      currentStrokeInfo = stroke.info;
+    }
+    if( currentTransform != stroke.transform )
+    {
+      currentTransform = stroke.transform;
+      // TODO Find out how transformations should be applied: setting the world transform
+      // makes strange things to happen
+//       painter.setWorldTransform( *currentTransform, true );
+    }
+
+    qDebug() << "Rendering stroke" << index << "containing" << stroke.points.count() << "points...";
+    qDebug() << "- Stroke color:" << currentPointInfo->color.name() << "Pen size:" << pen.widthF();
+
     if( stroke.points.count() > 1 )
     {
       Point lastPoint;
@@ -485,14 +577,14 @@ QPixmap Drawing::getPixmap()
           continue;
         }
 
-/*
-        if( hasPressureData_ )
+        if( currentStrokeInfo->hasPressureData )
         {
-          pen.setWidth( attrs.penSize.width() * point.pressureLevel );
-          painter.setPen( pen );
+          qDebug() << "- Ignoring pressure data...";
+//           pen.setWidth( pen.widthF() + point.pressureLevel );
+//           painter.setPen( pen );
         }
-*/
 
+//         qDebug() << "Point:" << point.position;
         painter.drawLine( lastPoint.position, point.position );
 
         lastPoint = point;
@@ -501,13 +593,20 @@ QPixmap Drawing::getPixmap()
     else
     {
       Point point = stroke.points.first();
-      if( hasPressureData_ )
+      if( currentStrokeInfo->hasPressureData )
       {
-        pen.setWidth( attrs.penSize.width() * point.pressureLevel );
+        qDebug() << "- Ignoring pressure data...";
+//         pen.setWidth( pen.widthF() + point.pressureLevel );
+//         painter.setPen( pen );
       }
+
+//       qDebug() << "Point:" << point.position;
       painter.drawPoint( point.position );
     }
+
+    ++index;
   }
+
 
   painter.end();
 
