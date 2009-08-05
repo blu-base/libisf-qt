@@ -14,6 +14,10 @@
  * Fixed the documentation to reflect the name change "libisf" to "isf-qt",
    and updated it.
  * Added updated KDevelop3/4 project files.
+ * Changed the library structure:
+   - separated the public interface includes into the /include/ dir
+   - moved all internally used inclusions and data structures into
+     /src/isfqt-internal.h
 
 2009-08-05 (Adam)
  * Correct an issue with incorrect colours for strokes.

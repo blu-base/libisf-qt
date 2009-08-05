@@ -18,12 +18,11 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "../libisftypes.h"
 #include "compression.h"
+
+#include "isfqt-internal.h"
 #include "gorilla.h"
 #include "huffman.h"
-
-#include <QDebug>
 
 
 

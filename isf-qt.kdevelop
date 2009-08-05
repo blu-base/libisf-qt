@@ -5,7 +5,7 @@
     <projectdirectory>.</projectdirectory>
     <absoluteprojectpath>false</absoluteprojectpath>
     <author>The KMess Development Team</author>
-    <email>development@kmess.org</email>
+    <email>project@kmess.org</email>
     <version>0.1</version>
     <primarylanguage>C++</primarylanguage>
     <ignoreparts>
@@ -33,7 +33,7 @@
   <kdevcustomproject>
     <filelistdirectory>/home/valerio/kmess/trunk/contrib/isf-qt/</filelistdirectory>
     <run>
-      <mainprogram>/home/valerio/kmess/trunk/contrib/isf-qt</mainprogram>
+      <mainprogram>/home/valerio/kmess/trunk/contrib/isf-qt/build/tests/decode/test_decode</mainprogram>
       <directoryradio>custom</directoryradio>
       <customdirectory>./build/</customdirectory>
       <programargs> tests/test9.isf</programargs>
@@ -50,7 +50,7 @@
     </run>
     <build>
       <buildtool>make</buildtool>
-      <builddir></builddir>
+      <builddir>/home/valerio/kmess/trunk/contrib/isf-qt/build/</builddir>
     </build>
     <make>
       <abortonerror>false</abortonerror>
@@ -76,6 +76,7 @@
       <path>build/CMakeFiles</path>
       <path>build/CMakeFiles/CompilerIdCXX</path>
       <path>build/CMakeFiles/CompilerIdCXX/CMakeCXXCompilerId.cpp</path>
+      <path>build/isfqtconfig.h</path>
       <path>build/tests</path>
       <path>build/tests/decode</path>
       <path>build/tests/decode/ui_testdecode.h</path>

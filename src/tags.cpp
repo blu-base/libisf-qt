@@ -22,8 +22,10 @@
 
 #include "compression/compression.h"
 #include "compression/isfdata.h"
-#include "isfdrawing.h"
+#include "isfqt-internal.h"
 #include "multibytecoding.h"
+
+#include <isfdrawing.h>
 
 #include <QDebug>
 #include <QPolygon>

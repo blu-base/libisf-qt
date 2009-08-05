@@ -15,12 +15,13 @@
 
 #include "test_multibyte_coding.h"
 
+#include "compression/isfdata.h"
+#include "multibytecoding.h"
+
+#include "isfqt-internal.h"
+
 #include <QtTest/QtTest>
 #include <QByteArray>
-
-
-#include "compression/isfdata.h"
-#include "isfqt.h"
 
 
 void TestMultibyteCoding::isfData()

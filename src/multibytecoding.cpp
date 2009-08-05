@@ -17,9 +17,11 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+
 #include "multibytecoding.h"
 
-#include <QDebug>
+#include "isfqt-internal.h"
+
 #include <math.h>
 
 
@@ -161,6 +163,8 @@ namespace Isf
      */
     QByteArray encodeFloat( float val )
     {
+      Q_UNUSED( val )
+
       return QByteArray();
     }
 

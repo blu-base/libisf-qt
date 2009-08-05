@@ -33,7 +33,7 @@ IF( CMAKE_COMPILER_IS_GNUCXX )
        "-O0 -g3 -fno-inline -Wall -Woverloaded-virtual -Wsign-compare -Wundef -fvisibility=default" )
 ENDIF( CMAKE_COMPILER_IS_GNUCXX )
 
-INCLUDE_DIRECTORIES( ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/src )
+INCLUDE_DIRECTORIES( ${CMAKE_CURRENT_BINARY_DIR} src include )
 
 CONFIGURE_FILE( ${CMAKE_CURRENT_SOURCE_DIR}/cmake/isfqtconfig.h.in
                 ${CMAKE_CURRENT_BINARY_DIR}/isfqtconfig.h )

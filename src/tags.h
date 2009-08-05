@@ -21,7 +21,7 @@
 #ifndef ISFTAGS_H
 #define ISFTAGS_H
 
-#include "libisftypes.h"
+#include "isfqt.h"
 
 #include <QMap>
 #include <QTransform>

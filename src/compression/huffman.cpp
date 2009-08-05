@@ -18,12 +18,11 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "../libisftypes.h"
 #include "huffman.h"
 
-#include <math.h>
+#include "isfqt-internal.h"
 
-#include <QDebug>
+#include <math.h>
 
 
 #define HUFFMAN_BASES_NUM   8

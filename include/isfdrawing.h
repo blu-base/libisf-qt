@@ -22,7 +22,7 @@
 #define ISFDRAWING_H
 
 
-#include "libisftypes.h"
+#include "isfqt.h"
 
 #include <QMap>
 #include <QTransform>
@@ -36,15 +36,6 @@ class QByteArray;
 
 namespace Isf
 {
-
-
-
-  // Forward declarations
-  namespace Compress
-  {
-    class IsfData;
-  }
-  using Compress::IsfData;
 
 
 
@@ -73,11 +64,6 @@ namespace Isf
 
     public:
 
-      /// Supported ISF version number
-      static const ushort       SUPPORTED_ISF_VERSION = 0;
-
-    public:
-
       /// Constructor
                                 Drawing();
       /// Convert the ISF drawing into a pixmap
@@ -94,26 +80,24 @@ namespace Isf
 
     public: // Public static methods
 
-      /// builds an ISF drawing object from raw ISF data.
+      /// Builds an ISF drawing object from raw ISF data
       static Drawing            fromIsfData( const QByteArray &rawData );
-
-
-    private: // Private static methods
-
-      /// Parse a single ISF tag
-      static IsfError           parseTag( Drawing &drawing, IsfData &isfData, quint64 tag );
-
-      // convert a value in himetric units to pixels, given a qpaintdevice.
+      /// Convert a value in himetric units to pixels, given a paint device
       inline static float       himetricToPixels( float himetric, QPaintDevice &device )
       {
         return ( ( (float)device.width() / (float)device.widthMM() ) * ( himetric * 0.01 ) );
       }
-
-      // convert a value in pixels to himetric units, given a qpaintdevice.
+      /// Convert a value in pixels to himetric units, given a paint device
       inline static float       pixelsToHimetric( float pixels, QPaintDevice &device )
       {
         return ( pixels / ( (float)device.width() / (float)device.widthMM() ) / 0.01 );
       }
+
+
+    private: // Private static properties
+
+      /// Supported ISF version number
+      static const ushort       SUPPORTED_ISF_VERSION = 0;
 
 
     private: // Private properties
