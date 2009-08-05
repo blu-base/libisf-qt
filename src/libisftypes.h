@@ -392,6 +392,8 @@ namespace Isf
     {
     }
 
+    /// Bounding rectangle of this stroke
+    QRect         boundingRect;
     /// Link to the attributes of this stroke's points, if any
     PointInfo    *attributes;
     /// Link to this stroke's attributes, if any

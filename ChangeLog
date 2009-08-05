@@ -1,3 +1,13 @@
+
+2009-08-05 (Valerio)
+ * Extended Adam's last fix to the other main drawing properties.
+ * Added maximum stroke pen size value.
+ * Added stroke and drawing bounding box values.
+ * Added adjusting the drawing's bounding box to include thick strokes.
+ * Enabled transformations.
+ * Fixed transform data order, it was inverted for scale+translate transforms.
+ * Fixed destination QPixmap's size, it's now fit for the drawing.
+
 2009-08-05 (Adam)
  * Correct an issue with incorrect colours for strokes.
 

@@ -101,7 +101,7 @@ Drawing Drawing::fromIsfData( const QByteArray &rawData )
 
   ParserState state = ISF_PARSER_START;
 
-  while( ( ! isfData.atEnd() ) && ( state != ISF_PARSER_FINISH ) )
+  while( state != ISF_PARSER_FINISH )
   {
     switch( state )
     {
@@ -177,9 +177,9 @@ Drawing Drawing::fromIsfData( const QByteArray &rawData )
         }
 
         quint64 tagIndex = Compress::decodeUInt( isfData );
-        IsfError result = parseTag( drawing, isfData, tagIndex );
+        drawing.parserError_ = parseTag( drawing, isfData, tagIndex );
 
-        if( result != ISF_ERROR_NONE )
+        if( drawing.parserError_ != ISF_ERROR_NONE )
         {
 #ifdef ISF_DEBUG_VERBOSE
           qWarning() << "Error in last operation, stopping";
@@ -192,14 +192,36 @@ Drawing Drawing::fromIsfData( const QByteArray &rawData )
 
       // Should never arrive here! It's here only to avoid compiler warnings.
       case ISF_PARSER_FINISH:
-#ifdef ISF_DEBUG_VERBOSE
-        qDebug() << "Finished";
-#endif
         break;
 
       break;
     }
   }
+
+  // Perform the last operations on the drawing
+  if( drawing.parserError_ == ISF_ERROR_NONE )
+  {
+    // Convert the maximum pen size to pixels
+    drawing.maxPenSize_ /= HiMetricToPixel;
+
+    // Adjust the bounding rectangle to include the strokes borders
+    QSize size( drawing.maxPenSize_.toSize() );
+    drawing.boundingRect_.adjust( -size.width(), -size.height(),
+                                  +size.width(), +size.height() );
+  }
+
+
+#ifdef ISF_DEBUG_VERBOSE
+    qDebug() << "Drawing bounding rectangle:" << drawing.boundingRect_;
+#endif
+#ifdef ISF_DEBUG_VERBOSE
+    qDebug() << "Maximum thickness:" << drawing.maxPenSize_;
+#endif
+
+#ifdef ISF_DEBUG_VERBOSE
+  qDebug() << "Finished with" << ( drawing.parserError_ == ISF_ERROR_NONE ? "success" : "error" );
+  qDebug();
+#endif
 
   return drawing;
 }
@@ -514,10 +536,11 @@ IsfError Drawing::parseTag( Drawing &drawing, IsfData &isfData, quint64 tag )
 
 QPixmap Drawing::getPixmap()
 {
-  QPixmap pixmap( 400, 400 );
+  QPixmap pixmap( size_ );
   pixmap.fill( Qt::white );
   QPainter painter( &pixmap );
 
+  painter.setWindow( boundingRect_ );
   painter.setWorldMatrixEnabled( true );
   painter.setRenderHints(   QPainter::Antialiasing
                           | QPainter::SmoothPixmapTransform
@@ -535,45 +558,43 @@ QPixmap Drawing::getPixmap()
 #endif
 
   // Keep record of the currently used properties, to avoid re-setting them for each stroke
-  Metrics    *currentMetrics    = 0;
-  PointInfo  *currentPointInfo  = 0;
-  StrokeInfo *currentStrokeInfo = 0;
-  QTransform *currentTransform  = 0;
+  currentMetrics_    = 0;
+  currentPointInfo_  = 0;
+  currentStrokeInfo_ = 0;
+  currentTransform_  = 0;
 
   int index = 0;
   foreach( const Stroke &stroke, strokes_ )
   {
-    if( currentMetrics != stroke.metrics )
+    if( currentMetrics_ != stroke.metrics )
     {
-      currentMetrics = stroke.metrics;
+      currentMetrics_ = stroke.metrics;
       // TODO need to convert all units somehow?
 //       painter.setSomething( currentMetrics );
     }
-    if( currentPointInfo != stroke.attributes )
+    if( currentPointInfo_ != stroke.attributes )
     {
-      currentPointInfo = stroke.attributes;
+      currentPointInfo_ = stroke.attributes;
 
-      float penSizePixels = Drawing::himetricToPixels( currentPointInfo->penSize.width(), pixmap );
+      float penSizePixels = Drawing::himetricToPixels( currentPointInfo_->penSize.width(), pixmap );
 
-      pen.setColor( currentPointInfo->color );
+      pen.setColor( currentPointInfo_->color );
       pen.setWidthF( penSizePixels );
       painter.setPen( pen );
     }
-    if( currentStrokeInfo != stroke.info )
+    if( currentStrokeInfo_ != stroke.info )
     {
-      currentStrokeInfo = stroke.info;
+      currentStrokeInfo_ = stroke.info;
     }
-    if( currentTransform != stroke.transform )
+    if( currentTransform_ != stroke.transform )
     {
-      currentTransform = stroke.transform;
-      // TODO Find out how transformations should be applied: setting the world transform
-      // makes strange things to happen
-//       painter.setWorldTransform( *currentTransform, true );
+      currentTransform_ = stroke.transform;
+      painter.setWorldTransform( *currentTransform_, true );
     }
 
 #ifdef ISF_DEBUG_VERBOSE
     qDebug() << "Rendering stroke" << index << "containing" << stroke.points.count() << "points...";
-    qDebug() << "- Stroke color:" << currentPointInfo->color.name() << "Pen size:" << pen.widthF();
+    qDebug() << "- Stroke color:" << currentPointInfo_->color.name() << "Pen size:" << pen.widthF();
 #endif
 
     if( stroke.points.count() > 1 )
@@ -589,7 +610,7 @@ QPixmap Drawing::getPixmap()
           continue;
         }
 
-        if( currentStrokeInfo->hasPressureData )
+        if( currentStrokeInfo_->hasPressureData )
         {
           // FIXME Ignoring pressure data - need to find out how pressure must be applied
 //           pen.setWidth( pen.widthF() + point.pressureLevel );
@@ -613,7 +634,7 @@ QPixmap Drawing::getPixmap()
     else
     {
       Point point = stroke.points.first();
-      if( currentStrokeInfo->hasPressureData )
+      if( currentStrokeInfo_->hasPressureData )
       {
         // FIXME Ignoring pressure data - need to find out how pressure must be applied
 //         pen.setWidth( pen.widthF() + point.pressureLevel );
@@ -624,9 +645,19 @@ QPixmap Drawing::getPixmap()
       painter.drawPoint( point.position );
     }
 
+/*
+#ifdef ISF_DEBUG_VERBOSE
+    // Draw the stroke number next to each one, for debugging purposes
+    pen.setColor( QColor( Qt::red ) );
+    painter.setPen( pen );
+    painter.drawText( stroke.points.first().position, QString::number( index ) );
+    pen.setColor( currentPointInfo_->color );
+    painter.setPen( pen );
+#endif
+*/
+
     ++index;
   }
-
 
   painter.end();
 

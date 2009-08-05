@@ -26,6 +26,7 @@
 #include "multibytecoding.h"
 
 #include <QDebug>
+#include <QPolygon>
 
 using namespace Isf;
 
@@ -109,9 +110,7 @@ using namespace Isf;
       drawing.size_.setHeight( Isf::Compress::decodeInt( source ) );
 
 #ifdef ISF_DEBUG_VERBOSE
-      qDebug() << "- Drawing dimensions:" << drawing.size_ << "("
-               << (drawing.size_.width()  / HiMetricToPixel) << "x"
-               << (drawing.size_.height() / HiMetricToPixel) << "pixels )";
+      qDebug() << "- Drawing dimensions:" << drawing.size_;
 #endif
 
       return ISF_ERROR_NONE;
@@ -138,11 +137,15 @@ using namespace Isf;
       // set this once when we get the first DRAW_ATTRS_BLOCK. then,
       // everytime we get a DIDX we can update it. if we don't do this
       // then the first stroke will have the same colour as the last stroke.
-      if ( drawing.currentPointInfo_  == &drawing.defaultPointInfo_ )
+      if ( drawing.currentPointInfo_ == &drawing.defaultPointInfo_ )
       {
         drawing.currentPointInfo_ = &info;
       }
-      
+
+#ifdef ISF_DEBUG_VERBOSE
+      qDebug() << "- Added drawing attribute block #" << ( drawing.attributes_.count() - 1 );
+#endif
+
       qint64 payloadEnd = source.pos() + payloadSize;
       while( source.pos() < payloadEnd && ! source.atEnd() )
       {
@@ -169,7 +172,7 @@ using namespace Isf;
                                  qGreen( invertedColor ),
                                  qRed  ( invertedColor ) );
 #ifdef ISF_DEBUG_VERBOSE
-            qDebug() << "- Got pen color" << info.color;
+            qDebug() << "- Got pen color" << info.color.name();
 #endif
             break;
           }
@@ -263,6 +266,18 @@ using namespace Isf;
             break;
         }
       }
+
+      // Update the drawing's maximum pen size.
+      // This value is used to adjust the drawing borders to include thick strokes
+      if( info.penSize.width() > drawing.maxPenSize_.width() )
+      {
+        drawing.maxPenSize_.setWidth( info.penSize.width() );
+      }
+      if( info.penSize.height() > drawing.maxPenSize_.height() )
+      {
+        drawing.maxPenSize_.setHeight( info.penSize.height() );
+      }
+
 
       return ISF_ERROR_NONE;
     }
@@ -399,47 +414,87 @@ using namespace Isf;
     {
       QTransform transform;
 
+      // Unlike the other transformations, scale is expressed in HiMetric units,
+      // so we must convert it to pixels for rendering
+
       switch( transformType )
       {
         case TAG_TRANSFORM:
-          transform.setMatrix( Compress::decodeFloat( source )
+          transform.setMatrix( Compress::decodeFloat( source ) / HiMetricToPixel
                              , Compress::decodeFloat( source )
                              , .0f
                              , Compress::decodeFloat( source )
-                             , Compress::decodeFloat( source )
+                             , Compress::decodeFloat( source ) / HiMetricToPixel
                              , .0f
                              , Compress::decodeFloat( source )
                              , Compress::decodeFloat( source )
                              , 1.f );
+#ifdef ISF_DEBUG_VERBOSE
+          qDebug() << "- Transformation details - "
+                   << "Scale X:" << transform.m11()
+                   << "Scale Y:" << transform.m22()
+                   << "Translate X:" << transform.m31()
+                   << "Translate Y:" << transform.m32();
+#endif
           break;
 
         case TAG_TRANSFORM_ISOTROPIC_SCALE:
         {
-          float scaleAmount = Compress::decodeFloat( source );
+          float scaleAmount = Compress::decodeFloat( source ) / HiMetricToPixel;
           transform.scale( scaleAmount, scaleAmount );
+#ifdef ISF_DEBUG_VERBOSE
+          qDebug() << "- Transformation details - "
+                   << "Scale:" << scaleAmount;
+#endif
           break;
         }
 
         case TAG_TRANSFORM_ANISOTROPIC_SCALE:
-          transform.scale( Compress::decodeFloat( source )
-                         , Compress::decodeFloat( source ) );
+          transform.scale( Compress::decodeFloat( source ) / HiMetricToPixel
+                         , Compress::decodeFloat( source ) / HiMetricToPixel );
+#ifdef ISF_DEBUG_VERBOSE
+          qDebug() << "- Transformation details - "
+                   << "Scale X:" << transform.m11()
+                   << "Scale Y:" << transform.m22();
+#endif
           break;
 
         case TAG_TRANSFORM_ROTATE:
-          transform.rotate( Compress::decodeUInt( source ) / 100.0f );
+        {
+          float rotateAmount = Compress::decodeFloat( source ) / 100.0f;
+          transform.rotate( rotateAmount );
+#ifdef ISF_DEBUG_VERBOSE
+          qDebug() << "- Transformation details - "
+                   << "Rotate:" << rotateAmount;
+#endif
           break;
+        }
 
         case TAG_TRANSFORM_TRANSLATE:
           transform.translate( Compress::decodeFloat( source )
                              , Compress::decodeFloat( source ) );
+#ifdef ISF_DEBUG_VERBOSE
+          qDebug() << "- Transformation details - "
+                   << "Translate X:" << transform.m31()
+                   << "Translate Y:" << transform.m32();
+#endif
           break;
 
         case TAG_TRANSFORM_SCALE_AND_TRANSLATE:
+        {
+          transform.scale    ( Compress::decodeFloat( source ) / HiMetricToPixel
+                             , Compress::decodeFloat( source ) / HiMetricToPixel );
           transform.translate( Compress::decodeFloat( source )
                              , Compress::decodeFloat( source ) );
-          transform.scale    ( Compress::decodeFloat( source )
-                             , Compress::decodeFloat( source ) );
+#ifdef ISF_DEBUG_VERBOSE
+          qDebug() << "- Transformation details - "
+                   << "Scale X:" << transform.m11()
+                   << "Scale Y:" << transform.m22()
+                   << "Translate X:" << transform.m31()
+                   << "Translate Y:" << transform.m32();
+#endif
           break;
+        }
 
         default:
 #ifdef ISF_DEBUG_VERBOSE
@@ -449,7 +504,18 @@ using namespace Isf;
       }
 
       drawing.transforms_.append( transform );
-      drawing.currentTransform_ = &( drawing.transforms_.last() );
+
+      // set this once when we get the first transformation. then,
+      // everytime we get a TIDX we can update it. if we don't do this
+      // then the first stroke will have the same transform as the last stroke.
+      if ( drawing.currentTransform_ == &drawing.defaultTransform_ )
+      {
+        drawing.currentTransform_ = &( drawing.transforms_.last() );
+      }
+
+#ifdef ISF_DEBUG_VERBOSE
+      qDebug() << "- Added transform block #" << ( drawing.transforms_.count() - 1 );
+#endif
 
       return ISF_ERROR_NONE;
     }
@@ -524,6 +590,13 @@ using namespace Isf;
       drawing.strokes_.append( Stroke() );
       Stroke &stroke = drawing.strokes_[ drawing.strokes_.size() - 1 ];
 
+#ifdef ISF_DEBUG_VERBOSE
+      qDebug() << "- Added stroke #" << ( drawing.strokes_.count() - 1 );
+#endif
+
+      // The polygon is used to obtain the stroke's bounding rect
+      QPolygon polygon( numPoints );
+
       for( quint64 i = 0; i < numPoints; ++i )
       {
         stroke.points.append( Point() );
@@ -532,16 +605,22 @@ using namespace Isf;
         point.position.setX( xPointsData[ i ] );
         point.position.setY( yPointsData[ i ] );
 
+        polygon.setPoint( i, xPointsData[ i ], yPointsData[ i ] );
+
         if( drawing.currentStrokeInfo_->hasPressureData )
         {
           point.pressureLevel = pressureData[ i ];
         }
       }
 
-      stroke.attributes = drawing.currentPointInfo_;
-      stroke.info       = drawing.currentStrokeInfo_;
-      stroke.metrics    = drawing.currentMetrics_;
-      stroke.transform  = drawing.currentTransform_;
+      stroke.boundingRect = polygon.boundingRect();
+      stroke.attributes   = drawing.currentPointInfo_;
+      stroke.info         = drawing.currentStrokeInfo_;
+      stroke.metrics      = drawing.currentMetrics_;
+      stroke.transform    = drawing.currentTransform_;
+
+      // Update the entire drawing's bounding rect
+      drawing.boundingRect_ = drawing.boundingRect_.united( stroke.boundingRect );
 
       qint64 remainingPayloadSize = payloadSize - ( source.pos() - initialPos );
       if( remainingPayloadSize > 0 )
@@ -576,7 +655,18 @@ using namespace Isf;
 
       drawing.strokeInfo_.append( StrokeInfo() );
       StrokeInfo &info = drawing.strokeInfo_.last();
-      drawing.currentStrokeInfo_ = &info;
+
+      // set this once when we get the first TAG_STROKE_DESC_BLOCK. then,
+      // everytime we get a SIDX we can update it. if we don't do this
+      // then the first stroke will have the same stroke info as the last stroke.
+      if ( drawing.currentStrokeInfo_ == &drawing.defaultStrokeInfo_ )
+      {
+        drawing.currentStrokeInfo_ = &info;
+      }
+
+#ifdef ISF_DEBUG_VERBOSE
+      qDebug() << "- Added stroke info block #" << ( drawing.strokeInfo_.count() - 1 );
+#endif
 
       qint64 payloadEnd = source.pos() + payloadSize;
       while( source.pos() < payloadEnd && ! source.atEnd() )

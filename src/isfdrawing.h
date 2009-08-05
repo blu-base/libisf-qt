@@ -120,6 +120,8 @@ namespace Isf
 
       // List of attributes of the points in the drawing
       QList<PointInfo>          attributes_;
+      // Bounding rectangle of the drawing
+      QRect                     boundingRect_;
       // Virtual drawing canvas dimensions
       QRect                     canvas_;
       // Link to the currently used metric data
@@ -146,6 +148,8 @@ namespace Isf
       bool                      isNull_;
       // Maximum GUID available in the drawing
       quint64                   maxGuid_;
+      // Maximum thickness of the strokes
+      QSizeF                    maxPenSize_;
       // List of metrics used in the drawing
       QList<Metrics>            metrics_;
       // Parser error (if there is one)
