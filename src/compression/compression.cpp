@@ -45,7 +45,7 @@ namespace Isf
 
       if( blockSize == 0 )
       {
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG
         qWarning() << "Block size invalid, was reset to 32";
 #endif
         blockSize = 32;
@@ -57,13 +57,13 @@ namespace Isf
         case Gorilla:
           if( needsTransform )
           {
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG
             qWarning() << "Gorilla transformation is required, aborting!";
 #endif
             return false;
           }
 
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
           qDebug() << "- Inflating" << length << "items using the Gorilla algorithm and a block size of" << blockSize;
 #endif
 
@@ -71,7 +71,7 @@ namespace Isf
           break;
 
         case Huffman:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
           qDebug() << "- Inflating" << length << "items using the Huffman algorithm and a block size of" << blockSize;
 #endif
 
@@ -79,7 +79,7 @@ namespace Isf
           break;
 
         default:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG
           qDebug() << "Decoding algorithm not recognized! (byte:" << algorithm << ")";
 #endif
           // Go back to the previous read position

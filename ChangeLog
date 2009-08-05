@@ -7,6 +7,10 @@
  * Enabled transformations.
  * Fixed transform data order, it was inverted for scale+translate transforms.
  * Fixed destination QPixmap's size, it's now fit for the drawing.
+ * Completed CMake rules, now the library can be installed on the system and
+   other projects can find it.
+ * Improved debugging rules, now debug mode is controlled (again) from CMake
+   and verbose output is configurable.
 
 2009-08-05 (Adam)
  * Correct an issue with incorrect colours for strokes.

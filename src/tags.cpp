@@ -37,9 +37,8 @@ using namespace Isf;
     IsfError Tags::parseUnsupported( IsfData &source, const QString &tagName )
     {
       // Unsupported content
-#ifdef ISF_DEBUG_VERBOSE
       analyzePayload( source, tagName + " (Unsupported)" );
-#endif
+
       return ISF_ERROR_NONE;
     }
 
@@ -55,7 +54,7 @@ using namespace Isf;
       // Maximum GUID present in the file
       drawing.maxGuid_ = 99 + numGuids;
 
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "- GUID table has" << numGuids << "entries for total" << guidTableSize << "bytes:";
 #endif
 
@@ -66,9 +65,11 @@ using namespace Isf;
         // 100 is the first index available for custom GUIDs
         quint8 guidIndex = index + 100;
 
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
         qDebug() << "  - Index" << QString::number( guidIndex ).rightJustified( ' ', 5 )
                  << "->" << source.getBytes( 16 ).toHex();
+#else
+        Q_UNUSED( guidIndex )
 #endif
 
         ++index;
@@ -85,9 +86,8 @@ using namespace Isf;
       Q_UNUSED( drawing )
 
       // Unknown content
-#ifdef ISF_DEBUG_VERBOSE
       analyzePayload( source, "Persistent Format" );
-#endif
+
       return ISF_ERROR_NONE;
     }
 
@@ -100,7 +100,7 @@ using namespace Isf;
 
       if( payloadSize == 0 )
       {
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG
         qDebug() << "Invalid payload for TAG_HIMETRIC_SIZE";
 #endif
         return ISF_ERROR_INVALID_PAYLOAD;
@@ -109,7 +109,7 @@ using namespace Isf;
       drawing.size_.setWidth ( Isf::Compress::decodeInt( source ) );
       drawing.size_.setHeight( Isf::Compress::decodeInt( source ) );
 
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "- Drawing dimensions:" << drawing.size_;
 #endif
 
@@ -125,7 +125,7 @@ using namespace Isf;
 
       if( payloadSize == 0 )
       {
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG
         qDebug() << "Invalid payload for TAG_DRAW_ATTRS_BLOCK";
 #endif
         return ISF_ERROR_INVALID_PAYLOAD;
@@ -142,7 +142,7 @@ using namespace Isf;
         drawing.currentPointInfo_ = &info;
       }
 
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "- Added drawing attribute block #" << ( drawing.attributes_.count() - 1 );
 #endif
 
@@ -156,7 +156,7 @@ using namespace Isf;
         switch( tag )
         {
           case PEN_STYLE:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "- Got style" << value << "- Unable to handle it, skipping.";
 #endif
             break;
@@ -171,14 +171,14 @@ using namespace Isf;
             info.color = QColor( qBlue ( invertedColor ),
                                  qGreen( invertedColor ),
                                  qRed  ( invertedColor ) );
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "- Got pen color" << info.color.name();
 #endif
             break;
           }
 
           case PEN_WIDTH:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "- Got pen width" << QString::number( (float)value, 'g', 16 )
                      << "(" << (value/HiMetricToPixel) << "pixels )";
 #endif
@@ -189,14 +189,14 @@ using namespace Isf;
             break;
 
           case PEN_HEIGHT:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "- Got pen height" << QString::number( (float)value, 'g', 16 );
 #endif
             info.penSize.setHeight( (float)value );
             break;
 
           case PEN_TIP:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "- Got pen shape: is rectangular?" << (bool)value;
 #endif
             if( value )
@@ -207,7 +207,7 @@ using namespace Isf;
 
           case PEN_FLAGS:
             info.flags = (StrokeFlags)( ( 0XFF00 & info.flags ) | (ushort) value );
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "- Got flags value:" << value;
             if( value & FitToCurve )
             {
@@ -235,14 +235,14 @@ using namespace Isf;
 
           case PEN_TRANSPARENCY:
             value = ( (uchar)value ) << 24;
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "- Got pen transparency" << value;
 #endif
             info.color.setAlpha( value );
             break;
 
           case PEN_ISHIGHLIGHTER:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "- Got pen highlighting flag";
 #endif
             info.flags |= IsHighlighter;
@@ -252,7 +252,9 @@ using namespace Isf;
             break;
 
           default:
-            qWarning() << "- Unknown tag" << tag;
+#ifdef ISFQT_DEBUG_VERBOSE
+            qWarning() << "- Unknown property" << tag;
+#endif
 
             // If the tag *should* be known, record it differently
             if( drawing.maxGuid_ > 0 && tag >= 100 && tag <= drawing.maxGuid_ )
@@ -283,6 +285,7 @@ using namespace Isf;
     }
 
 
+
     /// Read a table of points attributes
     IsfError Tags::parseAttributeTable( IsfData &source, Drawing &drawing )
     {
@@ -291,7 +294,7 @@ using namespace Isf;
 
       if( payloadSize == 0 )
       {
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG
         qDebug() << "Invalid payload for TAG_DRAW_ATTRS_TABLE";
 #endif
         return ISF_ERROR_INVALID_PAYLOAD;
@@ -300,7 +303,7 @@ using namespace Isf;
       qint64 payloadEnd = source.pos() + payloadSize;
       while( result == ISF_ERROR_NONE && source.pos() < payloadEnd && ! source.atEnd() )
       {
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
         qDebug() << "Got tag: TAG_DRAW_ATTRS_BLOCK";
 #endif
         result = parseAttributeBlock( source, drawing );
@@ -320,7 +323,7 @@ using namespace Isf;
       drawing.canvas_.setRight ( Isf::Compress::decodeInt( source ) );
       drawing.canvas_.setBottom( Isf::Compress::decodeInt( source ) );
 
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG
       qDebug() << "- Got drawing canvas:" << drawing.canvas_;
 #endif
 
@@ -337,7 +340,7 @@ using namespace Isf;
 
       if( payloadSize == 0 )
       {
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG
         qDebug() << "Invalid payload for TAG_METRIC_TABLE";
 #endif
         return ISF_ERROR_INVALID_PAYLOAD;
@@ -363,7 +366,7 @@ using namespace Isf;
 
       if( payloadSize == 0 )
       {
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG
         qDebug() << "Invalid payload for TAG_METRIC_BLOCK";
 #endif
         return ISF_ERROR_INVALID_PAYLOAD;
@@ -372,7 +375,7 @@ using namespace Isf;
       // Skip it, its usefulness is lesser than making the parser to actually work :)
       source.seekRelative( payloadSize );
 
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "- Skipped metrics block";
 #endif
 
@@ -389,7 +392,7 @@ using namespace Isf;
 
       if( payloadSize == 0 )
       {
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG
         qDebug() << "Invalid payload for TAG_TRANSFORM_TABLE";
 #endif
         return ISF_ERROR_INVALID_PAYLOAD;
@@ -429,7 +432,7 @@ using namespace Isf;
                              , Compress::decodeFloat( source )
                              , Compress::decodeFloat( source )
                              , 1.f );
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
           qDebug() << "- Transformation details - "
                    << "Scale X:" << transform.m11()
                    << "Scale Y:" << transform.m22()
@@ -442,7 +445,7 @@ using namespace Isf;
         {
           float scaleAmount = Compress::decodeFloat( source ) / HiMetricToPixel;
           transform.scale( scaleAmount, scaleAmount );
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
           qDebug() << "- Transformation details - "
                    << "Scale:" << scaleAmount;
 #endif
@@ -452,7 +455,7 @@ using namespace Isf;
         case TAG_TRANSFORM_ANISOTROPIC_SCALE:
           transform.scale( Compress::decodeFloat( source ) / HiMetricToPixel
                          , Compress::decodeFloat( source ) / HiMetricToPixel );
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
           qDebug() << "- Transformation details - "
                    << "Scale X:" << transform.m11()
                    << "Scale Y:" << transform.m22();
@@ -463,7 +466,7 @@ using namespace Isf;
         {
           float rotateAmount = Compress::decodeFloat( source ) / 100.0f;
           transform.rotate( rotateAmount );
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
           qDebug() << "- Transformation details - "
                    << "Rotate:" << rotateAmount;
 #endif
@@ -473,7 +476,7 @@ using namespace Isf;
         case TAG_TRANSFORM_TRANSLATE:
           transform.translate( Compress::decodeFloat( source )
                              , Compress::decodeFloat( source ) );
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
           qDebug() << "- Transformation details - "
                    << "Translate X:" << transform.m31()
                    << "Translate Y:" << transform.m32();
@@ -486,7 +489,7 @@ using namespace Isf;
                              , Compress::decodeFloat( source ) / HiMetricToPixel );
           transform.translate( Compress::decodeFloat( source )
                              , Compress::decodeFloat( source ) );
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
           qDebug() << "- Transformation details - "
                    << "Scale X:" << transform.m11()
                    << "Scale Y:" << transform.m22()
@@ -497,7 +500,7 @@ using namespace Isf;
         }
 
         default:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG
           qDebug() << "Got unknown transformation type:" << transformType;
 #endif
           return ISF_ERROR_INVALID_BLOCK;
@@ -513,7 +516,7 @@ using namespace Isf;
         drawing.currentTransform_ = &( drawing.transforms_.last() );
       }
 
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "- Added transform block #" << ( drawing.transforms_.count() - 1 );
 #endif
 
@@ -530,7 +533,7 @@ using namespace Isf;
 
       if( payloadSize == 0 )
       {
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG
         qDebug() << "Invalid payload for TAG_STROKE";
 #endif
         return ISF_ERROR_INVALID_PAYLOAD;
@@ -539,14 +542,14 @@ using namespace Isf;
       // Get the number of points which comprise this stroke
       quint64 numPoints = Isf::Compress::decodeUInt( source );
 
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "- Tag size:" << payloadSize << "Points stored:" << numPoints;
 #endif
 
       QList<qint64> xPointsData, yPointsData, pressureData;
       if( ! Isf::Compress::inflate( source, numPoints, xPointsData ) )
       {
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG
         qWarning() << "Decompression failure while extracting X points data!";
         return ISF_ERROR_INVALID_PAYLOAD;
 #endif
@@ -554,7 +557,7 @@ using namespace Isf;
 
       if( ! Isf::Compress::inflate( source, numPoints, yPointsData ) )
       {
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG
         qWarning() << "Decompression failure while extracting Y points data!";
         return ISF_ERROR_INVALID_PAYLOAD;
 #endif
@@ -563,7 +566,7 @@ using namespace Isf;
       if(   drawing.currentStrokeInfo_->hasPressureData
       &&  ! Isf::Compress::inflate( source, numPoints, pressureData ) )
       {
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG
         qWarning() << "Decompression failure while extracting pressure data!";
         return ISF_ERROR_INVALID_PAYLOAD;
 #endif
@@ -571,7 +574,7 @@ using namespace Isf;
 
       if( (uint)xPointsData.size() != numPoints || (uint)yPointsData.size() != numPoints )
       {
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG
         qWarning() << "The points arrays have sizes x=" << xPointsData.size() << "y=" << yPointsData.size()
                    << "which do not match with the advertised size of" << numPoints;
 #endif
@@ -580,7 +583,7 @@ using namespace Isf;
       if( drawing.currentStrokeInfo_->hasPressureData
       &&  (uint)pressureData.size() != numPoints )
       {
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG
         qWarning() << "The pressure data has a size of" << pressureData.size()
                    << "which does not match with the advertised size of" << numPoints;
 #endif
@@ -590,7 +593,7 @@ using namespace Isf;
       drawing.strokes_.append( Stroke() );
       Stroke &stroke = drawing.strokes_[ drawing.strokes_.size() - 1 ];
 
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "- Added stroke #" << ( drawing.strokes_.count() - 1 );
 #endif
 
@@ -643,13 +646,13 @@ using namespace Isf;
 
       if( payloadSize == 0 )
       {
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG
         qDebug() << "Invalid payload for TAG_STROKE_DESC_BLOCK";
 #endif
         return ISF_ERROR_INVALID_PAYLOAD;
       }
 
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "- Finding stroke description properties in the next" << payloadSize << "bytes";
 #endif
 
@@ -664,7 +667,7 @@ using namespace Isf;
         drawing.currentStrokeInfo_ = &info;
       }
 
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "- Added stroke info block #" << ( drawing.strokeInfo_.count() - 1 );
 #endif
 
@@ -676,33 +679,33 @@ using namespace Isf;
         switch( tag )
         {
           case TAG_NO_X:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "- Stroke contains no X coordinates";
 #endif
             info.hasXData = false;
             break;
 
           case TAG_NO_Y:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "- Stroke contains no Y coordinates";
 #endif
             info.hasYData = false;
             break;
 
           case TAG_BUTTONS:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "- Buttons...";
 #endif
             break;
 
           case TAG_STROKE_PROPERTY_LIST:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "- Property list...";
 #endif
             break;
 
           default: // List of Stroke packet properties
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "- Packet properties list:" << QString::number( tag, 10 );
 #endif
             info.hasPressureData = true;
@@ -733,7 +736,7 @@ using namespace Isf;
 
       if( payloadSize == 0 )
       {
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG
         qDebug() << "Invalid payload for TAG_STROKE_DESC_TABLE";
 #endif
         return ISF_ERROR_INVALID_PAYLOAD;
@@ -770,6 +773,7 @@ using namespace Isf;
         return;
       }
 
+#ifdef ISFQT_DEBUG_VERBOSE
       quint64 pos = 0;
       QByteArray output;
 
@@ -795,6 +799,10 @@ using namespace Isf;
       }
 
       qDebug() << "--------------------------------------------------------------------";
+#else
+      Q_UNUSED( message )
+      source.seekRelative( +payloadSize );
+#endif
     }
 
 

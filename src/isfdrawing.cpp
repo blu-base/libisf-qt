@@ -109,7 +109,7 @@ Drawing Drawing::fromIsfData( const QByteArray &rawData )
       {
         // step 1: read ISF version.
         quint8 version = Compress::decodeUInt( isfData );
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
         qDebug() << "Version:" << version;
 #endif
         if ( version != SUPPORTED_ISF_VERSION )
@@ -135,9 +135,9 @@ Drawing Drawing::fromIsfData( const QByteArray &rawData )
 
         if ( streamSize != (quint64)( isfData.size() - isfData.pos() ) )
         {
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG
           qDebug() << "Invalid stream size" << streamSize
-                   << "expected:" << ( isfData.size() - isfData.pos() );
+                   << ", expected" << ( isfData.size() - isfData.pos() );
 #endif
           // streamsize is bad.
           drawing.parserError_ = ISF_ERROR_BAD_STREAMSIZE;
@@ -145,8 +145,8 @@ Drawing Drawing::fromIsfData( const QByteArray &rawData )
         }
         else
         {
-#ifdef ISF_DEBUG_VERBOSE
-          qDebug() << "Stream size:" << streamSize;
+#ifdef ISFQT_DEBUG
+          qDebug() << "Reading ISF stream of size:" << streamSize << "...";
 #endif
           // Validate the drawing
           drawing.isNull_ = false;
@@ -181,8 +181,8 @@ Drawing Drawing::fromIsfData( const QByteArray &rawData )
 
         if( drawing.parserError_ != ISF_ERROR_NONE )
         {
-#ifdef ISF_DEBUG_VERBOSE
-          qWarning() << "Error in last operation, stopping";
+#ifdef ISFQT_DEBUG_VERBOSE
+          qWarning() << "Error in last operation, stopping.";
 #endif
           state = ISF_PARSER_FINISH;
         }
@@ -211,14 +211,12 @@ Drawing Drawing::fromIsfData( const QByteArray &rawData )
   }
 
 
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
     qDebug() << "Drawing bounding rectangle:" << drawing.boundingRect_;
-#endif
-#ifdef ISF_DEBUG_VERBOSE
     qDebug() << "Maximum thickness:" << drawing.maxPenSize_;
 #endif
 
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG
   qDebug() << "Finished with" << ( drawing.parserError_ == ISF_ERROR_NONE ? "success" : "error" );
   qDebug();
 #endif
@@ -244,56 +242,56 @@ IsfError Drawing::parseTag( Drawing &drawing, IsfData &isfData, quint64 tag )
   switch( tag )
   {
     case TAG_INK_SPACE_RECT:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_INK_SPACE_RECT";
 #endif
       result = Tags::parseInkSpaceRectangle( isfData, drawing );
       break;
 
     case TAG_GUID_TABLE:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_GUID_TABLE";
 #endif
       result = Tags::parseGuidTable( isfData, drawing );
       break;
 
     case TAG_DRAW_ATTRS_TABLE:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_DRAW_ATTRS_TABLE";
 #endif
       result = Tags::parseAttributeTable( isfData, drawing );
       break;
 
     case TAG_DRAW_ATTRS_BLOCK:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_DRAW_ATTRS_BLOCK";
 #endif
       result = Tags::parseAttributeBlock( isfData, drawing );
       break;
 
     case TAG_STROKE_DESC_TABLE:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_STROKE_DESC_TABLE";
 #endif
       result = Tags::parseStrokeDescTable( isfData, drawing );
       break;
 
     case TAG_STROKE_DESC_BLOCK:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_STROKE_DESC_BLOCK";
 #endif
       result = Tags::parseStrokeDescBlock( isfData, drawing );
       break;
 
     case TAG_BUTTONS:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_BUTTONS";
 #endif
       result = Tags::parseUnsupported( isfData, "TAG_BUTTONS" );
       break;
 
     case TAG_NO_X:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_NO_X";
 #endif
       result = ISF_ERROR_NONE;
@@ -302,14 +300,14 @@ IsfError Drawing::parseTag( Drawing &drawing, IsfData &isfData, quint64 tag )
       break;
 
     case TAG_NO_Y:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_NO_Y";
 #endif
       drawing.hasYData_ = false;
       break;
 
     case TAG_DIDX:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_DIDX";
 #endif
 
@@ -318,39 +316,41 @@ IsfError Drawing::parseTag( Drawing &drawing, IsfData &isfData, quint64 tag )
       if( value < (uint)drawing.attributes_.count() )
       {
         drawing.currentPointInfo_ = &drawing.attributes_[ value ];
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
         qDebug() << "- Next strokes will use drawing attributes #" << value;
 #endif
       }
       else
       {
+#ifdef ISFQT_DEBUG
         qWarning() << "Invalid drawing attribute ID!";
+#endif
       }
       break;
 
     case TAG_STROKE:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_STROKE";
 #endif
       result = Tags::parseStroke( isfData, drawing );
       break;
 
     case TAG_STROKE_PROPERTY_LIST:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_STROKE_PROPERTY_LIST";
 #endif
       result = Tags::parseUnsupported( isfData, "TAG_STROKE_PROPERTY_LIST" );
       break;
 
     case TAG_POINT_PROPERTY:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_POINT_PROPERTY";
 #endif
       result = Tags::parseUnsupported( isfData, "TAG_POINT_PROPERTY" );
       break;
 
     case TAG_SIDX:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_SIDX";
 #endif
 
@@ -359,81 +359,83 @@ IsfError Drawing::parseTag( Drawing &drawing, IsfData &isfData, quint64 tag )
       if( value < (uint)drawing.strokeInfo_.count() )
       {
         drawing.currentStrokeInfo_ = &drawing.strokeInfo_[ value ];
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
         qDebug() << "- Next strokes will use stroke info #" << value;
 #endif
       }
       else
       {
+#ifdef ISFQT_DEBUG
         qWarning() << "Invalid stroke ID!";
+#endif
       }
       break;
 
     case TAG_COMPRESSION_HEADER:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_COMPRESSION_HEADER";
 #endif
       result = Tags::parseUnsupported( isfData, "TAG_COMPRESSION_HEADER" );
       break;
 
     case TAG_TRANSFORM_TABLE:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_TRANSFORM_TABLE";
 #endif
       result = Tags::parseTransformationTable( isfData, drawing );
       break;
 
     case TAG_TRANSFORM:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_TRANSFORM";
 #endif
       result = Tags::parseTransformation( isfData, drawing, tag );
       break;
 
     case TAG_TRANSFORM_ISOTROPIC_SCALE:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_TRANSFORM_ISOTROPIC_SCALE";
 #endif
       result = Tags::parseTransformation( isfData, drawing, tag );
       break;
 
     case TAG_TRANSFORM_ANISOTROPIC_SCALE:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_TRANSFORM_ANISOTROPIC_SCALE";
 #endif
       result = Tags::parseTransformation( isfData, drawing, tag );
       break;
 
     case TAG_TRANSFORM_ROTATE:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_TRANSFORM_ROTATE";
 #endif
       result = Tags::parseTransformation( isfData, drawing, tag );
       break;
 
     case TAG_TRANSFORM_TRANSLATE:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_TRANSFORM_TRANSLATE";
 #endif
       result = Tags::parseTransformation( isfData, drawing, tag );
       break;
 
     case TAG_TRANSFORM_SCALE_AND_TRANSLATE:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_TRANSFORM_SCALE_AND_TRANSLATE";
 #endif
       result = Tags::parseTransformation( isfData, drawing, tag );
       break;
 
     case TAG_TRANSFORM_QUAD:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_TRANSFORM_QUAD";
 #endif
       result = Tags::parseTransformation( isfData, drawing, tag );
       break;
 
     case TAG_TIDX:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_TIDX";
 #endif
 
@@ -442,33 +444,35 @@ IsfError Drawing::parseTag( Drawing &drawing, IsfData &isfData, quint64 tag )
       if( value < (uint)drawing.transforms_.count() )
       {
         drawing.currentTransform_ = &drawing.transforms_[ value ];
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
         qDebug() << "- Next strokes will use transform #" << value;
 #endif
       }
       else
       {
+#ifdef ISFQT_DEBUG
         qWarning() << "Invalid transform ID!";
+#endif
       }
 
       break;
 
     case TAG_METRIC_TABLE:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_METRIC_TABLE";
 #endif
       result = Tags::parseMetricTable( isfData, drawing );
       break;
 
     case TAG_METRIC_BLOCK:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_METRIC_BLOCK";
 #endif
       result = Tags::parseMetricBlock( isfData, drawing );
       break;
 
     case TAG_MIDX:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_MIDX";
 #endif
 
@@ -477,40 +481,42 @@ IsfError Drawing::parseTag( Drawing &drawing, IsfData &isfData, quint64 tag )
       if( value < (uint)drawing.metrics_.count() )
       {
         drawing.currentMetrics_ = &drawing.metrics_[ value ];
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
         qDebug() << "- Next strokes will use metrics #" << value;
 #endif
       }
       else
       {
+#ifdef ISFQT_DEBUG
         qWarning() << "Invalid metrics ID!";
+#endif
       }
 
       break;
 
     case TAG_MANTISSA:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_MANTISSA";
 #endif
       result = Tags::parseUnsupported( isfData, "TAG_MANTISSA" );
       break;
 
     case TAG_PERSISTENT_FORMAT:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_PERSISTENT_FORMAT";
 #endif
       result = Tags::parsePersistentFormat( isfData, drawing );
       break;
 
     case TAG_HIMETRIC_SIZE:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_HIMETRIC_SIZE";
 #endif
       result = Tags::parseHiMetricSize( isfData, drawing );
       break;
 
     case TAG_STROKE_IDS:
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "Got tag: TAG_STROKE_IDS";
 #endif
       result = Tags::parseUnsupported( isfData, "TAG_STROKE_IDS" );
@@ -540,6 +546,10 @@ QPixmap Drawing::getPixmap()
   pixmap.fill( Qt::white );
   QPainter painter( &pixmap );
 
+#ifdef ISFQT_DEBUG
+  qDebug() << "Rendering a drawing of size" << size_;
+#endif
+
   painter.setWindow( boundingRect_ );
   painter.setWorldMatrixEnabled( true );
   painter.setRenderHints(   QPainter::Antialiasing
@@ -553,7 +563,7 @@ QPixmap Drawing::getPixmap()
   pen.setJoinStyle( Qt::RoundJoin );
 
 
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
   qDebug() << "The drawing contains" << strokes_.count() << "strokes.";
 #endif
 
@@ -592,8 +602,8 @@ QPixmap Drawing::getPixmap()
       painter.setWorldTransform( *currentTransform_, true );
     }
 
-#ifdef ISF_DEBUG_VERBOSE
-    qDebug() << "Rendering stroke" << index << "containing" << stroke.points.count() << "points...";
+#ifdef ISFQT_DEBUG_VERBOSE
+    qDebug() << "Rendering stroke" << index << "containing" << stroke.points.count() << "points";
     qDebug() << "- Stroke color:" << currentPointInfo_->color.name() << "Pen size:" << pen.widthF();
 #endif
 
@@ -646,7 +656,7 @@ QPixmap Drawing::getPixmap()
     }
 
 /*
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
     // Draw the stroke number next to each one, for debugging purposes
     pen.setColor( QColor( Qt::red ) );
     painter.setPen( pen );
@@ -660,6 +670,10 @@ QPixmap Drawing::getPixmap()
   }
 
   painter.end();
+
+#ifdef ISFQT_DEBUG
+    qDebug() << "Rendering complete.";
+#endif
 
   return pixmap;
 }

@@ -1,11 +1,11 @@
 /**
- * LibISF configuration file
+ * LibISF-Qt configuration file
  *
  * The value for these defines is controlled by CMake at configuration time.
  */
 
 // Define the application version
-#define LIBISF_VERSION "${LIBISF_VERSION}"
+#define ISFQT_VERSION "${ISFQT_VERSION}"
 
 // Define if debug output should be enabled
-#define LIBISF_DEBUG ${LIBISF_DEBUG_OUTPUT}
+#define ISFQT_DEBUG ${ISFQT_DEBUG_OUTPUT}

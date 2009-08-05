@@ -20,7 +20,7 @@
 
 
 #include "compression/isfdata.h"
-#include "libisf.h"
+#include "isfqt.h"
 
 
 void TestMultibyteCoding::isfData()

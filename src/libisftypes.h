@@ -24,6 +24,8 @@
 #ifndef LIBISFTYPES_H
 #define LIBISFTYPES_H
 
+#include "isfqtconfig.h"
+
 #include <QColor>
 #include <QList>
 #include <QMap>
@@ -35,9 +37,11 @@
 
 
 /**
- * Uncomment this define to enable debugging output
+ * Uncomment this define to enable very verbose debugging output
  */
-#define ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG
+  #define ISFQT_DEBUG_VERBOSE
+#endif
 
 
 

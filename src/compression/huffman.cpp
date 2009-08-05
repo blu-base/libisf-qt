@@ -135,14 +135,14 @@ namespace Isf
         else if( count == (uint)bitAmounts.size() )
         {
           // TODO: Implement 64-bit data decompression :)
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG
           qDebug() << "Unsupported 64-bit value found!";
 #endif
           value = 0;
         }
         else
         {
-#ifdef ISF_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG
           qDebug() << "Decompression error!";
 #endif
           value = 0;

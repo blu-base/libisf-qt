@@ -1,22 +1,37 @@
 
-include_directories(${QT_INCLUDES})
+#### Source files definitions ####
 
-set ( libisf_sources
-      isfdrawing.cpp
-      tags.cpp
-      multibytecoding.cpp
-      compression/compression.cpp
-      compression/gorilla.cpp
-      compression/huffman.cpp
-      compression/isfdata.cpp
-    )
+SET( ISFQT_SOURCES
+     compression/compression.cpp
+     compression/gorilla.cpp
+     compression/huffman.cpp
+     compression/isfdata.cpp
+     isfdrawing.cpp
+     multibytecoding.cpp
+     tags.cpp
+   )
 
-add_library( isf-qt SHARED  ${libisf_sources} )
+SET( ISFQT_PUBLIC_HEADERS
+     ../include/isfqt.h
+     ../include/isfdrawing.h
+   )
 
-target_link_libraries( isf-qt ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} )
 
-set_target_properties( isf-qt PROPERTIES
-                              VERSION ${LIBISFQT_VERSION}
-                              SOVERSION ${LIBISFQT_VERSION} )
+#### Compilation ####
 
-install( TARGETS isf-qt LIBRARY DESTINATION lib )
+INCLUDE_DIRECTORIES( ${QT_INCLUDES} ${CMAKE_CURRENT_BINARY_DIR} )
+
+ADD_LIBRARY( isf-qt SHARED ${ISFQT_SOURCES} )
+TARGET_LINK_LIBRARIES( isf-qt ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} )
+
+SET_TARGET_PROPERTIES( isf-qt PROPERTIES
+                              VERSION    ${ISFQT_VERSION}
+                              SOVERSION  ${ISFQT_VERSION} )
+
+
+#### Installation ####
+
+INSTALL( TARGETS isf-qt LIBRARY
+         DESTINATION "${CMAKE_INSTALL_PREFIX}/lib"     )
+INSTALL( FILES ${ISFQT_PUBLIC_HEADERS}
+         DESTINATION "${CMAKE_INSTALL_PREFIX}/include" )

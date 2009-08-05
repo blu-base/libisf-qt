@@ -1,18 +1,64 @@
-project(libisf)
-cmake_minimum_required(VERSION 2.6)
-find_package(Qt4 REQUIRED)
+PROJECT( isf-qt )
+CMAKE_MINIMUM_REQUIRED( VERSION 2.6 )
 
-enable_testing()
 
-include_directories(${QT_INCLUDES} ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/src)
+#### Main switches ####
 
-set ( LIBISFQT_VERSION "0.1" )
+# Define the default build type
+# Possible values:
+# - none
+# - release
+# - debug
+# - debugfull       (even fewer optimisations)
+# - relwithdebinfo  (release with debug info)
+# - minsizerel      (minimum size release)
+# Uncomment the next line to force building in full debug mode
+SET( CMAKE_BUILD_TYPE debugfull )
 
-set( CMAKE_BUILD_TYPE debugfull )
+# Define the library version number
+SET( ISFQT_VERSION "0.1" )
 
-if( CMAKE_COMPILER_IS_GNUCXX )
-  set( CMAKE_CXX_FLAGS_DEBUGFULL "-O0 -g3 -fno-inline -Wall -Woverloaded-virtual -Wsign-compare -Wundef -fvisibility=default" )
-endif( CMAKE_COMPILER_IS_GNUCXX )
 
-add_subdirectory(src)
-add_subdirectory(tests)
+#### Inclusions ####
+
+FIND_PACKAGE( Qt4 REQUIRED )
+
+ENABLE_TESTING()
+
+
+#### Compilation ####
+
+IF( CMAKE_COMPILER_IS_GNUCXX )
+  SET( CMAKE_CXX_FLAGS_DEBUGFULL
+       "-O0 -g3 -fno-inline -Wall -Woverloaded-virtual -Wsign-compare -Wundef -fvisibility=default" )
+ENDIF( CMAKE_COMPILER_IS_GNUCXX )
+
+INCLUDE_DIRECTORIES( ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/src )
+
+CONFIGURE_FILE( ${CMAKE_CURRENT_SOURCE_DIR}/cmake/isfqtconfig.h.in
+                ${CMAKE_CURRENT_BINARY_DIR}/isfqtconfig.h )
+
+ADD_SUBDIRECTORY( src   )
+ADD_SUBDIRECTORY( tests )
+
+
+#### Project CMake configuration files creation ####
+
+# Define the shortcuts for the installation directories
+SET( INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/include"
+                         CACHE STRING "Directory where the include files will be installed" )
+SET( LIB_INSTALL_DIR     "${CMAKE_INSTALL_PREFIX}/lib"
+                         CACHE STRING "Directory where the lib will be installed" )
+SET( SHARED_INSTALL_DIR  "${CMAKE_INSTALL_PREFIX}/share"
+                         CACHE STRING "Directory where the shared data will be installed" )
+
+# Prepare the IsfQtConfig.cmake file, which allows other projects to find us
+CONFIGURE_FILE( cmake/IsfQtConfig.cmake.in "${CMAKE_CURRENT_BINARY_DIR}/IsfQtConfig.cmake" @ONLY )
+
+
+#### Installation ####
+
+INSTALL( FILES ${CMAKE_CURRENT_BINARY_DIR}/IsfQtConfig.cmake
+         DESTINATION ${LIB_INSTALL_DIR}/isfqt )
+INSTALL( FILES cmake/FindIsfQt.cmake
+         DESTINATION ${SHARED_INSTALL_DIR}/cmake/Modules )
