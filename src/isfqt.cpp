@@ -25,6 +25,7 @@
 #include "data/datasource.h"
 #include "data/multibytecoding.h"
 #include "tagsparser.h"
+#include "tagswriter.h"
 
 #include <QPainter>
 #include <QPixmap>
@@ -493,9 +494,40 @@ Drawing Parser::isfToDrawing( const QByteArray &rawData )
   */
 QByteArray Parser::DrawingToIsf( const Drawing &drawing )
 {
-  Q_UNUSED( drawing )
+  if( drawing.isNull() || drawing.error() != ISF_ERROR_NONE )
+  {
+#ifdef ISFQT_DEBUG
+    qDebug() << "The drawing was not valid!";
+#endif
+    return QByteArray();
+  }
 
-  // TODO Write me!
+  DataSource isfData;
 
-  return QByteArray();
+  // Write the drawing size
+  TagsWriter::addHiMetricSize( isfData, drawing );
+
+//   qDebug() << "Buffer:" << isfData.data().toHex();
+
+  // Write the attributes
+  TagsWriter::addAttributeTable( isfData, drawing );
+
+  // Write the transforms
+  TagsWriter::addTransformationTable( isfData, drawing );
+
+  // Write the strokes
+  TagsWriter::addStrokes( isfData, drawing );
+
+//   qDebug() << "Buffer now:" << isfData.data().toHex();
+
+  // Write the stream size
+  encodeUInt( isfData, isfData.size(), true );
+
+  // Write the version number
+  encodeUInt( isfData, SUPPORTED_ISF_VERSION, true );
+
+
+  return isfData.data();
 }
+
+

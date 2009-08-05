@@ -209,8 +209,8 @@ namespace Isf
     /// Constructor
     PointInfo()
     : color( Qt::black )
-    , flags( 0 )
-    , penSize( 20, 20 ) // +/- 8px in HiMetric units
+    , flags( 0x10 )      // Meaning unknown
+    , penSize( 20, 20 )  // +/- 8px in HiMetric units
     {
     }
 

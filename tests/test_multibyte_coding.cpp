@@ -24,26 +24,31 @@
 #include <QByteArray>
 
 
-void TestMultibyteCoding::isfData()
+void TestMultibyteCoding::testDataSource()
 {
   // test the DataSource class
 
   Isf::Compress::DataSource data;
 
   // Read one bit
-  data.append( 1 );
+  data.append( Q_UINT64_C(0x80) );
   QVERIFY( data.getBit() == true );
 
-  // Read seven bytes
+  // Read seven bits
   data.clear();
-  data.append( 0xC0 );
+  data.append( Q_UINT64_C(0xC0) );
 
-  char byte = 0;
+  uchar byte = 0;
   for( int i = 0; i < 7; i++ )
   {
+#if Q_BYTE_ORDER == Q_BIG_ENDIAN
     byte |= ( data.getBit() << i );
+#else
+    byte |= ( data.getBit() << (7-i) );
+#endif
   }
-  QVERIFY( byte == Q_UINT64_C(0x40) );
+
+  QVERIFY( byte == Q_UINT64_C(0xC0) );
 
   // Read a byte
   data.clear();
@@ -72,7 +77,7 @@ void TestMultibyteCoding::unsignedEncode()
 {
   // test encoding a value that will fit into a single byte.
   quint64 value = Q_UINT64_C(0x7d); // dec = 125
-  QByteArray result(Isf::Compress::encodeUInt(value));
+  QByteArray result( Isf::Compress::encodeUInt(value));
 
   // expect 1 byte in size
   QCOMPARE(result.size(), 1);

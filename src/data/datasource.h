@@ -39,64 +39,70 @@ namespace Isf
       public: // Constructors
 
         /// Constructor with no initial data
-                    DataSource();
+                          DataSource();
         /// Constructor with initial data buffer
-                    DataSource( const QByteArray &data );
+                          DataSource( const QByteArray &data );
         /// Destructor
-                   ~DataSource();
+                         ~DataSource();
 
 
       public: // Public status retrieval methods
 
         /// Get whether the buffer is finished (use considerBits
         /// to also check whether there are more bits to read or not)
-        bool        atEnd( bool considerBits = false ) const;
+        bool              atEnd( bool considerBits = false ) const;
+        /// Return a reference to the data array
+        const QByteArray &data() const;
         /// Get the current position within the data
-        qint64      pos() const;
+        qint64            pos() const;
         /// Get the size of the data
-        qint64      size() const;
+        qint64            size() const;
 
 
       public: // Public data manipulation methods
 
         /// Insert a byte at the end of the data
-        void        append( char byte );
+        void              append( char byte );
         /// Insert bytes at the end of the data
-        void        append( const QByteArray &bytes );
+        void              append( const QByteArray &bytes );
         /// Clear the data buffer
-        void        clear();
+        void              clear();
         /// Retrieve the next bit from the data
-        bool        getBit();
+        bool              getBit();
         /// Retrieve the next <amount> bits from the data
-        quint64     getBits( quint8 amount );
+        quint64           getBits( quint8 amount );
         /// Retrieve the index of the current bit
-        quint8      getBitIndex();
+        quint8            getBitIndex();
         /// Retrieve the next byte from the data
-        char        getByte();
+        char              getByte();
         /// Retrieve the next <amount> bytes from the data
-        QByteArray  getBytes( quint8 amount );
+        QByteArray        getBytes( quint8 amount );
+        /// Insert a byte at the beginning of the data
+        void              prepend( char byte );
+        /// Insert bytes at the beginning of the data
+        void              prepend( const QByteArray &bytes );
         /// Replace the data array with another
-        void        setData( const QByteArray &data );
+        void              setData( const QByteArray &data );
         /// Seek back and forth in the stream
-        void        seekRelative( int pos );
+        void              seekRelative( int pos );
         /// Skip the rest of the current byte
-        void        skipToNextByte();
+        void              skipToNextByte();
 
 
       private: // Private methods
 
         // Move a byte from the buffer into the bit array
-        void        moveByteToBitArray();
+        void              moveByteToBitArray();
 
 
       private: // Private properties
 
         // Main data buffer
-        QBuffer     buffer_;
+        QBuffer           buffer_;
         // Current bit within the bit array
-        quint8      currentBitIndex_;
+        quint8            currentBitIndex_;
         // Current byte
-        QBitArray   currentByte_;
+        QBitArray         currentByte_;
 
     };
 

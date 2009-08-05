@@ -40,21 +40,21 @@ namespace Isf
     /**
      * Decodes a multibyte unsigned integer into a quint64.
      */
-    quint64 decodeUInt( DataSource &source );
+    quint64    decodeUInt( DataSource &source );
 
 
 
     /**
      * Decodes a multibyte signed integer into a qint64.
      */
-    qint64 decodeInt( DataSource &source );
+    qint64     decodeInt( DataSource &source );
 
 
 
     /**
      * Decodes a float.
      */
-    float decodeFloat( DataSource &source );
+    float      decodeFloat( DataSource &source );
 
 
 
@@ -62,6 +62,7 @@ namespace Isf
      * Encodes a multibyte unsigned integer into a 64-bit value.
      */
     QByteArray encodeUInt( quint64 value );
+    void       encodeUInt( DataSource &source, quint64 value, bool prepend = false );
 
 
 
@@ -69,13 +70,15 @@ namespace Isf
      * Encode a signed integer into a multibyte representation.
      */
     QByteArray encodeInt( qint64 value );
+    void       encodeInt( DataSource &source, qint64 value, bool prepend = false );
 
 
 
     /**
      * Encodes a float.
      */
-    QByteArray encodeFloat( float val );
+    QByteArray encodeFloat( float value );
+    void       encodeFloat( DataSource &source, float value, bool prepend = false );
 
 
 

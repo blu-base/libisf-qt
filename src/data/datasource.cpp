@@ -66,22 +66,22 @@ DataSource::~DataSource()
 void DataSource::append( char byte )
 {
   bool wasEmpty = ( buffer_.size() == 0 );
-  qint64 oldPosition = wasEmpty ? 0 : buffer_.pos();
+
+  if( ! wasEmpty )
+  {
+    buffer_.seek( buffer_.size() );
+  }
 
   if( buffer_.write( &byte, 1 ) != 1 )
   {
     qWarning() << "DataSource::append() - Write failed at buffer position" << buffer_.pos();
-
-    buffer_.seek( oldPosition );
     return;
   }
-
-  buffer_.seek( oldPosition );
 
   // Prepare the first byte to be read
   if( wasEmpty )
   {
-    moveByteToBitArray();
+    currentBitIndex_ = 8;
   }
 }
 
@@ -91,24 +91,23 @@ void DataSource::append( char byte )
 void DataSource::append( const QByteArray &bytes )
 {
   bool wasEmpty = ( buffer_.size() == 0 );
-  qint64 oldPosition = wasEmpty ? 0 : buffer_.pos();
+
+  if( ! wasEmpty )
+  {
+    buffer_.seek( buffer_.size() );
+  }
 
   if( buffer_.write( bytes ) != bytes.size() )
   {
     qWarning() << "DataSource::append() - Write of" << bytes.size() << "bytes failed at buffer position" << buffer_.pos();
-
-    buffer_.seek( oldPosition );
     return;
   }
-
-  buffer_.seek( oldPosition );
 
   // Prepare the first byte to be read
   if( wasEmpty )
   {
-    moveByteToBitArray();
+    currentBitIndex_ = 8;
   }
-
 }
 
 
@@ -140,6 +139,14 @@ void DataSource::clear()
 
   currentByte_.clear();
   currentByte_.resize( 8 );
+}
+
+
+
+// Return a reference to the data array
+const QByteArray &DataSource::data() const
+{
+  return buffer_.data();
 }
 
 
@@ -279,6 +286,40 @@ void DataSource::moveByteToBitArray()
 qint64 DataSource::pos() const
 {
   return buffer_.pos();
+}
+
+
+
+// Insert a byte at the beginning of the data
+void DataSource::prepend( char byte )
+{
+  buffer_.buffer().prepend( byte );
+
+  bool wasAtBeginning = ( buffer_.pos() == 0 );
+
+  seekRelative( 1 );
+
+  if( wasAtBeginning )
+  {
+    moveByteToBitArray();
+  }
+}
+
+
+
+// Insert bytes at the beginning of the data
+void DataSource::prepend( const QByteArray &bytes )
+{
+  buffer_.buffer().prepend( bytes );
+
+  bool wasAtBeginning = ( buffer_.pos() == 0 );
+
+  seekRelative( bytes.size() );
+
+  if( wasAtBeginning )
+  {
+    moveByteToBitArray();
+  }
 }
 
 

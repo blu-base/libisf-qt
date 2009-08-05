@@ -31,6 +31,8 @@ Q_OBJECT
     void parserErrorNoneByDefault();
     void invalidStreamSize_NullDrawing();
     void parseValidRawIsfData();
+
+    void createDrawing();
   private:
 
 };

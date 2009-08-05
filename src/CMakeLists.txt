@@ -9,6 +9,7 @@ SET( ISFQT_SOURCES
      data/multibytecoding.cpp
      isfdrawing.cpp
      tagsparser.cpp
+     tagswriter.cpp
      isfqt.cpp
    )
 

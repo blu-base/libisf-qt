@@ -22,7 +22,7 @@ class TestMultibyteCoding : public QObject
 {
 Q_OBJECT
 private slots:
-    void isfData();
+    void testDataSource();
 
     void unsignedEncode();
     void unsignedDecode();

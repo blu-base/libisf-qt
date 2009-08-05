@@ -23,6 +23,11 @@
    - Renamed the IsfData class to DataSource as it is at a lower level than ISF.
    - Moved the ISF parser into a class Parser, found in include/isfqt.h and src/isfqt.cpp
  * Added a dummy drawing-to-ISF method in class Parser.
+ * Added multibyte encoding methods taking a DataSource.
+ * Added float encoding method and fixed uint encoding method.
+ * Fixed seeking bug in DataSource::append() methods.
+ * Added DataSource::prepend() methods.
+ * Started working on the ISF stream writer.
 
 2009-08-05 (Adam)
  * Correct an issue with incorrect colours for strokes.

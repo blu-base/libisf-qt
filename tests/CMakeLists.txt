@@ -1,35 +1,21 @@
-include_directories(${QT_INCLUDES} ${CMAKE_CURRENT_BINARY_DIR})
-set(CMAKE_EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR})
 
-macro(add_multiple_tests)
-  foreach(test ${ARGN})
-    qt4_automoc(test_${test}.cpp)
-    add_executable(test_${test} test_${test}.cpp)
-    add_test(libisf-${test} test_${test})
-    target_link_libraries(test_${test} ${QT_QTTEST_LIBRARY} ${QT_QTCORE_LIBRARY} isf-qt )
-  endforeach(test)
-endmacro(add_multiple_tests)
+INCLUDE_DIRECTORIES( ${QT_INCLUDES} ${CMAKE_CURRENT_BINARY_DIR} )
+SET( CMAKE_EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR} )
 
-add_multiple_tests(
+MACRO( add_multiple_tests )
+  FOREACH( test ${ARGN} )
+    QT4_AUTOMOC( test_${test}.cpp )
+    ADD_EXECUTABLE( test_${test} test_${test}.cpp )
+    ADD_TEST( libisf-${test} test_${test} )
+    TARGET_LINK_LIBRARIES( test_${test} ${QT_QTTEST_LIBRARY} ${QT_QTCORE_LIBRARY} isf-qt )
+  ENDFOREACH( test )
+ENDMACRO( add_multiple_tests )
+
+ADD_MULTIPLE_TESTS(
   isfdrawing
   multibyte_coding
 )
 
-# copy ISF test data over.
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test1.isf ${CMAKE_CURRENT_BINARY_DIR}/test1.isf COPYONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test2.isf ${CMAKE_CURRENT_BINARY_DIR}/test2.isf COPYONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test3.isf ${CMAKE_CURRENT_BINARY_DIR}/test3.isf COPYONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test4.isf ${CMAKE_CURRENT_BINARY_DIR}/test4.isf COPYONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test5.isf ${CMAKE_CURRENT_BINARY_DIR}/test5.isf COPYONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test6.isf ${CMAKE_CURRENT_BINARY_DIR}/test6.isf COPYONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test7.isf ${CMAKE_CURRENT_BINARY_DIR}/test7.isf COPYONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test8.isf ${CMAKE_CURRENT_BINARY_DIR}/test8.isf COPYONLY)
 
-#set(libisfTest_SRCS libisfTest.cpp)
-#qt4_automoc(${libisfTest_SRCS})
-#add_executable(libisfTest ${libisfTest_SRCS})
-#add_test(libisfTest libisfTest)
-#target_link_libraries(libisfTest ${QT_QTTEST_LIBRARY})
-
-
-add_subdirectory( decode )
+# Compile the ISF decoder test
+ADD_SUBDIRECTORY( decode )

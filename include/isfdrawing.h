@@ -47,8 +47,9 @@ namespace Isf
    */
   class Drawing
   {
-    friend class TagsParser;
     friend class Parser;
+    friend class TagsParser;
+    friend class TagsWriter;
 
     public:
 

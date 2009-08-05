@@ -28,7 +28,6 @@
 
 #include <isfdrawing.h>
 
-#include <QDebug>
 #include <QPolygon>
 
 
@@ -102,10 +101,11 @@ IsfError TagsParser::parseHiMetricSize( DataSource &source, Drawing &drawing )
 {
   quint64 payloadSize = decodeUInt( source );
 
-  if( payloadSize == 0 )
+  // This field should have fixed size, why the hell does it have a payload value?!
+  if( payloadSize != 2 )
   {
 #ifdef ISFQT_DEBUG
-    qDebug() << "Invalid payload for TAG_HIMETRIC_SIZE";
+    qDebug() << "Invalid payload for TAG_HIMETRIC_SIZE:" << payloadSize;
 #endif
     return ISF_ERROR_INVALID_PAYLOAD;
   }
@@ -147,7 +147,7 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
   }
 
 #ifdef ISFQT_DEBUG_VERBOSE
-  qDebug() << "- Added drawing attribute block #" << ( drawing.attributes_.count() - 1 );
+  qDebug() << "- Added drawing attribute block #" << ( drawing.attributes_.count() - 1 ) << "pay size:"<< payloadSize;
 #endif
 
   qint64 payloadEnd = source.pos() + payloadSize;
@@ -201,7 +201,7 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
 
       case PEN_TIP:
 #ifdef ISFQT_DEBUG_VERBOSE
-        qDebug() << "- Got pen shape: is rectangular?" << (bool)value;
+        qDebug() << "- Got pen shape: is rectangular?" << (bool)value << "full value:" << value;
 #endif
         if( value )
         {

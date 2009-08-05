@@ -105,12 +105,16 @@ namespace Isf
 
 
 
-    // Encodes a multibyte unsigned integer into a 64-bit value.
+    /**
+     * Encodes an unsigned 64-bit integer into a byte array with multibyte encoding.
+     *
+     * @param val The value to encode
+     */
     QByteArray encodeUInt( quint64 value )
     {
       quint8 byte;
       quint8 flag;
-      QByteArray output;
+      QByteArray result;
 
       do
       {
@@ -119,36 +123,13 @@ namespace Isf
 
         flag = ( value == 0 ) ? 0 : 0x80;
 
-        output.append( byte | flag );
+#if Q_BYTE_ORDER == Q_BIG_ENDIAN
+        result.prepend( byte | flag );
+#else
+        result.append( byte | flag );
+#endif
       }
       while( flag );
-
-      return output;
-    }
-
-
-
-    /**
-     * Encodes a signed 64-bit integer into a QByteArray with
-     * multibyte encoding.
-     * @param val The value to encode.
-     * @return a QByteArray instance where each index corresponds to a byte in the encoding.
-     */
-    QByteArray encodeInt( qint64 val )
-    {
-      // encoding process:
-      // get absolute value.
-      // shift left by 1.
-      // encode via multibyte encoding.
-      // set sign bit.
-      bool isNegative = ( val < 0 );
-      if ( isNegative ) val *= -1;
-
-      val = val << 1;
-
-      QByteArray result = encodeUInt( val );
-
-      if ( isNegative ) result[0] = result[0] | 0x1;
 
       return result;
     }
@@ -156,16 +137,144 @@ namespace Isf
 
 
     /**
-     * Encodes a floating-point value into a QByteArray with
-     * multibyte encoding.
-     * @param val The value to encode.
-     * @return a QByteArray instance where each index corresponds to a byte in the encoding.
+     * Encodes an unsigned 64-bit integer into the Data Source with multibyte encoding.
+     *
+     * @param source   The data source
+     * @param val      The value to encode
+     * @param prepend  False (default value) to append the encoded value to the existing data
+     *                 True to prepend the new value to the existing data
      */
-    QByteArray encodeFloat( float val )
+    void encodeUInt( DataSource &source, quint64 value, bool prepend )
     {
-      Q_UNUSED( val )
+      QByteArray result( encodeUInt( value ) );
 
-      return QByteArray();
+      if( prepend )
+      {
+        source.prepend( result );
+      }
+      else
+      {
+        source.append( result );
+      }
+    }
+
+
+
+    /**
+     * Encodes a signed 64-bit integer into a byte array with multibyte encoding.
+     *
+     * @param val The value to encode
+     */
+    QByteArray encodeInt( qint64 value )
+    {
+      bool isNegative = ( value < 0 );
+      if ( isNegative ) value *= -1;
+
+      value = value << 1;
+
+      QByteArray result( encodeUInt( value ) );
+
+      if ( isNegative )
+      {
+        int pos;
+#if Q_BYTE_ORDER == Q_BIG_ENDIAN
+        pos = result.size() - 1;
+#else
+        pos = 0;
+#endif
+
+        result[ pos ] = result[ pos ] | 0x1;
+      }
+
+      return result;
+    }
+
+
+
+    /**
+     * Encodes a signed 64-bit integer into the Data Source with multibyte encoding.
+     *
+     * @param source   The data source
+     * @param value    The value to encode
+     * @param prepend  False (default value) to append the encoded value to the existing data
+     *                 True to prepend the new value to the existing data
+     */
+    void encodeInt( DataSource &source, qint64 value, bool prepend )
+    {
+      QByteArray result( encodeInt( value ) );
+
+      if( prepend )
+      {
+        source.prepend( result );
+      }
+      else
+      {
+        source.append( result );
+      }
+    }
+
+
+
+    /**
+     * Encodes a floating-point value into a byte array with multibyte encoding.
+     *
+     * @param val      The value to encode
+     */
+    QByteArray encodeFloat( float value )
+    {
+      qint8 index;
+      QByteArray result;
+
+      // Union used to encode the float transparently
+      union
+      {
+        float number;
+        uchar bytes[4];
+      } data;
+
+      data.number = value;
+
+#if Q_BYTE_ORDER == Q_BIG_ENDIAN
+      index = 3;
+      do
+      {
+        result.append( data.bytes[ index-- ] );
+      }
+      while( index >= 0 );
+#else
+      index = 0;
+      do
+      {
+        result.append( data.bytes[ index++ ] );
+      }
+      while( index <= 3 );
+#endif
+
+      return result;
+    }
+
+
+
+    /**
+     * Encodes a floating-point value into the Data Source with multibyte encoding.
+     *
+     * @param source   The data source
+     * @param value    The value to encode
+     * @param prepend  False (default value) to append the encoded value to the existing data
+     *                 True to prepend the new value to the existing data
+     */
+    void encodeFloat( DataSource &source, float value, bool prepend )
+    {
+      QByteArray result( encodeFloat( value ) );
+
+      if( prepend )
+      {
+        source.prepend( result );
+      }
+      else
+      {
+        source.append( result );
+      }
     }
 
 
