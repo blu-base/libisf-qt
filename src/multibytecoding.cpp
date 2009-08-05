@@ -153,6 +153,19 @@ namespace Isf
 
 
 
+    /**
+     * Encodes a floating-point value into a QByteArray with
+     * multibyte encoding.
+     * @param val The value to encode.
+     * @return a QByteArray instance where each index corresponds to a byte in the encoding.
+     */
+    QByteArray encodeFloat( float val )
+    {
+      return QByteArray();
+    }
+
+
+
   }
 }
 

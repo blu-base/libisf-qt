@@ -72,6 +72,13 @@ namespace Isf
 
 
 
+    /**
+     * Encodes a float.
+     */
+    QByteArray encodeFloat( float val );
+
+
+
   }
 }
 

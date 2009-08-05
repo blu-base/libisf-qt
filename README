@@ -1,31 +1,34 @@
 
-About LibISF:
+About LibISF-Qt:
 ============
 
-LibISF is a Qt4 library made to encode and decode Microsoft's
-Ink Serialized Format.
+LibISF-Qt is a Qt4 library made to encode and decode Microsoft's
+Ink Serialized Format (ISF) files.
 
 Q. What the hell is this?
-A. It's going to be (hopefully) a Qt rewrite of aMSN's ISF
-   encoding/decoding library, on which code we are building.
+A. It's a library, written in C++/Qt4, to read and write ISF
+   image files.
 
-Q. How will this library differ from aMSN's?
+Q. How does this library differ from aMSN's or Emesene's?
 A. It's being written with Qt, which makes it easily portable on
    a lot of different architectures; also Qt's new licensing
    terms (LGPL) will make it possible for everyone to use it
-   easily. Moreover, aMSN's is not distributed by itself, ours
-   is.
+   easily.
+   The library will support more ISF features than those two,
+   since we are writing it using the official specification.
+   Moreover, aMSN's and Emesene's are not distributed by
+   theirselves, ours is.
 
-Q. Are you aware it'll be a lot of work?
-A. Hell yeah. It's time to seminate a bit farther than our usual
-   little field!
+Q. What's the status of completion of the library, and which
+   ISF features does it support?
+A. Please see the TODO file to have an overview.
 
 
 
 Compiling and installing:
 =================
 
-LibISF uses CMake, a quick and clean alternative to Autotools.
+LibISF-Qt uses CMake, a quick and clean alternative to Autotools.
 
 First create a new directory within the one which contains this
 file (we'll have the library built there):
@@ -44,7 +47,7 @@ Aaand now you're set. :)
 Documentation:
 =================
 
-The ISF format is well documented: here's the sources we use.
+The ISF format is (albeit poorly*) documented: here's the sources we use.
 
 - Original Microsoft ISF specification, made open with their Open Specification Promise:
   http://download.microsoft.com/download/0/B/E/0BE8BDD7-E5E8-422A-ABFD-4342ED7AD886/InkSerializedFormat(ISF)Specification.pdf
@@ -53,10 +56,14 @@ The ISF format is well documented: here's the sources we use.
 - Original code from aMSN:
   https://amsn.svn.sourceforge.net/svnroot/amsn/trunk/amsn/utils/tclISF/src
 
+* = The specification was probably not meant for use by developers wanting to write
+    an alternative implementation; there's a lot of guesswork to be done.
+
 
 
 More Information
 ================
 
-For more information about LibISF, ask us at the KMess board:
+For more information about LibISF-Qt, ask us at the KMess board:
 http://www.kmess.org/board/
+or contact us via e-mail at project@kmess.org
