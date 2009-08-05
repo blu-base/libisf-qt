@@ -24,7 +24,7 @@
 #ifndef MULTIBYTECODING_H
 #define MULTIBYTECODING_H
 
-#include "compression/isfdata.h"
+#include "isfdata.h"
 
 #include <QByteArray>
 

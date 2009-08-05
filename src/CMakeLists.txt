@@ -2,13 +2,13 @@
 #### Source files definitions ####
 
 SET( ISFQT_SOURCES
-     compression/compression.cpp
-     compression/gorilla.cpp
-     compression/huffman.cpp
-     compression/isfdata.cpp
+     data/compression.cpp
+     data/gorilla.cpp
+     data/huffman.cpp
+     data/isfdata.cpp
+     data/multibytecoding.cpp
      isfdrawing.cpp
-     multibytecoding.cpp
-     tags.cpp
+     tagsparser.cpp
    )
 
 SET( ISFQT_PUBLIC_HEADERS

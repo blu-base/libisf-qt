@@ -40,19 +40,6 @@ namespace Isf
 
 
   /**
-   * ISF parser state machine states
-   */
-  enum ParserState
-  {
-    ISF_PARSER_START = 0,        /// The parser has not read anything from the data yet
-    ISF_PARSER_FINISH,           /// The parser is done
-    ISF_PARSER_STREAMSIZE,       /// The parser is reading the ISF stream size
-    ISF_PARSER_TAG               /// The parser is reading tags from the stream
-  };
-
-
-
-  /**
    * This class loads ISF (Ink Serialized Format) drawings.
    *
    * @author Adam Goossens (adam@kmess.org)
@@ -60,7 +47,7 @@ namespace Isf
    */
   class Drawing
   {
-    friend class Tags;
+    friend class TagsParser;
 
     public:
 

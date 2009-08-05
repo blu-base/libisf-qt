@@ -15,8 +15,8 @@
 
 #include "test_multibyte_coding.h"
 
-#include "compression/isfdata.h"
-#include "multibytecoding.h"
+#include "data/isfdata.h"
+#include "data/multibytecoding.h"
 
 #include "isfqt-internal.h"
 

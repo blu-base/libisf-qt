@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Valerio Pilo                                    *
+ *   Copyright (C) 2008-2009 by Valerio Pilo                               *
  *   valerio@kmess.org                                                     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef ISFTAGS_H
-#define ISFTAGS_H
+#ifndef TAGSPARSER_H
+#define TAGSPARSER_H
 
 #include "isfqt.h"
 
@@ -48,7 +48,7 @@ namespace Isf
    *
    * @author Valerio Pilo (valerio@kmess.org)
    */
-  class Tags
+  class TagsParser
   {
     public: // Static public methods
 

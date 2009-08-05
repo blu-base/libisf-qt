@@ -18,6 +18,8 @@
    - separated the public interface includes into the /include/ dir
    - moved all internally used inclusions and data structures into
      /src/isfqt-internal.h
+   - reorganized the internal files structure
+   - renamed class Tags to TagsParser as there will be a TagWriter (made up name)
 
 2009-08-05 (Adam)
  * Correct an issue with incorrect colours for strokes.
