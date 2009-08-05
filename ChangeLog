@@ -20,6 +20,9 @@
      /src/isfqt-internal.h
    - reorganized the internal files structure
    - renamed class Tags to TagsParser as there will be a TagWriter (made up name)
+   - Renamed the IsfData class to DataSource as it is at a lower level than ISF.
+   - Moved the ISF parser into a class Parser, found in include/isfqt.h and src/isfqt.cpp
+ * Added a dummy drawing-to-ISF method in class Parser.
 
 2009-08-05 (Adam)
  * Correct an issue with incorrect colours for strokes.

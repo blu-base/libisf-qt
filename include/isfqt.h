@@ -304,6 +304,34 @@ namespace Isf
 
 
 
+  // Forward declarations
+  class Drawing;
+
+
+
+  /**
+   * Main library class.
+   *
+   * This class contains the only methods you need to transform ISF data into strokes or pictures
+   * and from strokes to ISF data.
+   */
+  class Parser
+  {
+
+    public: // Public static methods
+
+      /**
+       * Convert raw data in ISF format into a drawing
+       */
+      static Drawing     isfToDrawing( const QByteArray &isfData );
+
+      /**
+       * Convert a drawing into raw data in ISF format
+       */
+      static QByteArray  DrawingToIsf( const Drawing &drawing );
+
+  };
+
 }
 
 

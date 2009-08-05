@@ -24,7 +24,7 @@
 #ifndef MULTIBYTECODING_H
 #define MULTIBYTECODING_H
 
-#include "isfdata.h"
+#include "datasource.h"
 
 #include <QByteArray>
 
@@ -40,21 +40,21 @@ namespace Isf
     /**
      * Decodes a multibyte unsigned integer into a quint64.
      */
-    quint64 decodeUInt( IsfData &source );
+    quint64 decodeUInt( DataSource &source );
 
 
 
     /**
      * Decodes a multibyte signed integer into a qint64.
      */
-    qint64 decodeInt( IsfData &source );
+    qint64 decodeInt( DataSource &source );
 
 
 
     /**
      * Decodes a float.
      */
-    float decodeFloat( IsfData &source );
+    float decodeFloat( DataSource &source );
 
 
 

@@ -21,7 +21,7 @@
 #ifndef ISFCOMPRESSION_HUFFMAN_H
 #define ISFCOMPRESSION_HUFFMAN_H
 
-#include "isfdata.h"
+#include "datasource.h"
 
 
 
@@ -30,9 +30,9 @@ namespace Isf
   namespace Compress
   {
     /// Compress data using the Huffman algorithm
-    bool deflateHuffman( IsfData &source, quint64 length, quint8 index, QList<qint64> &encodedData );
+    bool deflateHuffman( DataSource &source, quint64 length, quint8 index, QList<qint64> &encodedData );
     /// Decompress data using the Huffman algorithm
-    bool inflateHuffman( IsfData &source, quint64 length, quint8 index, QList<qint64> &decodedData );
+    bool inflateHuffman( DataSource &source, quint64 length, quint8 index, QList<qint64> &decodedData );
   }
 }
 

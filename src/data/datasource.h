@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef ISFCOMPRESSION_ISFDATA_H
-#define ISFCOMPRESSION_ISFDATA_H
+#ifndef DATASOURCE_H
+#define DATASOURCE_H
 
 #include <QBitArray>
 #include <QBuffer>
@@ -31,18 +31,19 @@ namespace Isf
   namespace Compress
   {
     /// Class to handle a QBuffer at bit level
-    class IsfData
+    class DataSource
     {
+
 
 
       public: // Constructors
 
         /// Constructor with no initial data
-                    IsfData();
+                    DataSource();
         /// Constructor with initial data buffer
-                    IsfData( const QByteArray &data );
+                    DataSource( const QByteArray &data );
         /// Destructor
-                   ~IsfData();
+                   ~DataSource();
 
 
       public: // Public status retrieval methods
@@ -98,6 +99,9 @@ namespace Isf
         QBitArray   currentByte_;
 
     };
+
+
+
   }
 }
 

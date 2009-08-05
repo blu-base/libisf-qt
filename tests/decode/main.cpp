@@ -30,9 +30,6 @@
 #include "ui_testdecode.h"
 
 
-using namespace Isf;
-
-
 
 class TestDecode : public QMainWindow, private Ui::TestDecode
 {
@@ -48,7 +45,7 @@ class TestDecode : public QMainWindow, private Ui::TestDecode
       }
 
       QByteArray data = readTestIsfData( qApp->arguments().at( 1 ) );
-      Drawing drawing = Drawing::fromIsfData(data);
+      Isf::Drawing drawing( Isf::Parser::isfToDrawing( data ) );
 
       if( drawing.isNull() )
       {

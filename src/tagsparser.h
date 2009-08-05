@@ -36,9 +36,9 @@ namespace Isf
   // Forward declarations
   namespace Compress
   {
-    class IsfData;
+    class DataSource;
   }
-  using Compress::IsfData;
+  using Compress::DataSource;
   class Drawing;
 
 
@@ -53,45 +53,45 @@ namespace Isf
     public: // Static public methods
 
       /// Read the table of GUIDs from the data
-      static IsfError parseGuidTable( IsfData &source, Drawing &drawing );
+      static IsfError parseGuidTable( DataSource &source, Drawing &drawing );
       /// Read the drawing dimensions
-      static IsfError parseHiMetricSize( IsfData &source, Drawing &drawing );
+      static IsfError parseHiMetricSize( DataSource &source, Drawing &drawing );
       /// Read the ink canvas dimensions
-      static IsfError parseInkSpaceRectangle( IsfData &source, Drawing &drawing );
+      static IsfError parseInkSpaceRectangle( DataSource &source, Drawing &drawing );
       /// Read a block of points attributes
-      static IsfError parseAttributeBlock( IsfData &source, Drawing &drawing );
+      static IsfError parseAttributeBlock( DataSource &source, Drawing &drawing );
       /// Read a table of points attributes
-      static IsfError parseAttributeTable( IsfData &source, Drawing &drawing );
+      static IsfError parseAttributeTable( DataSource &source, Drawing &drawing );
       /// Read payload: Persistent Format
-      static IsfError parsePersistentFormat( IsfData &source, Drawing &drawing );
+      static IsfError parsePersistentFormat( DataSource &source, Drawing &drawing );
       /// Read payload: Metric Block
-      static IsfError parseMetricBlock( IsfData &source, Drawing &drawing );
+      static IsfError parseMetricBlock( DataSource &source, Drawing &drawing );
       /// Read payload: Metric Table
-      static IsfError parseMetricTable( IsfData &source, Drawing &drawing );
+      static IsfError parseMetricTable( DataSource &source, Drawing &drawing );
       /// Read a drawing transformation matrix
-      static IsfError parseTransformation( IsfData &source, Drawing &drawing, quint64 transformType );
+      static IsfError parseTransformation( DataSource &source, Drawing &drawing, quint64 transformType );
       /// Read a table of transformation matrices
-      static IsfError parseTransformationTable( IsfData &source, Drawing &drawing );
+      static IsfError parseTransformationTable( DataSource &source, Drawing &drawing );
       /// Read a stroke
-      static IsfError parseStroke( IsfData &source, Drawing &drawing );
+      static IsfError parseStroke( DataSource &source, Drawing &drawing );
       /// Read a stroke description block
-      static IsfError parseStrokeDescBlock( IsfData &source, Drawing &drawing );
+      static IsfError parseStrokeDescBlock( DataSource &source, Drawing &drawing );
       /// Read a stroke description table
-      static IsfError parseStrokeDescTable( IsfData &source, Drawing &drawing );
+      static IsfError parseStrokeDescTable( DataSource &source, Drawing &drawing );
 
 
     public: // Static public debugging methods
 
       /// Read away an unsupported tag
-      static IsfError parseUnsupported( IsfData &source, const QString &tagName );
+      static IsfError parseUnsupported( DataSource &source, const QString &tagName );
 
 
     private: // Static private debugging methods
 
       // Print the payload of an unknown tag
-      static void     analyzePayload( IsfData &source, const QString &tagName );
+      static void     analyzePayload( DataSource &source, const QString &tagName );
       // Print the payload of an unknown tag
-      static void     analyzePayload( IsfData &source, const quint64 payloadSize, const QString &message );
+      static void     analyzePayload( DataSource &source, const quint64 payloadSize, const QString &message );
 
   };
 }

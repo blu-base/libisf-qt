@@ -5,10 +5,11 @@ SET( ISFQT_SOURCES
      data/compression.cpp
      data/gorilla.cpp
      data/huffman.cpp
-     data/isfdata.cpp
+     data/datasource.cpp
      data/multibytecoding.cpp
      isfdrawing.cpp
      tagsparser.cpp
+     isfqt.cpp
    )
 
 SET( ISFQT_PUBLIC_HEADERS

@@ -15,7 +15,7 @@
 
 #include "test_multibyte_coding.h"
 
-#include "data/isfdata.h"
+#include "data/datasource.h"
 #include "data/multibytecoding.h"
 
 #include "isfqt-internal.h"
@@ -26,9 +26,9 @@
 
 void TestMultibyteCoding::isfData()
 {
-  // test the IsfData class
+  // test the DataSource class
 
-  Isf::Compress::IsfData data;
+  Isf::Compress::DataSource data;
 
   // Read one bit
   data.append( 1 );
@@ -100,7 +100,7 @@ void TestMultibyteCoding::unsignedDecode()
 {
   // test decoding a value that should only get encoded into
   // a single byte.
-  Isf::Compress::IsfData data;
+  Isf::Compress::DataSource data;
   data.append(0x7d); // 125.
 
   quint64 result = Isf::Compress::decodeUInt( data );
@@ -134,7 +134,7 @@ void TestMultibyteCoding::signedEncode()
 
 void TestMultibyteCoding::signedDecode()
 {
-  Isf::Compress::IsfData data;
+  Isf::Compress::DataSource data;
   // -10 (0xA in hex, shift 1 to left, set sign bit)
   data.append((0xA << 1) | 0x01);
   qint64 result = Isf::Compress::decodeInt( data );

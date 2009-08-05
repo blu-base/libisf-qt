@@ -48,6 +48,7 @@ namespace Isf
   class Drawing
   {
     friend class TagsParser;
+    friend class Parser;
 
     public:
 
@@ -55,20 +56,14 @@ namespace Isf
                                 Drawing();
       /// Convert the ISF drawing into a pixmap
       QPixmap                   getPixmap();
-
-
-    public: // Public static methods
-
       /// Return whether this is a null Drawing
       bool                      isNull() const;
-      /// Return the last parser error
-      IsfError                  parserError() const;
+      /// Return the last error
+      IsfError                  error() const;
 
 
     public: // Public static methods
 
-      /// Builds an ISF drawing object from raw ISF data
-      static Drawing            fromIsfData( const QByteArray &rawData );
       /// Convert a value in himetric units to pixels, given a paint device
       inline static float       himetricToPixels( float himetric, QPaintDevice &device )
       {
@@ -79,12 +74,6 @@ namespace Isf
       {
         return ( pixels / ( (float)device.width() / (float)device.widthMM() ) / 0.01 );
       }
-
-
-    private: // Private static properties
-
-      /// Supported ISF version number
-      static const ushort       SUPPORTED_ISF_VERSION = 0;
 
 
     private: // Private properties
@@ -111,6 +100,8 @@ namespace Isf
       StrokeInfo                defaultStrokeInfo_;
       // Link to the default transformation
       QTransform                defaultTransform_;
+      // Last parsing error (if there is one)
+      IsfError                  error_;
       // Whether the drawing contains X coordinates or not
       bool                      hasXData_;
       // Whether the drawing contains Y coordinates or not
@@ -123,8 +114,6 @@ namespace Isf
       QSizeF                    maxPenSize_;
       // List of metrics used in the drawing
       QList<Metrics>            metrics_;
-      // Parser error (if there is one)
-      IsfError                  parserError_;
       // Pixel size of the drawing
       QSize                     size_;
       // List of information about the drawing's strokes

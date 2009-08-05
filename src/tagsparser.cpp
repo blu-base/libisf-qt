@@ -23,7 +23,7 @@
 #include "isfqt-internal.h"
 
 #include "data/compression.h"
-#include "data/isfdata.h"
+#include "data/datasource.h"
 #include "data/multibytecoding.h"
 
 #include <isfdrawing.h>
@@ -38,7 +38,7 @@ using namespace Isf::Compress;
 
 
 /// Read away an unsupported tag
-IsfError TagsParser::parseUnsupported( IsfData &source, const QString &tagName )
+IsfError TagsParser::parseUnsupported( DataSource &source, const QString &tagName )
 {
   // Unsupported content
   analyzePayload( source, tagName + " (Unsupported)" );
@@ -49,7 +49,7 @@ IsfError TagsParser::parseUnsupported( IsfData &source, const QString &tagName )
 
 
 /// Read the table of GUIDs from the data
-IsfError TagsParser::parseGuidTable( IsfData &source, Drawing &drawing )
+IsfError TagsParser::parseGuidTable( DataSource &source, Drawing &drawing )
 {
   quint64 guidTableSize = decodeUInt( source );
 
@@ -85,7 +85,7 @@ IsfError TagsParser::parseGuidTable( IsfData &source, Drawing &drawing )
 
 
 /// Read payload: Persistent Format
-IsfError TagsParser::parsePersistentFormat( IsfData &source, Drawing &drawing )
+IsfError TagsParser::parsePersistentFormat( DataSource &source, Drawing &drawing )
 {
   Q_UNUSED( drawing )
 
@@ -98,7 +98,7 @@ IsfError TagsParser::parsePersistentFormat( IsfData &source, Drawing &drawing )
 
 
 /// Read the drawing dimensions
-IsfError TagsParser::parseHiMetricSize( IsfData &source, Drawing &drawing )
+IsfError TagsParser::parseHiMetricSize( DataSource &source, Drawing &drawing )
 {
   quint64 payloadSize = decodeUInt( source );
 
@@ -123,7 +123,7 @@ IsfError TagsParser::parseHiMetricSize( IsfData &source, Drawing &drawing )
 
 
 /// Read a block of points attributes
-IsfError TagsParser::parseAttributeBlock( IsfData &source, Drawing &drawing )
+IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
 {
   quint64 payloadSize = decodeUInt( source );
 
@@ -291,7 +291,7 @@ IsfError TagsParser::parseAttributeBlock( IsfData &source, Drawing &drawing )
 
 
 /// Read a table of points attributes
-IsfError TagsParser::parseAttributeTable( IsfData &source, Drawing &drawing )
+IsfError TagsParser::parseAttributeTable( DataSource &source, Drawing &drawing )
 {
   IsfError result = ISF_ERROR_NONE;
   quint64 payloadSize = decodeUInt( source );
@@ -319,7 +319,7 @@ IsfError TagsParser::parseAttributeTable( IsfData &source, Drawing &drawing )
 
 
 /// Read the ink canvas dimensions
-IsfError TagsParser::parseInkSpaceRectangle( IsfData &source, Drawing &drawing )
+IsfError TagsParser::parseInkSpaceRectangle( DataSource &source, Drawing &drawing )
 {
   // This tag has a fixed 4-byte size
   drawing.canvas_.setLeft  ( decodeInt( source ) );
@@ -337,7 +337,7 @@ IsfError TagsParser::parseInkSpaceRectangle( IsfData &source, Drawing &drawing )
 
 
 /// Read payload: Metric Table
-IsfError TagsParser::parseMetricTable( IsfData &source, Drawing &drawing )
+IsfError TagsParser::parseMetricTable( DataSource &source, Drawing &drawing )
 {
   IsfError result = ISF_ERROR_NONE;
   quint64 payloadSize = decodeUInt( source );
@@ -362,7 +362,7 @@ IsfError TagsParser::parseMetricTable( IsfData &source, Drawing &drawing )
 
 
 /// Read payload: Metric Block
-IsfError TagsParser::parseMetricBlock( IsfData &source, Drawing &drawing )
+IsfError TagsParser::parseMetricBlock( DataSource &source, Drawing &drawing )
 {
   Q_UNUSED( drawing )
 
@@ -389,7 +389,7 @@ IsfError TagsParser::parseMetricBlock( IsfData &source, Drawing &drawing )
 
 
 /// Read a table of transformation matrices
-IsfError TagsParser::parseTransformationTable( IsfData &source, Drawing &drawing )
+IsfError TagsParser::parseTransformationTable( DataSource &source, Drawing &drawing )
 {
   IsfError result = ISF_ERROR_NONE;
   quint64 payloadSize = decodeUInt( source );
@@ -417,7 +417,7 @@ IsfError TagsParser::parseTransformationTable( IsfData &source, Drawing &drawing
 
 
 /// Read a drawing transformation matrix
-IsfError TagsParser::parseTransformation( IsfData &source, Drawing &drawing, quint64 transformType )
+IsfError TagsParser::parseTransformation( DataSource &source, Drawing &drawing, quint64 transformType )
 {
   QTransform transform;
 
@@ -530,7 +530,7 @@ IsfError TagsParser::parseTransformation( IsfData &source, Drawing &drawing, qui
 
 
 /// Read a stroke
-IsfError TagsParser::parseStroke( IsfData &source, Drawing &drawing )
+IsfError TagsParser::parseStroke( DataSource &source, Drawing &drawing )
 {
   quint64 payloadSize = decodeUInt( source );
   quint64 initialPos = source.pos();
@@ -644,7 +644,7 @@ IsfError TagsParser::parseStroke( IsfData &source, Drawing &drawing )
 
 
 /// Read a stroke description block
-IsfError TagsParser::parseStrokeDescBlock( IsfData &source, Drawing &drawing )
+IsfError TagsParser::parseStrokeDescBlock( DataSource &source, Drawing &drawing )
 {
   quint64 payloadSize = decodeUInt( source );
 
@@ -733,7 +733,7 @@ IsfError TagsParser::parseStrokeDescBlock( IsfData &source, Drawing &drawing )
 
 
 /// Read a stroke description table
-IsfError TagsParser::parseStrokeDescTable( IsfData &source, Drawing &drawing )
+IsfError TagsParser::parseStrokeDescTable( DataSource &source, Drawing &drawing )
 {
   IsfError result = ISF_ERROR_NONE;
   quint64 payloadSize = decodeUInt( source );
@@ -758,7 +758,7 @@ IsfError TagsParser::parseStrokeDescTable( IsfData &source, Drawing &drawing )
 
 
 // Print the payload of an unknown tag
-void TagsParser::analyzePayload( IsfData &source, const QString &tagName )
+void TagsParser::analyzePayload( DataSource &source, const QString &tagName )
 {
   quint64 payloadSize = decodeUInt( source );
 
@@ -770,7 +770,7 @@ void TagsParser::analyzePayload( IsfData &source, const QString &tagName )
 
 
 // Print the payload of an unknown tag
-void TagsParser::analyzePayload( IsfData &source, const quint64 payloadSize, const QString &message )
+void TagsParser::analyzePayload( DataSource &source, const quint64 payloadSize, const QString &message )
 {
   if( payloadSize == 0 )
   {

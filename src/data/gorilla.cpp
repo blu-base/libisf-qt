@@ -35,7 +35,7 @@ namespace Isf
 
 
     // Compress data using the Gorilla algorithm
-    bool deflateGorilla( IsfData &source, quint64 length, quint8 blockSize, QList<qint64> &encodedData )
+    bool deflateGorilla( DataSource &source, quint64 length, quint8 blockSize, QList<qint64> &encodedData )
     {
       Q_UNUSED( source );
       Q_UNUSED( length );
@@ -48,7 +48,7 @@ namespace Isf
 
 
     // Decompress data using the Gorilla algorithm
-    bool inflateGorilla( IsfData &source, quint64 length, quint8 blockSize, QList<qint64> &decodedData )
+    bool inflateGorilla( DataSource &source, quint64 length, quint8 blockSize, QList<qint64> &decodedData )
     {
       if( blockSize > 64 )
       {

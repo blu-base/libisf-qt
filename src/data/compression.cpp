@@ -34,7 +34,7 @@ namespace Isf
 
 
     // Decompress data autodetecting the algorithm to use
-    bool inflate( IsfData &source, quint64 length, QList<qint64> &decodedData )
+    bool inflate( DataSource &source, quint64 length, QList<qint64> &decodedData )
     {
       bool       result;
       uchar      byte           = source.getByte();
@@ -98,7 +98,7 @@ namespace Isf
 
 
     // Compress data autodetecting the algorithm to use
-    bool deflate( IsfData &source, quint64 length, QList<qint64> &encodedData )
+    bool deflate( DataSource &source, quint64 length, QList<qint64> &encodedData )
     {
       Q_UNUSED( source );
       Q_UNUSED( length );

@@ -34,7 +34,7 @@ namespace Isf
 
 
     // Decodes a multibyte unsigned integer into a quint64.
-    quint64 decodeUInt( IsfData &source )
+    quint64 decodeUInt( DataSource &source )
     {
       quint8 byte;       // Current byte
       quint8 flag;       // Used to find out if there are more bytes to convert
@@ -56,7 +56,7 @@ namespace Isf
 
 
     // Decodes a multibyte signed integer into a qint64.
-    qint64 decodeInt( IsfData &source )
+    qint64 decodeInt( DataSource &source )
     {
       qint64 value = decodeUInt( source );
 
@@ -73,7 +73,7 @@ namespace Isf
 
 
     // Decodes a float.
-    float decodeFloat( IsfData &source )
+    float decodeFloat( DataSource &source )
     {
       qint8 index;
 

@@ -48,9 +48,9 @@ void TestIsfDrawing::invalidVersion_NullDrawing()
   QByteArray data;
   data.append(0x0B);  // isf version 11 - invalid.
 
-  Drawing drawing = Drawing::fromIsfData( data );
+  Drawing drawing = Parser::isfToDrawing( data );
   QCOMPARE( drawing.isNull(), true );
-  QVERIFY( drawing.parserError() == ISF_ERROR_BAD_VERSION );
+  QVERIFY( drawing.error() == ISF_ERROR_BAD_VERSION );
 }
 
 
@@ -59,7 +59,7 @@ void TestIsfDrawing::invalidVersion_NullDrawing()
 void TestIsfDrawing::parserErrorNoneByDefault()
 {
   Drawing drawing;
-  QCOMPARE(drawing.parserError(), ISF_ERROR_NONE);
+  QCOMPARE( drawing.error(), ISF_ERROR_NONE );
 }
 
 
@@ -71,9 +71,9 @@ void TestIsfDrawing::invalidStreamSize_NullDrawing()
   data.append((char)0x00);  // ISF version 1.0.
   data.append(0x01);  // stream size of 1 byte, but only 3 bytes of data.
 
-  Drawing drawing = Drawing::fromIsfData(data);
-  QCOMPARE(drawing.isNull(), true);
-  QCOMPARE(drawing.parserError(), ISF_ERROR_BAD_STREAMSIZE);
+  Drawing drawing = Parser::isfToDrawing( data );
+  QCOMPARE( drawing.isNull(), true );
+  QCOMPARE( drawing.error(), ISF_ERROR_BAD_STREAMSIZE );
 }
 
 
@@ -83,8 +83,8 @@ void TestIsfDrawing::invalidStreamSize_NullDrawing()
 void TestIsfDrawing::parseValidRawIsfData()
 {
   QByteArray data = readTestIsfData("tests/test1.isf");
-  Drawing drawing = Drawing::fromIsfData(data);
-  QCOMPARE(drawing.isNull(), false);
+  Drawing drawing = Parser::isfToDrawing( data );
+  QCOMPARE( drawing.isNull(), false );
 }
 
 
@@ -107,8 +107,7 @@ QByteArray TestIsfDrawing::readTestIsfData( const QString &filename )
     return QByteArray();
   }
 
-  QByteArray data = file.readAll();
-  return data;
+  return file.readAll();
 }
 
 
