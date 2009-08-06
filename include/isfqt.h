@@ -350,7 +350,7 @@ namespace Isf
       /**
        * Convert a drawing into raw data in ISF format
        */
-      static QByteArray  DrawingToIsf( const Drawing &drawing );
+      static QByteArray  drawingToIsf( const Drawing &drawing );
 
   };
 

@@ -149,3 +149,15 @@ IRO_White       = 16
 If we scale the Ink Space Rect (canvas_) to or from HiMetric and using the metrics,
 do we get anything useful?
 - Valerio
+
+
+
+To save received ISF from Messenger, put this code in src/chat/chatmaster.cpp at line 1324, below "case FORMAT_ISF:" but above the "break;":
+---
+QFile file( "~/output.isf" );
+file.open( QIODevice::WriteOnly );
+file.write( QByteArray::fromBase64( inkEncodedData ) );
+file.close();
+---
+You probably have to change the file path :P
+- Valerio

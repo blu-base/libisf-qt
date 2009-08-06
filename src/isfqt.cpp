@@ -494,7 +494,7 @@ Drawing Parser::isfToDrawing( const QByteArray &rawData )
 /**
   * Convert a drawing into raw data in ISF format
   */
-QByteArray Parser::DrawingToIsf( const Drawing &drawing )
+QByteArray Parser::drawingToIsf( const Drawing &drawing )
 {
   if( drawing.isNull() || drawing.error() != ISF_ERROR_NONE )
   {

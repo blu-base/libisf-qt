@@ -98,7 +98,7 @@ void TestIsfDrawing::createDrawing()
   Drawing drawing = Parser::isfToDrawing( data1 );
 
   qDebug() << "Writing drawing to ISF file ---------------------";
-  QByteArray data2 = Parser::DrawingToIsf( drawing );
+  QByteArray data2 = Parser::drawingToIsf( drawing );
   qDebug() << "Size:" << data2.size();
   qDebug() << "Reading it back -------------------------";
   Parser::isfToDrawing( data2 );
