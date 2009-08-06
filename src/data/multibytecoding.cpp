@@ -278,6 +278,45 @@ namespace Isf
     }
 
 
+    // Return how much bytes a certain unsigned value takes up in multi-byte encoding.
+    quint8 getMultiByteSize( quint64 value )
+    {
+      quint8 bytes = 1;
+
+      while( value )
+      {
+        value >>= 7;
+
+        if( value )
+        {
+          ++bytes;
+        }
+      }
+
+      return bytes;
+    }
+
+
+
+    // Return how much bytes a certain signed value takes up in multi-byte encoding.
+    quint8 getMultiByteSize( qint64 value )
+    {
+      quint8 bytes = 1;
+
+      while( value )
+      {
+        value >>= 6;
+
+        if( value )
+        {
+          ++bytes;
+        }
+      }
+
+      return bytes;
+    }
+
+
 
   }
 }

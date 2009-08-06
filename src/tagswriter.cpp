@@ -71,7 +71,7 @@ IsfError TagsWriter::addAttributeTable( DataSource &source, const Drawing &drawi
     // Add the color to the attribute block
     if( info.color != defaultPoint.color )
     {
-      blockData.append( encodeUInt( PEN_COLOR ) );
+      blockData.append( encodeUInt( GUID_COLORREF ) );
 
       // Prepare the color value, it needs to be stored in BGR format
       quint64 value = (info.color.blue()  << 24)
@@ -82,7 +82,7 @@ IsfError TagsWriter::addAttributeTable( DataSource &source, const Drawing &drawi
       // Add the transparency if needed
       if( info.color.alpha() < 255 )
       {
-        blockData.append( encodeUInt( PEN_TRANSPARENCY ) );
+        blockData.append( encodeUInt( GUID_TRANSPARENCY ) );
         blockData.append( encodeUInt( info.color.alpha() ) );
       }
     }
@@ -90,12 +90,12 @@ IsfError TagsWriter::addAttributeTable( DataSource &source, const Drawing &drawi
     // Add the pen size
     if( info.penSize != defaultPoint.penSize )
     {
-      blockData.append( encodeUInt( PEN_WIDTH ) );
+      blockData.append( encodeUInt( GUID_PEN_WIDTH ) );
       blockData.append( encodeUInt( info.penSize.width() ) );
 
       if( info.penSize.width() != info.penSize.height() )
       {
-        blockData.append( encodeUInt( PEN_HEIGHT ) );
+        blockData.append( encodeUInt( GUID_PEN_HEIGHT ) );
         blockData.append( encodeUInt( info.penSize.height() ) );
       }
     }
@@ -106,19 +106,21 @@ IsfError TagsWriter::addAttributeTable( DataSource &source, const Drawing &drawi
       StrokeFlags flags = info.flags;
       if( flags & IsRectangle )
       {
-        blockData.append( encodeUInt( PEN_TIP ) );
+        blockData.append( encodeUInt( GUID_PEN_TIP ) );
         blockData.append( encodeUInt( 0 ) ); // Value unknown, is the tag enough?
         flags ^= IsRectangle;
       }
+/*
       if( flags & IsHighlighter )
       {
-        blockData.append( encodeUInt( PEN_ISHIGHLIGHTER ) );
+        blockData.append( encodeUInt( GUID_ROP ) );
         blockData.append( QByteArray( 4, '\0' ) ); // Value unknown
         flags ^= IsHighlighter;
       }
+*/
 
       // Copy the other flags as they are
-      blockData.append( encodeUInt( PEN_FLAGS ) );
+      blockData.append( encodeUInt( GUID_DRAWING_FLAGS ) );
       blockData.append( encodeUInt( flags ) );
     }
 

@@ -58,6 +58,7 @@ IsfError TagsParser::parseGuidTable( DataSource &source, Drawing &drawing )
   drawing.maxGuid_ = 99 + numGuids;
 
 #ifdef ISFQT_DEBUG_VERBOSE
+  qDebug() << "- New maximum GUID index:" << drawing.maxGuid_;
   qDebug() << "- GUID table has" << numGuids << "entries for total" << guidTableSize << "bytes:";
 #endif
 
@@ -69,7 +70,7 @@ IsfError TagsParser::parseGuidTable( DataSource &source, Drawing &drawing )
     quint8 guidIndex = index + 100;
 
 #ifdef ISFQT_DEBUG_VERBOSE
-    qDebug() << "  - Index" << QString::number( guidIndex ).rightJustified( ' ', 5 )
+    qDebug() << "  - Index" << QString::number( guidIndex ).rightJustified( 5 , ' ' )
             << "->" << source.getBytes( 16 ).toHex();
 #else
     Q_UNUSED( guidIndex )
@@ -101,13 +102,20 @@ IsfError TagsParser::parseHiMetricSize( DataSource &source, Drawing &drawing )
 {
   quint64 payloadSize = decodeUInt( source );
 
-  // This field should have fixed size, why the hell does it have a payload value?!
-  if( payloadSize != 2 )
+  if( payloadSize == 0 )
   {
 #ifdef ISFQT_DEBUG
     qDebug() << "Invalid payload for TAG_HIMETRIC_SIZE:" << payloadSize;
 #endif
     return ISF_ERROR_INVALID_PAYLOAD;
+  }
+
+  if( drawing.size_.isValid() )
+  {
+#ifdef ISFQT_DEBUG
+    qDebug() << "Duplicated TAG_HIMETRIC_SIZE!";
+#endif
+    return ISF_ERROR_INVALID_STREAM;
   }
 
   drawing.size_.setWidth ( decodeInt( source ) );
@@ -147,25 +155,25 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
   }
 
 #ifdef ISFQT_DEBUG_VERBOSE
-  qDebug() << "- Added drawing attribute block #" << ( drawing.attributes_.count() - 1 ) << "pay size:"<< payloadSize;
+  qDebug() << "- Added drawing attribute block #" << ( drawing.attributes_.count() - 1 );
 #endif
 
   qint64 payloadEnd = source.pos() + payloadSize;
   while( source.pos() < payloadEnd && ! source.atEnd() )
   {
-    // Read the tag and its value
-    quint64 tag   = decodeUInt( source );
-    quint64 value = decodeUInt( source );
+    // Read the property and its value
+    quint64 property = decodeUInt( source ); // contains a PacketProperty value
+    quint64 value    = decodeUInt( source );
 
-    switch( tag )
+    switch( property )
     {
-      case PEN_STYLE:
+      case GUID_PEN_STYLE:
 #ifdef ISFQT_DEBUG_VERBOSE
         qDebug() << "- Got style" << value << "- Unable to handle it, skipping.";
 #endif
         break;
 
-      case PEN_COLOR:
+      case GUID_COLORREF:
       {
         QRgb invertedColor = value & 0xFFFFFF;
         // The color value is stored in BGR order, so we need to read it back inverted,
@@ -176,12 +184,12 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
                             qGreen( invertedColor ),
                             qRed  ( invertedColor ) );
 #ifdef ISFQT_DEBUG_VERBOSE
-        qDebug() << "- Got pen color" << info.color.name();
+        qDebug() << "- Got pen color" << info.color.name().toUpper();
 #endif
         break;
       }
 
-      case PEN_WIDTH:
+      case GUID_PEN_WIDTH:
 #ifdef ISFQT_DEBUG_VERBOSE
         qDebug() << "- Got pen width" << QString::number( (float)value, 'g', 16 )
                 << "(" << (value/HiMetricToPixel) << "pixels )";
@@ -192,14 +200,14 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
         info.penSize.setHeight( (float)value );
         break;
 
-      case PEN_HEIGHT:
+      case GUID_PEN_HEIGHT:
 #ifdef ISFQT_DEBUG_VERBOSE
         qDebug() << "- Got pen height" << QString::number( (float)value, 'g', 16 );
 #endif
         info.penSize.setHeight( (float)value );
         break;
 
-      case PEN_TIP:
+      case GUID_PEN_TIP:
 #ifdef ISFQT_DEBUG_VERBOSE
         qDebug() << "- Got pen shape: is rectangular?" << (bool)value << "full value:" << value;
 #endif
@@ -209,7 +217,7 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
         }
         break;
 
-      case PEN_FLAGS:
+      case GUID_DRAWING_FLAGS:
         info.flags = (StrokeFlags)( ( 0XFF00 & info.flags ) | (ushort) value );
 #ifdef ISFQT_DEBUG_VERBOSE
         qDebug() << "- Got flags value:" << value;
@@ -237,7 +245,7 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
 #endif
         break;
 
-      case PEN_TRANSPARENCY:
+      case GUID_TRANSPARENCY:
         value = ( (uchar)value ) << 24;
 #ifdef ISFQT_DEBUG_VERBOSE
         qDebug() << "- Got pen transparency" << value;
@@ -245,29 +253,29 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
         info.color.setAlpha( value );
         break;
 
-      case PEN_ISHIGHLIGHTER:
-#ifdef ISFQT_DEBUG_VERBOSE
-        qDebug() << "- Got pen highlighting flag";
+      case GUID_ROP:
+#ifdef ISFQT_DEBUG
+        qDebug() << "- Got ROP property (Run Of Press? Reject Occasional Partners?)";
+        // We already read the first value, go back
+//         source.seekRelative( getMultiByteSize( value ) );
+        analyzePayload( source, 3 );
 #endif
-        info.flags |= IsHighlighter;
-        // TODO There seems to be a total of 4 payload bytes, unknown.
-        // We already read one of the 4 bytes, it's in the 'value' variable
-        source.seekRelative( +3 );
+//         info.flags |= IsHighlighter;
         break;
 
       default:
-#ifdef ISFQT_DEBUG_VERBOSE
-        qWarning() << "- Unknown property" << tag;
+#ifdef ISFQT_DEBUG
+        qDebug() << "- Unknown property:" << property;
 #endif
 
         // If the tag *should* be known, record it differently
-        if( drawing.maxGuid_ > 0 && tag >= 100 && tag <= drawing.maxGuid_ )
+        if( drawing.maxGuid_ > 0 && property >= 100 && property <= drawing.maxGuid_ )
         {
-          analyzePayload( source, "TAG_PROPERTY_" + QString::number( tag ) );
+          analyzePayload( source, "TAG_PROPERTY_" + QString::number( property ) );
         }
         else
         {
-          analyzePayload( source, "Unknown property " + QString::number( tag ) );
+          analyzePayload( source, "Unknown property " + QString::number( property ) );
         }
         break;
     }
@@ -321,6 +329,14 @@ IsfError TagsParser::parseAttributeTable( DataSource &source, Drawing &drawing )
 /// Read the ink canvas dimensions
 IsfError TagsParser::parseInkSpaceRectangle( DataSource &source, Drawing &drawing )
 {
+  if( drawing.canvas_.isValid() )
+  {
+#ifdef ISFQT_DEBUG
+    qDebug() << "Duplicated TAG_INK_SPACE_RECT!";
+#endif
+    return ISF_ERROR_INVALID_STREAM;
+  }
+
   // This tag has a fixed 4-byte size
   drawing.canvas_.setLeft  ( decodeInt( source ) );
   drawing.canvas_.setTop   ( decodeInt( source ) );
@@ -376,12 +392,91 @@ IsfError TagsParser::parseMetricBlock( DataSource &source, Drawing &drawing )
     return ISF_ERROR_INVALID_PAYLOAD;
   }
 
-  // Skip it, its usefulness is lesser than making the parser to actually work :)
-  source.seekRelative( payloadSize );
+  Metrics metricsList;
+  qint64 payloadEnd = source.pos() + payloadSize;
+  while( source.pos() < payloadEnd && ! source.atEnd() )
+  {
+    quint64 property = Isf::Compress::decodeUInt( source );
+
+    qint64 initialPos = source.pos();
+    payloadSize = Isf::Compress::decodeUInt( source );
+
+    // Two multibyte signed ints, one byte, one float: minimum 7 bytes
+    if( payloadSize < 7 )
+    {
+#ifdef ISFQT_DEBUG_VERBOSE
+      qDebug() << "- Metric id" << property << "has an invalid payload size:" << payloadSize;
+#endif
+      analyzePayload( source, payloadSize );
+      continue;
+    }
+
+    // Get the metric values
+    Metric metric;
+    metric.min        = Isf::Compress::decodeInt( source );
+    metric.max        = Isf::Compress::decodeInt( source );
+    metric.units      = (MetricScale) source.getByte();
+    metric.resolution = Isf::Compress::decodeFloat( source );
+
+    // Identify the metric
+    switch( property )
+    {
+      case GUID_X:
+#ifdef ISFQT_DEBUG_VERBOSE
+        qDebug() << "- X resolution";
+#endif
+        break;
+
+      case GUID_Y:
+#ifdef ISFQT_DEBUG_VERBOSE
+        qDebug() << "- Y resolution";
+#endif
+        break;
+
+      case GUID_NORMAL_PRESSURE:
+#ifdef ISFQT_DEBUG_VERBOSE
+        qDebug() << "- Pressure";
+#endif
+        break;
+
+      default:
+#ifdef ISFQT_DEBUG_VERBOSE
+        qDebug() << "- Unknown metric, id:" << property << "size:" << payloadSize;
+#endif
+        analyzePayload( source, payloadSize );
+        continue;
+    }
+
+#ifdef ISFQT_DEBUG
+    // If there's extra data, show it
+    quint64 parsedPayload = ( source.pos() - initialPos );
+    if( parsedPayload < payloadSize )
+    {
+      qDebug() << "- Extra data:";
+      analyzePayload( source, payloadSize - parsedPayload );
+    }
+#endif
 
 #ifdef ISFQT_DEBUG_VERBOSE
-  qDebug() << "- Skipped metrics block";
+        qDebug() << "  - min:" << metric.min << " max:" << metric.max
+                 << " resolution:" << metric.resolution
+                 << " units:" << metric.units;
 #endif
+
+    metricsList.items[ property ] = metric;
+  }
+
+  // Save the obtained metrics
+  drawing.metrics_.append( metricsList );
+  Metrics &savedMetrics = drawing.metrics_.last();
+
+  // set this once when we get the first METRIC_BLOCK. then,
+  // everytime we get a MIDX we can update it. if we don't do this
+  // then the first stroke will have the same metrics as the last stroke.
+  if ( drawing.currentMetrics_ == &drawing.defaultMetrics_ )
+  {
+    drawing.currentMetrics_ = &savedMetrics;
+  }
 
   return ISF_ERROR_NONE;
 }
@@ -781,7 +876,10 @@ void TagsParser::analyzePayload( DataSource &source, const quint64 payloadSize, 
   quint64 pos = 0;
   QByteArray output;
 
-  qDebug() << message;
+  if( ! message.isEmpty() )
+  {
+    qDebug() << message;
+  }
   qDebug() << "--------------------------------------------------------------------";
   while( ! source.atEnd() && pos < payloadSize )
   {

@@ -91,7 +91,7 @@ namespace Isf
       // Print the payload of an unknown tag
       static void     analyzePayload( DataSource &source, const QString &tagName );
       // Print the payload of an unknown tag
-      static void     analyzePayload( DataSource &source, const quint64 payloadSize, const QString &message );
+      static void     analyzePayload( DataSource &source, const quint64 payloadSize, const QString &message = QString() );
 
   };
 }

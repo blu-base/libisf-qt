@@ -33,10 +33,10 @@
   <kdevcustomproject>
     <filelistdirectory>/home/valerio/kmess/trunk/contrib/isf-qt/</filelistdirectory>
     <run>
-      <mainprogram>/home/valerio/kmess/trunk/contrib/isf-qt/build/tests/test_isfdrawing</mainprogram>
+      <mainprogram>/home/valerio/kmess/trunk/contrib/isf-qt/build/tests/decode/test_decode</mainprogram>
       <directoryradio>custom</directoryradio>
       <customdirectory>./build/</customdirectory>
-      <programargs># tests/test9.isf</programargs>
+      <programargs> tests/test5.isf</programargs>
       <terminal>false</terminal>
       <autocompile>false</autocompile>
       <envvars>

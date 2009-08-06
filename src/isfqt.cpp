@@ -216,7 +216,7 @@ Drawing Parser::isfToDrawing( const QByteArray &rawData )
             {
               drawing.currentPointInfo_ = &drawing.attributes_[ value ];
 #ifdef ISFQT_DEBUG_VERBOSE
-              qDebug() << "- Next strokes will use drawing attributes#" << value;
+              qDebug() << "- Next strokes will use drawing attributes #" << value;
 #endif
             }
             else
@@ -261,7 +261,7 @@ Drawing Parser::isfToDrawing( const QByteArray &rawData )
             {
               drawing.currentStrokeInfo_ = &drawing.strokeInfo_[ value ];
 #ifdef ISFQT_DEBUG_VERBOSE
-              qDebug() << "- Next strokes will use stroke info#" << value;
+              qDebug() << "- Next strokes will use stroke info #" << value;
 #endif
             }
             else
@@ -348,7 +348,7 @@ Drawing Parser::isfToDrawing( const QByteArray &rawData )
             {
               drawing.currentTransform_ = &drawing.transforms_[ value ];
 #ifdef ISFQT_DEBUG_VERBOSE
-              qDebug() << "- Next strokes will use transform#" << value;
+              qDebug() << "- Next strokes will use transform #" << value;
 #endif
             }
             else
@@ -387,7 +387,7 @@ Drawing Parser::isfToDrawing( const QByteArray &rawData )
             {
               drawing.currentMetrics_ = &drawing.metrics_[ value ];
 #ifdef ISFQT_DEBUG_VERBOSE
-              qDebug() << "- Next strokes will use metrics#" << value;
+              qDebug() << "- Next strokes will use metrics #" << value;
 #endif
             }
             else
@@ -429,6 +429,7 @@ Drawing Parser::isfToDrawing( const QByteArray &rawData )
             break;
 
           default:
+
             // If the tagIndex *should* be known, record it differently
             if( drawing.maxGuid_ > 0 && tagIndex >= 100 && tagIndex <= drawing.maxGuid_ )
             {

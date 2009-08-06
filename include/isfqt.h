@@ -50,6 +50,7 @@ namespace Isf
     /// Stream reader errors
   , ISF_ERROR_BAD_VERSION        /// Incompatible ISF version
   , ISF_ERROR_BAD_STREAMSIZE     /// Stream size of ISF data is too small
+  , ISF_ERROR_INVALID_STREAM     /// The stream contains wrong or duplicated tags
   , ISF_ERROR_INVALID_PAYLOAD    /// A tag's payload was empty
   , ISF_ERROR_INVALID_BLOCK      /// A block had invalid contents
   };
@@ -57,52 +58,55 @@ namespace Isf
 
 
   /**
-   * List of predefined packet properties
+   * List of predefined packet properties, used with strokes and their attributes.
+   *
+   * The Metrics structure defines how to interpret these properties.
    */
-  enum StrokePacketProperty
+  enum PacketProperty
   {
-    GUID_X                      =  0
-  , GUID_Y
-  , GUID_Z
+    KNOWN_GUID_BASE_INDEX          = 50
+  , GUID_X                         = KNOWN_GUID_BASE_INDEX + 0
+  , GUID_Y                         = KNOWN_GUID_BASE_INDEX + 1
+  , GUID_Z                      // = et cetera
   , GUID_PACKET_STATUS
   , GUID_TIMER_TICK
   , GUID_SERIAL_NUMBER
   , GUID_NORMAL_PRESSURE
   , GUID_TANGENT_PRESSURE
-  , GUID_BUTTON_PRESSURE        =  8
+  , GUID_BUTTON_PRESSURE
   , GUID_X_TILT_ORIENTATION
-  , GUID_Y_TILT_ORIENTATION
+  , GUID_Y_TILT_ORIENTATION     // = KNOWN_GUID_BASE_INDEX + 10
   , GUID_AZIMUTH_ORIENTATION
   , GUID_ALTITUDE_ORIENTATION
   , GUID_TWIST_ORIENTATION
   , GUID_PITCH_ROTATION
   , GUID_ROLL_ROTATION
-  , GUID_YAW_ROTATION           = 16
+  , GUID_YAW_ROTATION
   , GUID_PEN_STYLE
   , GUID_COLORREF
   , GUID_PEN_WIDTH
-  , GUID_PEN_HEIGHT
+  , GUID_PEN_HEIGHT             // = KNOWN_GUID_BASE_INDEX + 20
   , GUID_PEN_TIP
   , GUID_DRAWING_FLAGS
   , GUID_CURSORID
-  , GUID_WORD_ALTERNATES        = 24
+  , GUID_WORD_ALTERNATES
   , GUID_CHAR_ALTERNATES
   , GUID_INKMETRICS
   , GUID_GUIDE_STRUCTURE
   , GUID_TIME_STAMP
   , GUID_LANGUAGE
-  , GUID_TRANSPARENCY
+  , GUID_TRANSPARENCY           // = KNOWN_GUID_BASE_INDEX + 30
   , GUID_CURVE_FITTING_ERROR
-  , GUID_RECO_LATTICE            = 32
+  , GUID_RECO_LATTICE
   , GUID_CURSORDOWN
   , GUID_SECONDARYTIPSWITCH
   , GUID_BARRELDOWN
   , GUID_TABLETPICK
-  , GUID_ROP
-  , GUID_NUM
+  , GUID_ROP                    // = KNOWN_GUID_BASE_INDEX + 37
+  , KNOWN_GUID_LAST_INDEX
   };
-  Q_DECLARE_FLAGS( StrokePacketProperties, StrokePacketProperty )
-  Q_DECLARE_OPERATORS_FOR_FLAGS( StrokePacketProperties )
+  Q_DECLARE_FLAGS( PacketProperties, PacketProperty )
+  Q_DECLARE_OPERATORS_FOR_FLAGS( PacketProperties )
 
 
 
@@ -126,9 +130,10 @@ namespace Isf
    */
   enum MetricScale
   {
-    CENTIMETERS = 1
-  , DEFAULT = 0
-  , DEGREES = 2
+    DEFAULT        =  0
+  , CENTIMETERS    =  1
+  , PIXELS         =  2
+  , DEGREES        =  3
   , NOT_APPLICABLE = -1
   };
 
@@ -145,7 +150,7 @@ namespace Isf
     {
     }
     /// Constructor
-    Metric( qint64 vMin, qint64 vMax, MetricScale vUnits, quint32 vResolution )
+    Metric( qint64 vMin, qint64 vMax, MetricScale vUnits, float vResolution )
     : min( vMin )
     , max( vMax )
     , units( vUnits )
@@ -160,7 +165,7 @@ namespace Isf
     /// Measurement unit
     MetricScale  units;
     /// Resolution
-    quint32      resolution;
+    float        resolution;
   };
 
 
@@ -176,27 +181,27 @@ namespace Isf
     /// Constructor
     Metrics()
     {
-      metrics[ GUID_X                    ] = Metric(     0, 12699, CENTIMETERS,  1000 );
-      metrics[ GUID_Y                    ] = Metric(     0,  9649, CENTIMETERS,  1000 );
-      metrics[ GUID_Z                    ] = Metric( -1023,  1023, CENTIMETERS,  1000 );
-      metrics[ GUID_PACKET_STATUS        ] = Metric(     0,  1023, DEFAULT,         1 );
-      metrics[ GUID_TIMER_TICK           ] = Metric(     0,  1023, DEFAULT,         1 );
-      metrics[ GUID_SERIAL_NUMBER        ] = Metric(     0,  1023, DEFAULT,         1 );
-      metrics[ GUID_NORMAL_PRESSURE      ] = Metric(     0,  3600, DEGREES,        10 );
-      metrics[ GUID_TANGENT_PRESSURE     ] = Metric(     0,  3600, DEGREES,        10 );
-      metrics[ GUID_BUTTON_PRESSURE      ] = Metric(     0,  3600, DEGREES,        10 );
-      metrics[ GUID_X_TILT_ORIENTATION   ] = Metric(  -900,   900, DEGREES,        10 );
-      metrics[ GUID_Y_TILT_ORIENTATION   ] = Metric(     0,  3600, DEGREES,        10 );
-      metrics[ GUID_AZIMUTH_ORIENTATION  ] = Metric(    -1,    -1, NOT_APPLICABLE, -1 );
-      metrics[ GUID_ALTITUDE_ORIENTATION ] = Metric(    -1,    -1, NOT_APPLICABLE, -1 );
-      metrics[ GUID_TWIST_ORIENTATION    ] = Metric(    -1,    -1, NOT_APPLICABLE, -1 );
-      metrics[ GUID_PITCH_ROTATION       ] = Metric(    -1,    -1, NOT_APPLICABLE, -1 );
-      metrics[ GUID_ROLL_ROTATION        ] = Metric(    -1,    -1, NOT_APPLICABLE, -1 );
-      metrics[ GUID_YAW_ROTATION         ] = Metric(    -1,    -1, NOT_APPLICABLE, -1 );
+      items[ GUID_X                    ] = Metric(     0, 12699, CENTIMETERS,  1000 );
+      items[ GUID_Y                    ] = Metric(     0,  9649, CENTIMETERS,  1000 );
+      items[ GUID_Z                    ] = Metric( -1023,  1023, CENTIMETERS,  1000 );
+      items[ GUID_PACKET_STATUS        ] = Metric(     0,  1023, DEFAULT,         1 );
+      items[ GUID_TIMER_TICK           ] = Metric(     0,  1023, DEFAULT,         1 );
+      items[ GUID_SERIAL_NUMBER        ] = Metric(     0,  1023, DEFAULT,         1 );
+      items[ GUID_NORMAL_PRESSURE      ] = Metric(     0,  3600, DEGREES,        10 );
+      items[ GUID_TANGENT_PRESSURE     ] = Metric(     0,  3600, DEGREES,        10 );
+      items[ GUID_BUTTON_PRESSURE      ] = Metric(     0,  3600, DEGREES,        10 );
+      items[ GUID_X_TILT_ORIENTATION   ] = Metric(  -900,   900, DEGREES,        10 );
+      items[ GUID_Y_TILT_ORIENTATION   ] = Metric(     0,  3600, DEGREES,        10 );
+      items[ GUID_AZIMUTH_ORIENTATION  ] = Metric(    -1,    -1, NOT_APPLICABLE, -1 );
+      items[ GUID_ALTITUDE_ORIENTATION ] = Metric(    -1,    -1, NOT_APPLICABLE, -1 );
+      items[ GUID_TWIST_ORIENTATION    ] = Metric(    -1,    -1, NOT_APPLICABLE, -1 );
+      items[ GUID_PITCH_ROTATION       ] = Metric(    -1,    -1, NOT_APPLICABLE, -1 );
+      items[ GUID_ROLL_ROTATION        ] = Metric(    -1,    -1, NOT_APPLICABLE, -1 );
+      items[ GUID_YAW_ROTATION         ] = Metric(    -1,    -1, NOT_APPLICABLE, -1 );
     }
 
     /// The list of metrics defined in this table
-    QMap<int,Metric> metrics;
+    QMap<int,Metric> items;
   };
 
 

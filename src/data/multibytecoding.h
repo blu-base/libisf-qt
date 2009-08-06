@@ -81,6 +81,23 @@ namespace Isf
     void       encodeFloat( DataSource &source, float value, bool prepend = false );
 
 
+    /**
+     * Return how much bytes a certain unsigned value takes up in multi-byte encoding.
+     *
+     * @param  value The unsigned value to check
+     * @return       Number of bytes required for multi-byte storage of that value
+     */
+    quint8     getMultiByteSize( quint64 value );
+
+
+    /**
+     * Return how much bytes a certain signed value takes up in multi-byte encoding.
+     *
+     * @param  value The signed value to check
+     * @return       Number of bytes required for multi-byte storage of that value
+     */
+    quint8     getMultiByteSize( qint64 value );
+
 
   }
 }

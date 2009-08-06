@@ -129,26 +129,6 @@ namespace Isf
 
 
 
-
-
-  /**
-   * A list of all known pen attribute tags
-   */
-  enum PenTags
-  {
-    PEN_STYLE                 = 67
-  , PEN_COLOR                 = 68
-  , PEN_WIDTH                 = 69
-  , PEN_HEIGHT                = 70
-  , PEN_TIP                   = 71
-  , PEN_TIP_RECTANGLE         =  1
-  , PEN_FLAGS                 = 72
-  , PEN_TRANSPARENCY          = 80
-  , PEN_ISHIGHLIGHTER         = 87
-  };
-
-
-
   /**
    * ISF parser state machine states
    */

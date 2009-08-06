@@ -1,4 +1,9 @@
 
+2009-08-06 (Valerio)
+ * Added Metrics recognization and saving.
+ * Made sense into the property tags: they're now all in the PacketProperty enum.
+ * Added MultiByteCoding utility methods to find out the encoded size of a value.
+
 2009-08-05 (Valerio)
  * Extended Adam's last fix to the other main drawing properties.
  * Added maximum stroke pen size value.
