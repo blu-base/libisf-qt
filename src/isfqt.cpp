@@ -18,14 +18,14 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <isfdrawing.h>
-
 #include "isfqt-internal.h"
 
 #include "data/datasource.h"
 #include "data/multibytecoding.h"
 #include "tagsparser.h"
 #include "tagswriter.h"
+
+#include <IsfQtDrawing>
 
 #include <QPainter>
 #include <QPixmap>
@@ -430,8 +430,9 @@ Drawing Parser::isfToDrawing( const QByteArray &rawData )
 
           default:
 
-            // If the tagIndex *should* be known, record it differently
-            if( drawing.maxGuid_ > 0 && tagIndex >= 100 && tagIndex <= drawing.maxGuid_ )
+            // If the tagIndex is known from the GUID table, show it differently
+            if( drawing.maxGuid_ > 0
+            &&  tagIndex >= DEFAULT_TAGS_NUMBER && tagIndex <= drawing.maxGuid_ )
             {
               TagsParser::parseUnsupported( isfData, "TAG_GUID_" + QString::number( tagIndex ) );
             }

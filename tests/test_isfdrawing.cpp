@@ -22,7 +22,7 @@
 
 #include <QtTest/QtTest>
 
-#include "isfdrawing.h"
+#include <IsfQtDrawing>
 
 using namespace Isf;
 

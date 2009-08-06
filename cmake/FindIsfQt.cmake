@@ -6,11 +6,8 @@
 #  ISFQT_LIBRARIES   - the libraries needed to use ISF-Qt
 #  ISFQT_LIBRARY     - Where to find the ISF-Qt library (generally not used)
 
-# FIND_PATH( ISFQT_INCLUDE_DIR isfdrawing.h /usr/include /usr/local/include )
-FIND_PATH( ISFQT_INCLUDE_DIR isfdrawing.h )
-
-# FIND_LIBRARY( ISFQT_LIBRARY NAMES isf-qt PATH /usr/lib /usr/local/lib )
-FIND_LIBRARY( ISFQT_LIBRARY NAMES isf-qt )
+FIND_PATH( ISFQT_INCLUDE_DIR isfdrawing.h /usr/include/isf-qt /usr/local/include/isf-qt )
+FIND_LIBRARY( ISFQT_LIBRARY NAMES isf-qt PATH /usr/lib /usr/local/lib )
 
 # handle the QUIETLY and REQUIRED arguments and set ISFQT_FOUND to TRUE if
 # all listed variables are TRUE

@@ -45,7 +45,7 @@ ADD_SUBDIRECTORY( tests )
 #### Project CMake configuration files creation ####
 
 # Define the shortcuts for the installation directories
-SET( INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/include"
+SET( INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/include/isf-qt"
                          CACHE STRING "Directory where the include files will be installed" )
 SET( LIB_INSTALL_DIR     "${CMAKE_INSTALL_PREFIX}/lib"
                          CACHE STRING "Directory where the lib will be installed" )

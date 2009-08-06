@@ -18,13 +18,13 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <isfdrawing.h>
-
 #include "isfqt-internal.h"
 
 #include "data/datasource.h"
 #include "data/multibytecoding.h"
 #include "tagsparser.h"
+
+#include <IsfQtDrawing>
 
 #include <QPainter>
 #include <QPixmap>

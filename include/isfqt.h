@@ -105,8 +105,18 @@ namespace Isf
   , GUID_ROP                    // = KNOWN_GUID_BASE_INDEX + 37
   , KNOWN_GUID_LAST_INDEX
   };
-  Q_DECLARE_FLAGS( PacketProperties, PacketProperty )
-  Q_DECLARE_OPERATORS_FOR_FLAGS( PacketProperties )
+
+
+
+  /**
+   * Available pen tips
+   */
+  enum PenTip
+  {
+    Ball      = 0
+  , Rectangle = 1
+  };
+
 
 
 
@@ -127,15 +137,22 @@ namespace Isf
 
   /**
    * Units used for metric measurements
+   *
+   * @see http://msdn.microsoft.com/en-us/library/ms840884.aspx
    */
   enum MetricScale
   {
-    DEFAULT        =  0
-  , CENTIMETERS    =  1
-  , PIXELS         =  2
-  , DEGREES        =  3
-  , NOT_APPLICABLE = -1
+    UNIT_UNUSED     = -1
+  , UNIT_DEFAULT    =  0
+  , UNIT_INCH       =  1
+  , UNIT_CENTIMETER =  2
+  , UNIT_DEGREE     =  3
+  , UNIT_RADIAN     =  4
+  , UNIT_SECOND     =  5
+  , UNIT_POUND      =  6
+  , UNIT_GRAM       =  7
   };
+
 
 
 
@@ -181,23 +198,23 @@ namespace Isf
     /// Constructor
     Metrics()
     {
-      items[ GUID_X                    ] = Metric(     0, 12699, CENTIMETERS,  1000 );
-      items[ GUID_Y                    ] = Metric(     0,  9649, CENTIMETERS,  1000 );
-      items[ GUID_Z                    ] = Metric( -1023,  1023, CENTIMETERS,  1000 );
-      items[ GUID_PACKET_STATUS        ] = Metric(     0,  1023, DEFAULT,         1 );
-      items[ GUID_TIMER_TICK           ] = Metric(     0,  1023, DEFAULT,         1 );
-      items[ GUID_SERIAL_NUMBER        ] = Metric(     0,  1023, DEFAULT,         1 );
-      items[ GUID_NORMAL_PRESSURE      ] = Metric(     0,  3600, DEGREES,        10 );
-      items[ GUID_TANGENT_PRESSURE     ] = Metric(     0,  3600, DEGREES,        10 );
-      items[ GUID_BUTTON_PRESSURE      ] = Metric(     0,  3600, DEGREES,        10 );
-      items[ GUID_X_TILT_ORIENTATION   ] = Metric(  -900,   900, DEGREES,        10 );
-      items[ GUID_Y_TILT_ORIENTATION   ] = Metric(     0,  3600, DEGREES,        10 );
-      items[ GUID_AZIMUTH_ORIENTATION  ] = Metric(    -1,    -1, NOT_APPLICABLE, -1 );
-      items[ GUID_ALTITUDE_ORIENTATION ] = Metric(    -1,    -1, NOT_APPLICABLE, -1 );
-      items[ GUID_TWIST_ORIENTATION    ] = Metric(    -1,    -1, NOT_APPLICABLE, -1 );
-      items[ GUID_PITCH_ROTATION       ] = Metric(    -1,    -1, NOT_APPLICABLE, -1 );
-      items[ GUID_ROLL_ROTATION        ] = Metric(    -1,    -1, NOT_APPLICABLE, -1 );
-      items[ GUID_YAW_ROTATION         ] = Metric(    -1,    -1, NOT_APPLICABLE, -1 );
+      items[ GUID_X                    ] = Metric(     0, 12699, UNIT_CENTIMETER,  1000 );
+      items[ GUID_Y                    ] = Metric(     0,  9649, UNIT_CENTIMETER,  1000 );
+      items[ GUID_Z                    ] = Metric( -1023,  1023, UNIT_CENTIMETER,  1000 );
+      items[ GUID_PACKET_STATUS        ] = Metric(     0,  1023, UNIT_DEFAULT,        1 );
+      items[ GUID_TIMER_TICK           ] = Metric(     0,  1023, UNIT_DEFAULT,        1 );
+      items[ GUID_SERIAL_NUMBER        ] = Metric(     0,  1023, UNIT_DEFAULT,        1 );
+      items[ GUID_NORMAL_PRESSURE      ] = Metric(     0,  3600, UNIT_DEGREE,        10 );
+      items[ GUID_TANGENT_PRESSURE     ] = Metric(     0,  3600, UNIT_DEGREE,        10 );
+      items[ GUID_BUTTON_PRESSURE      ] = Metric(     0,  3600, UNIT_DEGREE,        10 );
+      items[ GUID_X_TILT_ORIENTATION   ] = Metric(  -900,   900, UNIT_DEGREE,        10 );
+      items[ GUID_Y_TILT_ORIENTATION   ] = Metric(     0,  3600, UNIT_DEGREE,        10 );
+      items[ GUID_AZIMUTH_ORIENTATION  ] = Metric(    -1,    -1, UNIT_UNUSED,        -1 );
+      items[ GUID_ALTITUDE_ORIENTATION ] = Metric(    -1,    -1, UNIT_UNUSED,        -1 );
+      items[ GUID_TWIST_ORIENTATION    ] = Metric(    -1,    -1, UNIT_UNUSED,        -1 );
+      items[ GUID_PITCH_ROTATION       ] = Metric(    -1,    -1, UNIT_UNUSED,        -1 );
+      items[ GUID_ROLL_ROTATION        ] = Metric(    -1,    -1, UNIT_UNUSED,        -1 );
+      items[ GUID_YAW_ROTATION         ] = Metric(    -1,    -1, UNIT_UNUSED,        -1 );
     }
 
     /// The list of metrics defined in this table

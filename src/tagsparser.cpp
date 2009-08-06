@@ -26,7 +26,7 @@
 #include "data/datasource.h"
 #include "data/multibytecoding.h"
 
-#include <isfdrawing.h>
+#include <IsfQtDrawing>
 
 #include <QPolygon>
 
@@ -181,8 +181,8 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
         // TODO: It also contains an alpha value, ignored here for now because it's unknown if
         // it is needed or not
         info.color = QColor( qBlue ( invertedColor ),
-                            qGreen( invertedColor ),
-                            qRed  ( invertedColor ) );
+                             qGreen( invertedColor ),
+                             qRed  ( invertedColor ) );
 #ifdef ISFQT_DEBUG_VERBOSE
         qDebug() << "- Got pen color" << info.color.name().toUpper();
 #endif
@@ -192,12 +192,15 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
       case GUID_PEN_WIDTH:
 #ifdef ISFQT_DEBUG_VERBOSE
         qDebug() << "- Got pen width" << QString::number( (float)value, 'g', 16 )
-                << "(" << (value/HiMetricToPixel) << "pixels )";
+                 << "(" << (value/HiMetricToPixel) << "pixels )";
 #endif
-        info.penSize.setWidth( (float)value );
+        if( ! info.penSize.isValid() )
+        {
+          // In square/round pens the width will be the only value present.
+          info.penSize.setHeight( (float)value );
+        }
 
-        // In square/round pens the width will be the only value present.
-        info.penSize.setHeight( (float)value );
+        info.penSize.setWidth( (float)value );
         break;
 
       case GUID_PEN_HEIGHT:

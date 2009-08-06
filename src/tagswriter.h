@@ -21,7 +21,7 @@
 #ifndef TAGSWRITER_H
 #define TAGSWRITER_H
 
-#include "isfqt.h"
+#include <IsfQt>
 
 
 

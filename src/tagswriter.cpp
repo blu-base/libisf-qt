@@ -26,12 +26,11 @@
 #include "data/datasource.h"
 #include "data/multibytecoding.h"
 
-#include <isfdrawing.h>
+#include <IsfQtDrawing>
 
 
 using namespace Isf;
 using namespace Isf::Compress;
-
 
 
 

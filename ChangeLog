@@ -3,6 +3,12 @@
  * Added Metrics recognization and saving.
  * Made sense into the property tags: they're now all in the PacketProperty enum.
  * Added MultiByteCoding utility methods to find out the encoded size of a value.
+ * Changed the installed include files directory to PREFIX/include/isf-qt .
+ * Added a NOTES file with possibly useful stuff.
+ * Added metrics measurement units, found on MSDN.
+ * Added a couple more checks on data.
+ * Moved include isfdrawing.h to isfqtdrawing.h .
+ * Fixed CMake installing bug and added C++ style includes, <IsfQt> and <IsfQtDrawing>.
 
 2009-08-05 (Valerio)
  * Extended Adam's last fix to the other main drawing properties.

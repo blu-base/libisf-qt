@@ -21,11 +21,11 @@
 #ifndef TAGSPARSER_H
 #define TAGSPARSER_H
 
-#include "isfqt.h"
-
 #include <QMap>
 #include <QTransform>
 #include <QString>
+
+#include <IsfQt>
 
 
 

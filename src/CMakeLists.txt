@@ -7,7 +7,7 @@ SET( ISFQT_SOURCES
      data/huffman.cpp
      data/datasource.cpp
      data/multibytecoding.cpp
-     isfdrawing.cpp
+     isfqtdrawing.cpp
      tagsparser.cpp
      tagswriter.cpp
      isfqt.cpp
@@ -15,7 +15,9 @@ SET( ISFQT_SOURCES
 
 SET( ISFQT_PUBLIC_HEADERS
      ../include/isfqt.h
-     ../include/isfdrawing.h
+     ../include/isfqtdrawing.h
+     ../include/IsfQt
+     ../include/IsfQtDrawing
    )
 
 
@@ -34,6 +36,6 @@ SET_TARGET_PROPERTIES( isf-qt PROPERTIES
 #### Installation ####
 
 INSTALL( TARGETS isf-qt LIBRARY
-         DESTINATION "${CMAKE_INSTALL_PREFIX}/lib"     )
+         DESTINATION "${CMAKE_INSTALL_PREFIX}/lib"            )
 INSTALL( FILES ${ISFQT_PUBLIC_HEADERS}
-         DESTINATION "${CMAKE_INSTALL_PREFIX}/include" )
+         DESTINATION "${CMAKE_INSTALL_PREFIX}/include/isf-qt" )

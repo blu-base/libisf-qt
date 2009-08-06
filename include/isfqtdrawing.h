@@ -18,11 +18,10 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef ISFDRAWING_H
-#define ISFDRAWING_H
+#ifndef ISFQTDRAWING_H
+#define ISFQTDRAWING_H
 
-
-#include "isfqt.h"
+#include <IsfQt>
 
 #include <QMap>
 #include <QTransform>
@@ -40,7 +39,7 @@ namespace Isf
 
 
   /**
-   * This class loads ISF (Ink Serialized Format) drawings.
+   * This class is a container for the data of ISF (Ink Serialized Format) drawings.
    *
    * @author Adam Goossens (adam@kmess.org)
    * @author Valerio Pilo (valerio@kmess.org)
@@ -132,4 +131,4 @@ namespace Isf
 
 
 
-#endif // ISFDRAWING_H
+#endif // ISFQTDRAWING_H
