@@ -44,16 +44,25 @@ class TestDecode : public QMainWindow, private Ui::TestDecode
         return;
       }
 
-      QByteArray data = readTestIsfData( qApp->arguments().at( 1 ) );
-      Isf::Drawing drawing( Isf::Parser::isfToDrawing( data ) );
+      qDebug() << "------------------------- Creating drawing from ISF -------------------------";
+      QByteArray data1( readTestIsfData( qApp->arguments().at( 1 ) ) );
+      Isf::Drawing drawing1 = Isf::Parser::isfToDrawing( data1 );
 
-      if( drawing.isNull() )
+      qDebug() << "------------------------- Writing drawing to ISF file -------------------------";
+      QByteArray data2( Isf::Parser::drawingToIsf( drawing1 ) );
+      qDebug() << "Size:" << data2.size();
+
+      qDebug() << "------------------------- Reading it back -------------------------";
+      Isf::Drawing drawing2 = Isf::Parser::isfToDrawing( data2 );
+
+
+      if( drawing2.isNull() )
       {
         label_->setText( "Invalid file contents!" );
       }
       else
       {
-        label_->setPixmap( drawing.getPixmap() );
+        label_->setPixmap( drawing2.getPixmap() );
       }
     }
 

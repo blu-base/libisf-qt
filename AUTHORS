@@ -1,0 +1,25 @@
+
+LibISF-Qt authors
+-------------------------
+
+The developers of this library are:
+
+ - Valerio Pilo <valerio@kmess.org>
+ - Adam Goossens <adam@kmess.org>
+
+
+Credits
+-------------------------
+
+Creating this library would not have been possible without the previous efforts
+of some great people:
+
+The tclISF authors:
+ - Ole André Vadla Ravnås (oleavr)
+ - Youness Alaoui (KaKaRoTo)
+ - Boris Faure (billiob)
+
+The pyISF author:
+ - Kevin Campbell
+
+We'd also like to thank Microsoft for publishing the file format specifications.

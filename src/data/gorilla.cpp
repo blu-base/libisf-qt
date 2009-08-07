@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Valerio Pilo                                    *
+ *   Copyright (C) 2008-2009 by Valerio Pilo                               *
  *   valerio@kmess.org                                                     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -34,13 +34,107 @@ namespace Isf
 
 
 
-    // Compress data using the Gorilla algorithm
-    bool deflateGorilla( DataSource &source, quint64 length, quint8 blockSize, QList<qint64> &encodedData )
+    // Analyze the data to find the correct block size
+    quint8 getBlockSizeGorilla( const QList<qint64> &data )
     {
-      Q_UNUSED( source );
-      Q_UNUSED( length );
-      Q_UNUSED( blockSize );
-      Q_UNUSED( encodedData );
+      quint8 blockSize = 0;
+      qint64 num;
+
+      for( qint32 index = 0; index < data.size(); ++index )
+      {
+        num = data[ index ];
+
+        if( num < 0 )
+        {
+          // We need the positive numbers: the +1 is for the sign bit
+          num += - (num + 1);
+        }
+
+        // Shift right the value by blockSize bits until it becomes zero:
+        // we need to detect the maximum bitwise size required to store
+        // the numbers in the data array.
+        num >>= blockSize;
+        while( num )
+        {
+          ++blockSize;
+          num >>= 1;
+        }
+      }
+
+      // The sign bit always takes up a bit
+      ++blockSize;
+
+      return blockSize;
+    }
+
+
+
+    // Compress data using the Gorilla algorithm
+    bool deflateGorilla( QByteArray &encodedData, quint8 blockSize, const QList<qint64> &source )
+    {
+      if( blockSize > 64 )
+      {
+        qWarning() << "A block size of" << blockSize << "is too high!";
+        blockSize = 64; // Fuck it :P
+      }
+
+      quint8 blockSizeLeft; // Remaining bits to encode of the current value
+      quint8 freeBits = 8;  // Free bits of the current byte, in LSB order
+      quint8 signMask = 1 << ( blockSize - 1 );  // Mask to add the sign bit
+
+      quint8 byte = 0;          // Byte to add to the array
+      qint64 currentValue;
+
+      for( qint64 index = 0; index < source.count(); ++index )
+      {
+        currentValue = source[ index ];
+
+        if( currentValue < 0 )
+        {
+          currentValue |= signMask;
+        }
+
+        blockSizeLeft = blockSize;
+
+        if( freeBits >= blockSizeLeft )
+        {
+          freeBits -= blockSizeLeft;
+          byte |= currentValue << freeBits;
+
+          encodedData.append( byte );
+
+          byte = 0;
+          freeBits = 8;
+        }
+        else
+        {
+          // Fill the current byte
+          quint64 mask = 0xFFFFFFFF >> ( 32 - blockSizeLeft );
+          byte |= currentValue >> ( blockSizeLeft - freeBits );
+
+          encodedData.append( byte );
+
+          byte = 0;
+          blockSizeLeft -= freeBits;
+          mask >>= freeBits;
+          currentValue &= mask;
+
+          // Then fill all the next bytes required to encode the current value,
+          // except the last one
+          while( blockSizeLeft > 8 )
+          {
+            blockSizeLeft -= 8;
+            encodedData.append( currentValue >> blockSizeLeft );
+
+            mask >>= 8;
+            currentValue &= mask;
+          }
+
+          // Finally, add the last byte
+          freeBits = 8 - blockSizeLeft;
+          encodedData.append( currentValue << freeBits );
+        }
+      }
 
       return true;
     }

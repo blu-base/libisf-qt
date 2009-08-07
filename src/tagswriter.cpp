@@ -63,46 +63,47 @@ IsfError TagsWriter::addAttributeTable( DataSource &source, const Drawing &drawi
 
 #ifdef ISFQT_DEBUG_VERBOSE
   qDebug() << "- Adding" << drawing.attributes_.count() << "attributes...";
+  quint8 counter = 0;
 #endif
 
-  foreach( const PointInfo info, drawing.attributes_ )
+  foreach( const PointInfo *info, drawing.attributes_ )
   {
     // Add the color to the attribute block
-    if( info.color != defaultPoint.color )
+    if( info->color != defaultPoint.color )
     {
       blockData.append( encodeUInt( GUID_COLORREF ) );
 
       // Prepare the color value, it needs to be stored in BGR format
-      quint64 value = (info.color.blue()  << 24)
-                    | (info.color.green() << 16)
-                    | (info.color.red()   <<  8);
+      quint64 value = (info->color.blue()  << 24)
+                    | (info->color.green() << 16)
+                    | (info->color.red()   <<  8);
       blockData.append( encodeUInt( value ) );
 
       // Add the transparency if needed
-      if( info.color.alpha() < 255 )
+      if( info->color.alpha() < 255 )
       {
         blockData.append( encodeUInt( GUID_TRANSPARENCY ) );
-        blockData.append( encodeUInt( info.color.alpha() ) );
+        blockData.append( encodeUInt( info->color.alpha() ) );
       }
     }
 
     // Add the pen size
-    if( info.penSize != defaultPoint.penSize )
+    if( info->penSize != defaultPoint.penSize )
     {
       blockData.append( encodeUInt( GUID_PEN_WIDTH ) );
-      blockData.append( encodeUInt( info.penSize.width() ) );
+      blockData.append( encodeUInt( info->penSize.width() ) );
 
-      if( info.penSize.width() != info.penSize.height() )
+      if( info->penSize.width() != info->penSize.height() )
       {
         blockData.append( encodeUInt( GUID_PEN_HEIGHT ) );
-        blockData.append( encodeUInt( info.penSize.height() ) );
+        blockData.append( encodeUInt( info->penSize.height() ) );
       }
     }
 
     // Add the other drawing flags
-    if( info.flags != defaultPoint.flags )
+    if( info->flags != defaultPoint.flags )
     {
-      StrokeFlags flags = info.flags;
+      StrokeFlags flags = info->flags;
       if( flags & IsRectangle )
       {
         blockData.append( encodeUInt( GUID_PEN_TIP ) );
@@ -123,10 +124,14 @@ IsfError TagsWriter::addAttributeTable( DataSource &source, const Drawing &drawi
       blockData.append( encodeUInt( flags ) );
     }
 
-qDebug() << "attr block size:"<<blockData.size();
+
     blockData.prepend( encodeUInt( blockData.size() ) );
     tagContents.append( blockData );
     blockData.clear();
+
+#ifdef ISFQT_DEBUG_VERBOSE
+    qDebug() << "- Added attribute block #" << ++counter;
+#endif
   }
 
   if( drawing.attributes_.count() > 1 )
@@ -155,50 +160,51 @@ IsfError TagsWriter::addTransformationTable( DataSource &source, const Drawing &
 
 #ifdef ISFQT_DEBUG_VERBOSE
   qDebug() << "- Adding" << drawing.transforms_.count() << "transformations...";
+  quint8 counter = 0;
 #endif
 
-  foreach( const QTransform trans, drawing.transforms_ )
+  foreach( const QTransform *trans, drawing.transforms_ )
   {
-    if( trans.isRotating() )
+    if( trans->isRotating() )
     {
 #ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "  - Transform: TAG_TRANSFORM_ROTATE";
 #endif
       transformTag = TAG_TRANSFORM_ROTATE;
-      blockData.append( encodeFloat( trans.m11() * 100.0f ) );
+      blockData.append( encodeFloat( trans->m11() * 100.0f ) );
     }
     else
-    if( trans.isScaling() && trans.isTranslating() )
+    if( trans->isScaling() && trans->isTranslating() )
     {
 #ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "  - Transform: TAG_TRANSFORM_SCALE_AND_TRANSLATE";
 #endif
       transformTag = TAG_TRANSFORM_SCALE_AND_TRANSLATE;
-      blockData.append( encodeFloat( trans.m11() * HiMetricToPixel ) );
-      blockData.append( encodeFloat( trans.m22() * HiMetricToPixel ) );
-      blockData.append( encodeFloat( trans.dx () ) );
-      blockData.append( encodeFloat( trans.dy () ) );
+      blockData.append( encodeFloat( trans->m11() * HiMetricToPixel ) );
+      blockData.append( encodeFloat( trans->m22() * HiMetricToPixel ) );
+      blockData.append( encodeFloat( trans->dx () ) );
+      blockData.append( encodeFloat( trans->dy () ) );
     }
     else
-    if( ! trans.isScaling() && trans.isTranslating() )
+    if( ! trans->isScaling() && trans->isTranslating() )
     {
 #ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "  - Transform: TAG_TRANSFORM_TRANSLATE";
 #endif
       transformTag = TAG_TRANSFORM_TRANSLATE;
-      blockData.append( encodeFloat( trans.dx() ) );
-      blockData.append( encodeFloat( trans.dy() ) );
+      blockData.append( encodeFloat( trans->dx() ) );
+      blockData.append( encodeFloat( trans->dy() ) );
     }
     else
-    if( trans.isScaling() && ! trans.isTranslating() )
+    if( trans->isScaling() && ! trans->isTranslating() )
     {
-      if( trans.m11() == trans.m22() )
+      if( trans->m11() == trans->m22() )
       {
 #ifdef ISFQT_DEBUG_VERBOSE
         qDebug() << "  - Transform: TAG_TRANSFORM_ISOTROPIC_SCALE";
 #endif
         transformTag = TAG_TRANSFORM_ISOTROPIC_SCALE;
-        blockData.append( encodeFloat( trans.m11() * HiMetricToPixel ) );
+        blockData.append( encodeFloat( trans->m11() * HiMetricToPixel ) );
       }
       else
       {
@@ -206,8 +212,8 @@ IsfError TagsWriter::addTransformationTable( DataSource &source, const Drawing &
         qDebug() << "  - Transform: TAG_TRANSFORM_ANISOTROPIC_SCALE";
 #endif
         transformTag = TAG_TRANSFORM_ANISOTROPIC_SCALE;
-        blockData.append( encodeFloat( trans.m11() * HiMetricToPixel ) );
-        blockData.append( encodeFloat( trans.m22() * HiMetricToPixel ) );
+        blockData.append( encodeFloat( trans->m11() * HiMetricToPixel ) );
+        blockData.append( encodeFloat( trans->m22() * HiMetricToPixel ) );
       }
     }
     else
@@ -216,18 +222,22 @@ IsfError TagsWriter::addTransformationTable( DataSource &source, const Drawing &
       qDebug() << "  - Transform: TAG_TRANSFORM";
 #endif
       transformTag = TAG_TRANSFORM;
-      blockData.append( encodeFloat( trans.m11() * HiMetricToPixel ) );
-      blockData.append( encodeFloat( trans.m12() ) );
-      blockData.append( encodeFloat( trans.m21() ) );
-      blockData.append( encodeFloat( trans.m22() * HiMetricToPixel ) );
-      blockData.append( encodeFloat( trans.dx () ) );
-      blockData.append( encodeFloat( trans.dy () ) );
+      blockData.append( encodeFloat( trans->m11() * HiMetricToPixel ) );
+      blockData.append( encodeFloat( trans->m12() ) );
+      blockData.append( encodeFloat( trans->m21() ) );
+      blockData.append( encodeFloat( trans->m22() * HiMetricToPixel ) );
+      blockData.append( encodeFloat( trans->dx () ) );
+      blockData.append( encodeFloat( trans->dy () ) );
     }
 
     blockData.prepend( encodeUInt( transformTag ) );
 
     tagContents.append( blockData );
     blockData.clear();
+
+#ifdef ISFQT_DEBUG_VERBOSE
+    qDebug() << "- Added transform #" << ++counter;
+#endif
   }
 
   if( drawing.attributes_.count() > 1 )
@@ -251,10 +261,73 @@ IsfError TagsWriter::addStrokes( DataSource &source, const Drawing &drawing )
 
 #ifdef ISFQT_DEBUG_VERBOSE
   qDebug() << "- Adding" << drawing.strokes_.count() << "strokes...";
+  quint8 counter = 0;
 #endif
 
-  foreach( const Stroke stroke, drawing.strokes_ )
+  // Last set of attibutes applied to a stroke
+  Metrics    *currentMetrics    = 0;
+  PointInfo  *currentPointInfo  = 0;
+  QTransform *currentTransform  = 0;
+
+  foreach( const Stroke *stroke, drawing.strokes_ )
   {
+    // There is more than one set of metrics, assign each stroke to its own
+    if( drawing.metrics_.count() > 1 )
+    {
+      // Only write a MIDX if this stroke needs different metrics than the last stroke
+      if( currentMetrics != stroke->metrics )
+      {
+        currentMetrics = stroke->metrics;
+        blockData.append( encodeUInt( TAG_MIDX ) );
+        blockData.append( encodeUInt( drawing.metrics_.indexOf( stroke->metrics ) ) );
+      }
+    }
+    // There is more than one set of attributes, assign each stroke to its own
+    if( drawing.attributes_.count() > 1 )
+    {
+      // Only write a DIDX if this stroke needs a different attribute set than the last stroke
+      if( currentPointInfo != stroke->attributes )
+      {
+        currentPointInfo = stroke->attributes;
+        blockData.append( encodeUInt( TAG_DIDX ) );
+        blockData.append( encodeUInt( drawing.attributes_.indexOf( stroke->attributes ) ) );
+      }
+    }
+    // There is more than one set of attributes, assign each stroke to its own
+    if( drawing.metrics_.count() > 1 )
+    {
+      // Only write a TIDX if this stroke needs a different transform than the last stroke
+      if( currentTransform != stroke->transform )
+      {
+        currentTransform = stroke->transform;
+        blockData.append( encodeUInt( TAG_TIDX ) );
+        blockData.append( encodeUInt( drawing.transforms_.indexOf( stroke->transform ) ) );
+      }
+    }
+
+    // Write this stroke in the stream
+    blockData.append( encodeUInt( stroke->points.count() ) );
+
+    QList<qint64> xPoints, yPoints;
+    foreach( const Point &point, stroke->points )
+    {
+      xPoints.append( point.position.x() );
+      yPoints.append( point.position.y() );
+    }
+qDebug() << "deflating..";
+    deflate( blockData, stroke->points.count(), xPoints, Points );
+    deflate( blockData, stroke->points.count(), yPoints, Points );
+
+    blockData.prepend( encodeUInt( blockData.size() ) );
+    blockData.prepend( encodeUInt( TAG_STROKE ) );
+
+    tagContents.append( blockData );
+    blockData.clear();
+    source.append( tagContents );
+
+#ifdef ISFQT_DEBUG_VERBOSE
+    qDebug() << "- Added stroke #" << ++counter;
+#endif
   }
 /*
   quint64 payloadSize = decodeUInt( source );

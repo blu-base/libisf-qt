@@ -60,13 +60,23 @@ namespace Isf
 
 
     // Compress data using the Adaptive-Huffman algorithm
-    bool deflateHuffman( DataSource &source, quint64 length, quint8 index, QList<qint64> &encodedData )
+    bool deflateHuffman( QByteArray &encodedData, quint8 maybeUnused, const QList<qint64> &source )
     {
-      Q_UNUSED( source );
-      Q_UNUSED( length );
-      Q_UNUSED( index );
-      Q_UNUSED( encodedData );
-      return true;
+      Q_UNUSED( maybeUnused );
+
+      bool    result = false;
+//       quint32 index  = 1;
+
+//       result = deflateHuffmanValue( encodedData, source.first() );
+
+      if( ! result )
+      {
+        return result;
+      }
+
+      // TODO finish me!
+
+      return false;
     }
 
 

@@ -54,6 +54,8 @@ namespace Isf
 
       /// Constructor
                                 Drawing();
+      ///Destructor
+                               ~Drawing();
       /// Convert the ISF drawing into a pixmap
       QPixmap                   getPixmap();
       /// Return whether this is a null Drawing
@@ -79,7 +81,7 @@ namespace Isf
     private: // Private properties
 
       // List of attributes of the points in the drawing
-      QList<PointInfo>          attributes_;
+      QList<PointInfo*>         attributes_;
       // Bounding rectangle of the drawing
       QRect                     boundingRect_;
       // Virtual drawing canvas dimensions
@@ -113,15 +115,15 @@ namespace Isf
       // Maximum thickness of the strokes
       QSizeF                    maxPenSize_;
       // List of metrics used in the drawing
-      QList<Metrics>            metrics_;
+      QList<Metrics*>           metrics_;
       // Pixel size of the drawing
       QSize                     size_;
       // List of information about the drawing's strokes
-      QList<StrokeInfo>         strokeInfo_;
+      QList<StrokeInfo*>        strokeInfo_;
       // List of strokes composing this drawing
-      QList<Stroke>             strokes_;
+      QList<Stroke*>            strokes_;
       // Transformation matrices
-      QList<QTransform>         transforms_;
+      QList<QTransform*>        transforms_;
 
   };
 

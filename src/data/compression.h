@@ -49,6 +49,20 @@ namespace Isf
 
 
   /**
+   * Types of storable data.
+   *
+   * These enum values are given to deflate() to compress different
+   * kinds of data with the right algorithm.
+   */
+  enum DataType
+  {
+    Points          /// We need to deflate points data
+  , Properties      /// We need to deflate packet properties
+  };
+
+
+
+  /**
    * Methods to compression and decompress ISF images
    */
   namespace Compress
@@ -56,7 +70,7 @@ namespace Isf
     /// Decompress data autodetecting the algorithm to use
     bool inflate( DataSource &source, quint64 length, QList<qint64> &decodedData );
     /// Compress data autodetecting the algorithm to use
-    bool deflate( DataSource &source, quint64 length, QList<qint64> &decodedData );
+    bool deflate( QByteArray &destination, quint64 length, const QList<qint64> &decodedData, DataType dataType );
   }
 }
 

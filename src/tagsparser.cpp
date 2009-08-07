@@ -143,15 +143,15 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
     return ISF_ERROR_INVALID_PAYLOAD;
   }
 
-  drawing.attributes_.append( PointInfo() );
-  PointInfo &info = drawing.attributes_.last();
+  drawing.attributes_.append( new PointInfo() );
+  PointInfo *info = drawing.attributes_.last();
 
   // set this once when we get the first DRAW_ATTRS_BLOCK. then,
   // everytime we get a DIDX we can update it. if we don't do this
   // then the first stroke will have the same colour as the last stroke.
   if ( drawing.currentPointInfo_ == &drawing.defaultPointInfo_ )
   {
-    drawing.currentPointInfo_ = &info;
+    drawing.currentPointInfo_ = info;
   }
 
 #ifdef ISFQT_DEBUG_VERBOSE
@@ -180,11 +180,11 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
         // as QRgb stores the value in BGR order: QRgb(RRGGBB) <-- value(BBGGRR).
         // TODO: It also contains an alpha value, ignored here for now because it's unknown if
         // it is needed or not
-        info.color = QColor( qBlue ( invertedColor ),
-                             qGreen( invertedColor ),
-                             qRed  ( invertedColor ) );
+        info->color = QColor( qBlue ( invertedColor ),
+                              qGreen( invertedColor ),
+                              qRed  ( invertedColor ) );
 #ifdef ISFQT_DEBUG_VERBOSE
-        qDebug() << "- Got pen color" << info.color.name().toUpper();
+        qDebug() << "- Got pen color" << info->color.name().toUpper();
 #endif
         break;
       }
@@ -194,20 +194,20 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
         qDebug() << "- Got pen width" << QString::number( (float)value, 'g', 16 )
                  << "(" << (value/HiMetricToPixel) << "pixels )";
 #endif
-        if( ! info.penSize.isValid() )
+        if( ! info->penSize.isValid() )
         {
           // In square/round pens the width will be the only value present.
-          info.penSize.setHeight( (float)value );
+          info->penSize.setHeight( (float)value );
         }
 
-        info.penSize.setWidth( (float)value );
+        info->penSize.setWidth( (float)value );
         break;
 
       case GUID_PEN_HEIGHT:
 #ifdef ISFQT_DEBUG_VERBOSE
         qDebug() << "- Got pen height" << QString::number( (float)value, 'g', 16 );
 #endif
-        info.penSize.setHeight( (float)value );
+        info->penSize.setHeight( (float)value );
         break;
 
       case GUID_PEN_TIP:
@@ -216,12 +216,12 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
 #endif
         if( value )
         {
-          info.flags |= IsRectangle;
+          info->flags |= IsRectangle;
         }
         break;
 
       case GUID_DRAWING_FLAGS:
-        info.flags = (StrokeFlags)( ( 0XFF00 & info.flags ) | (ushort) value );
+        info->flags = (StrokeFlags)( ( 0XFF00 & info->flags ) | (ushort) value );
 #ifdef ISFQT_DEBUG_VERBOSE
         qDebug() << "- Got flags value:" << value;
         if( value & FitToCurve )
@@ -253,7 +253,7 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
 #ifdef ISFQT_DEBUG_VERBOSE
         qDebug() << "- Got pen transparency" << value;
 #endif
-        info.color.setAlpha( value );
+        info->color.setAlpha( value );
         break;
 
       case GUID_ROP:
@@ -286,13 +286,13 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
 
   // Update the drawing's maximum pen size.
   // This value is used to adjust the drawing borders to include thick strokes
-  if( info.penSize.width() > drawing.maxPenSize_.width() )
+  if( info->penSize.width() > drawing.maxPenSize_.width() )
   {
-    drawing.maxPenSize_.setWidth( info.penSize.width() );
+    drawing.maxPenSize_.setWidth( info->penSize.width() );
   }
-  if( info.penSize.height() > drawing.maxPenSize_.height() )
+  if( info->penSize.height() > drawing.maxPenSize_.height() )
   {
-    drawing.maxPenSize_.setHeight( info.penSize.height() );
+    drawing.maxPenSize_.setHeight( info->penSize.height() );
   }
 
 
@@ -395,7 +395,7 @@ IsfError TagsParser::parseMetricBlock( DataSource &source, Drawing &drawing )
     return ISF_ERROR_INVALID_PAYLOAD;
   }
 
-  Metrics metricsList;
+  Metrics *metricsList = new Metrics();
   qint64 payloadEnd = source.pos() + payloadSize;
   while( source.pos() < payloadEnd && ! source.atEnd() )
   {
@@ -466,19 +466,19 @@ IsfError TagsParser::parseMetricBlock( DataSource &source, Drawing &drawing )
                  << " units:" << metric.units;
 #endif
 
-    metricsList.items[ property ] = metric;
+    metricsList->items[ property ] = metric;
   }
 
   // Save the obtained metrics
   drawing.metrics_.append( metricsList );
-  Metrics &savedMetrics = drawing.metrics_.last();
+  Metrics *savedMetrics = drawing.metrics_.last();
 
   // set this once when we get the first METRIC_BLOCK. then,
   // everytime we get a MIDX we can update it. if we don't do this
   // then the first stroke will have the same metrics as the last stroke.
   if ( drawing.currentMetrics_ == &drawing.defaultMetrics_ )
   {
-    drawing.currentMetrics_ = &savedMetrics;
+    drawing.currentMetrics_ = savedMetrics;
   }
 
   return ISF_ERROR_NONE;
@@ -517,7 +517,7 @@ IsfError TagsParser::parseTransformationTable( DataSource &source, Drawing &draw
 /// Read a drawing transformation matrix
 IsfError TagsParser::parseTransformation( DataSource &source, Drawing &drawing, quint64 transformType )
 {
-  QTransform transform;
+  QTransform *transform = new QTransform();
 
   // Unlike the other transformations, scale is expressed in HiMetric units,
   // so we must convert it to pixels for rendering
@@ -525,78 +525,78 @@ IsfError TagsParser::parseTransformation( DataSource &source, Drawing &drawing, 
   switch( transformType )
   {
     case TAG_TRANSFORM:
-      transform.setMatrix( Compress::decodeFloat( source ) / HiMetricToPixel
-                        , Compress::decodeFloat( source )
-                        , .0f
-                        , Compress::decodeFloat( source )
-                        , Compress::decodeFloat( source ) / HiMetricToPixel
-                        , .0f
-                        , Compress::decodeFloat( source )
-                        , Compress::decodeFloat( source )
-                        , 1.f );
+      transform->setMatrix( Compress::decodeFloat( source ) / HiMetricToPixel
+                          , Compress::decodeFloat( source )
+                          , .0f
+                          , Compress::decodeFloat( source )
+                          , Compress::decodeFloat( source ) / HiMetricToPixel
+                          , .0f
+                          , Compress::decodeFloat( source )
+                          , Compress::decodeFloat( source )
+                          , 1.f );
 #ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "- Transformation details - "
-              << "Scale X:" << transform.m11()
-              << "Scale Y:" << transform.m22()
-              << "Translate X:" << transform.m31()
-              << "Translate Y:" << transform.m32();
+               << "Scale X:" << transform->m11()
+               << "Scale Y:" << transform->m22()
+               << "Translate X:" << transform->m31()
+               << "Translate Y:" << transform->m32();
 #endif
       break;
 
     case TAG_TRANSFORM_ISOTROPIC_SCALE:
     {
       float scaleAmount = Compress::decodeFloat( source ) / HiMetricToPixel;
-      transform.scale( scaleAmount, scaleAmount );
+      transform->scale( scaleAmount, scaleAmount );
 #ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "- Transformation details - "
-              << "Scale:" << scaleAmount;
+               << "Scale:" << scaleAmount;
 #endif
       break;
     }
 
     case TAG_TRANSFORM_ANISOTROPIC_SCALE:
-      transform.scale( Compress::decodeFloat( source ) / HiMetricToPixel
-                    , Compress::decodeFloat( source ) / HiMetricToPixel );
+      transform->scale( Compress::decodeFloat( source ) / HiMetricToPixel
+                      , Compress::decodeFloat( source ) / HiMetricToPixel );
 #ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "- Transformation details - "
-              << "Scale X:" << transform.m11()
-              << "Scale Y:" << transform.m22();
+               << "Scale X:" << transform->m11()
+               << "Scale Y:" << transform->m22();
 #endif
       break;
 
     case TAG_TRANSFORM_ROTATE:
     {
       float rotateAmount = Compress::decodeFloat( source ) / 100.0f;
-      transform.rotate( rotateAmount );
+      transform->rotate( rotateAmount );
 #ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "- Transformation details - "
-              << "Rotate:" << rotateAmount;
+               << "Rotate:" << rotateAmount;
 #endif
       break;
     }
 
     case TAG_TRANSFORM_TRANSLATE:
-      transform.translate( Compress::decodeFloat( source )
-                        , Compress::decodeFloat( source ) );
+      transform->translate( Compress::decodeFloat( source )
+                          , Compress::decodeFloat( source ) );
 #ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "- Transformation details - "
-              << "Translate X:" << transform.m31()
-              << "Translate Y:" << transform.m32();
+              << "Translate X:" << transform->m31()
+              << "Translate Y:" << transform->m32();
 #endif
       break;
 
     case TAG_TRANSFORM_SCALE_AND_TRANSLATE:
     {
-      transform.scale    ( Compress::decodeFloat( source ) / HiMetricToPixel
-                        , Compress::decodeFloat( source ) / HiMetricToPixel );
-      transform.translate( Compress::decodeFloat( source )
-                        , Compress::decodeFloat( source ) );
+      transform->scale    ( Compress::decodeFloat( source ) / HiMetricToPixel
+                          , Compress::decodeFloat( source ) / HiMetricToPixel );
+      transform->translate( Compress::decodeFloat( source )
+                          , Compress::decodeFloat( source ) );
 #ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "- Transformation details - "
-              << "Scale X:" << transform.m11()
-              << "Scale Y:" << transform.m22()
-              << "Translate X:" << transform.m31()
-              << "Translate Y:" << transform.m32();
+               << "Scale X:" << transform->m11()
+               << "Scale Y:" << transform->m22()
+               << "Translate X:" << transform->m31()
+               << "Translate Y:" << transform->m32();
 #endif
       break;
     }
@@ -615,7 +615,7 @@ IsfError TagsParser::parseTransformation( DataSource &source, Drawing &drawing, 
   // then the first stroke will have the same transform as the last stroke.
   if ( drawing.currentTransform_ == &drawing.defaultTransform_ )
   {
-    drawing.currentTransform_ = &( drawing.transforms_.last() );
+    drawing.currentTransform_ = drawing.transforms_.last();
   }
 
 #ifdef ISFQT_DEBUG_VERBOSE
@@ -692,8 +692,8 @@ IsfError TagsParser::parseStroke( DataSource &source, Drawing &drawing )
   }
 
   // Add a new stroke
-  drawing.strokes_.append( Stroke() );
-  Stroke &stroke = drawing.strokes_[ drawing.strokes_.size() - 1 ];
+  drawing.strokes_.append( new Stroke() );
+  Stroke *stroke = drawing.strokes_[ drawing.strokes_.size() - 1 ];
 
 #ifdef ISFQT_DEBUG_VERBOSE
   qDebug() << "- Added stroke #" << ( drawing.strokes_.count() - 1 );
@@ -704,8 +704,8 @@ IsfError TagsParser::parseStroke( DataSource &source, Drawing &drawing )
 
   for( quint64 i = 0; i < numPoints; ++i )
   {
-    stroke.points.append( Point() );
-    Point &point = stroke.points[ stroke.points.size() - 1 ];
+    stroke->points.append( Point() );
+    Point &point = stroke->points[ stroke->points.size() - 1 ];
 
     point.position.setX( xPointsData[ i ] );
     point.position.setY( yPointsData[ i ] );
@@ -718,14 +718,14 @@ IsfError TagsParser::parseStroke( DataSource &source, Drawing &drawing )
     }
   }
 
-  stroke.boundingRect = polygon.boundingRect();
-  stroke.attributes   = drawing.currentPointInfo_;
-  stroke.info         = drawing.currentStrokeInfo_;
-  stroke.metrics      = drawing.currentMetrics_;
-  stroke.transform    = drawing.currentTransform_;
+  stroke->boundingRect = polygon.boundingRect();
+  stroke->attributes   = drawing.currentPointInfo_;
+  stroke->info         = drawing.currentStrokeInfo_;
+  stroke->metrics      = drawing.currentMetrics_;
+  stroke->transform    = drawing.currentTransform_;
 
   // Update the entire drawing's bounding rect
-  drawing.boundingRect_ = drawing.boundingRect_.united( stroke.boundingRect );
+  drawing.boundingRect_ = drawing.boundingRect_.united( stroke->boundingRect );
 
   qint64 remainingPayloadSize = payloadSize - ( source.pos() - initialPos );
   if( remainingPayloadSize > 0 )
@@ -758,15 +758,15 @@ IsfError TagsParser::parseStrokeDescBlock( DataSource &source, Drawing &drawing 
   qDebug() << "- Finding stroke description properties in the next" << payloadSize << "bytes";
 #endif
 
-  drawing.strokeInfo_.append( StrokeInfo() );
-  StrokeInfo &info = drawing.strokeInfo_.last();
+  drawing.strokeInfo_.append( new StrokeInfo() );
+  StrokeInfo *info = drawing.strokeInfo_.last();
 
   // set this once when we get the first TAG_STROKE_DESC_BLOCK. then,
   // everytime we get a SIDX we can update it. if we don't do this
   // then the first stroke will have the same stroke info as the last stroke.
   if ( drawing.currentStrokeInfo_ == &drawing.defaultStrokeInfo_ )
   {
-    drawing.currentStrokeInfo_ = &info;
+    drawing.currentStrokeInfo_ = info;
   }
 
 #ifdef ISFQT_DEBUG_VERBOSE
@@ -784,14 +784,14 @@ IsfError TagsParser::parseStrokeDescBlock( DataSource &source, Drawing &drawing 
 #ifdef ISFQT_DEBUG_VERBOSE
         qDebug() << "- Stroke contains no X coordinates";
 #endif
-        info.hasXData = false;
+        info->hasXData = false;
         break;
 
       case TAG_NO_Y:
 #ifdef ISFQT_DEBUG_VERBOSE
         qDebug() << "- Stroke contains no Y coordinates";
 #endif
-        info.hasYData = false;
+        info->hasYData = false;
         break;
 
       case TAG_BUTTONS:
@@ -810,7 +810,7 @@ IsfError TagsParser::parseStrokeDescBlock( DataSource &source, Drawing &drawing 
 #ifdef ISFQT_DEBUG_VERBOSE
         qDebug() << "- Packet properties list:" << QString::number( tag, 10 );
 #endif
-        info.hasPressureData = true;
+        info->hasPressureData = true;
         // TODO How is this list made?
 /*
         for( quint64 i = 0; i < GUID_NUM; ++i )

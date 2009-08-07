@@ -214,7 +214,7 @@ Drawing Parser::isfToDrawing( const QByteArray &rawData )
 
             if( value < (uint)drawing.attributes_.count() )
             {
-              drawing.currentPointInfo_ = &drawing.attributes_[ value ];
+              drawing.currentPointInfo_ = drawing.attributes_[ value ];
 #ifdef ISFQT_DEBUG_VERBOSE
               qDebug() << "- Next strokes will use drawing attributes #" << value;
 #endif
@@ -259,7 +259,7 @@ Drawing Parser::isfToDrawing( const QByteArray &rawData )
 
             if( value < (uint)drawing.strokeInfo_.count() )
             {
-              drawing.currentStrokeInfo_ = &drawing.strokeInfo_[ value ];
+              drawing.currentStrokeInfo_ = drawing.strokeInfo_[ value ];
 #ifdef ISFQT_DEBUG_VERBOSE
               qDebug() << "- Next strokes will use stroke info #" << value;
 #endif
@@ -346,7 +346,7 @@ Drawing Parser::isfToDrawing( const QByteArray &rawData )
 
             if( value < (uint)drawing.transforms_.count() )
             {
-              drawing.currentTransform_ = &drawing.transforms_[ value ];
+              drawing.currentTransform_ = drawing.transforms_[ value ];
 #ifdef ISFQT_DEBUG_VERBOSE
               qDebug() << "- Next strokes will use transform #" << value;
 #endif
@@ -385,7 +385,7 @@ Drawing Parser::isfToDrawing( const QByteArray &rawData )
 
             if( value < (uint)drawing.metrics_.count() )
             {
-              drawing.currentMetrics_ = &drawing.metrics_[ value ];
+              drawing.currentMetrics_ = drawing.metrics_[ value ];
 #ifdef ISFQT_DEBUG_VERBOSE
               qDebug() << "- Next strokes will use metrics #" << value;
 #endif

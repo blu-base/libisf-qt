@@ -56,6 +56,20 @@ Drawing::Drawing()
 
 
 /**
+ * Destructor
+ */
+Drawing::~Drawing()
+{
+  qDeleteAll( metrics_ );
+  qDeleteAll( strokeInfo_ );
+  qDeleteAll( strokes_ );
+  qDeleteAll( transforms_ );
+  qDeleteAll( attributes_ );
+}
+
+
+
+/**
  * Return True if this instance of Drawing is invalid (NULL), False otherwise.
  *
  * @return True if this is a NULL Drawing, FALSE otherwise.
@@ -115,17 +129,17 @@ QPixmap Drawing::getPixmap()
   currentTransform_  = 0;
 
   int index = 0;
-  foreach( const Stroke &stroke, strokes_ )
+  foreach( const Stroke *stroke, strokes_ )
   {
-    if( currentMetrics_ != stroke.metrics )
+    if( currentMetrics_ != stroke->metrics )
     {
-      currentMetrics_ = stroke.metrics;
+      currentMetrics_ = stroke->metrics;
       // TODO need to convert all units somehow?
 //       painter.setSomething( currentMetrics );
     }
-    if( currentPointInfo_ != stroke.attributes )
+    if( currentPointInfo_ != stroke->attributes )
     {
-      currentPointInfo_ = stroke.attributes;
+      currentPointInfo_ = stroke->attributes;
 
       float penSizePixels = Drawing::himetricToPixels( currentPointInfo_->penSize.width(), pixmap );
 
@@ -133,25 +147,25 @@ QPixmap Drawing::getPixmap()
       pen.setWidthF( penSizePixels );
       painter.setPen( pen );
     }
-    if( currentStrokeInfo_ != stroke.info )
+    if( currentStrokeInfo_ != stroke->info )
     {
-      currentStrokeInfo_ = stroke.info;
+      currentStrokeInfo_ = stroke->info;
     }
-    if( currentTransform_ != stroke.transform )
+    if( currentTransform_ != stroke->transform )
     {
-      currentTransform_ = stroke.transform;
+      currentTransform_ = stroke->transform;
       painter.setWorldTransform( *currentTransform_, true );
     }
 
 #ifdef ISFQT_DEBUG_VERBOSE
-    qDebug() << "Rendering stroke" << index << "containing" << stroke.points.count() << "points";
+    qDebug() << "Rendering stroke" << index << "containing" << stroke->points.count() << "points";
     qDebug() << "- Stroke color:" << currentPointInfo_->color.name() << "Pen size:" << pen.widthF();
 #endif
 
-    if( stroke.points.count() > 1 )
+    if( stroke->points.count() > 1 )
     {
       Point lastPoint;
-      foreach( const Point &point, stroke.points )
+      foreach( const Point &point, stroke->points )
       {
 //       qDebug() << "Point:" << point.position;
 
@@ -184,7 +198,7 @@ QPixmap Drawing::getPixmap()
     }
     else
     {
-      Point point = stroke.points.first();
+      Point point = stroke->points.first();
       if( currentStrokeInfo_->hasPressureData )
       {
         // FIXME Ignoring pressure data - need to find out how pressure must be applied

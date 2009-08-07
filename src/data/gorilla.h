@@ -29,8 +29,10 @@ namespace Isf
 {
   namespace Compress
   {
+    /// Analyze the data to find the correct block size
+    quint8 getBlockSizeGorilla( const QList<qint64> &data );
     /// Compress data using the Gorilla algorithm
-    bool deflateGorilla( DataSource &source, quint64 length, quint8 blockSize, QList<qint64> &encodedData );
+    bool deflateGorilla( QByteArray &encodedData, quint8 blockSize, const QList<qint64> &source );
     /// Decompress data using the Gorilla algorithm
     bool inflateGorilla( DataSource &source, quint64 length, quint8 blockSize, QList<qint64> &decodedData );
   }

@@ -79,7 +79,7 @@ namespace Isf
 
         default:
 #ifdef ISFQT_DEBUG
-          qDebug() << "Decoding algorithm not recognized! (byte:" << algorithm << ")";
+          qDebug() << "Decoding algorithm not recognized! (byte:" << QString::number( algorithm, 2 ) << ")";
 #endif
           // Go back to the previous read position
           source.seekRelative( -1 );
@@ -98,13 +98,53 @@ namespace Isf
 
 
     // Compress data autodetecting the algorithm to use
-    bool deflate( DataSource &source, quint64 length, QList<qint64> &encodedData )
+    bool deflate( QByteArray &encodedData, quint64 length, const QList<qint64> &source, DataType dataType )
     {
-      Q_UNUSED( source );
-      Q_UNUSED( length );
-      Q_UNUSED( encodedData );
+      bool   result;
+      quint8 blockSize;
 
-      return true;
+      // TODO Is really this one the method to detect the algorithm to use?
+      Algorithm algorithm;
+      if( source.count() == 1 )
+      {
+        algorithm = Gorilla;
+      }
+      else
+      {
+        algorithm = Huffman;
+      }
+
+
+      switch( algorithm )
+      {
+        case Gorilla:
+          blockSize = getBlockSizeGorilla( source );
+
+          // Write the data encoding algorithm and block size
+          encodedData.append( blockSize | Gorilla );
+
+          // Deflate the data
+          result = deflateGorilla( encodedData, blockSize, source );
+          break;
+
+        case Huffman:
+//           blockSize = getBlockSizeHuffman( source );
+
+          // Write the data encoding algorithm and block size
+          encodedData.append( /*blockSize |*/ Huffman );
+
+          // Deflate the data
+          result = deflateHuffman( encodedData, 1 /* ?!? */, source );
+          break;
+        default:
+#ifdef ISFQT_DEBUG
+          qDebug() << "Encoding algorithm not implemented! (data type:" << dataType
+                   << ", algorithm:" << QString::number( algorithm, 16 ) << ")";
+#endif
+          break;
+      }
+
+      return result;
     }
 
 
