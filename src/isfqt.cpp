@@ -496,7 +496,7 @@ Drawing Parser::isfToDrawing( const QByteArray &rawData )
   */
 QByteArray Parser::drawingToIsf( const Drawing &drawing )
 {
-  if( drawing.isNull() || drawing.error() != ISF_ERROR_NONE )
+  if( &drawing == 0 || drawing.isNull() || drawing.error() != ISF_ERROR_NONE )
   {
 #ifdef ISFQT_DEBUG
     qDebug() << "The drawing was not valid!";

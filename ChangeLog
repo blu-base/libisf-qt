@@ -10,6 +10,7 @@
  * Moved include isfdrawing.h to isfqtdrawing.h .
  * Fixed CMake installing bug and added C++ style includes, <IsfQt> and <IsfQtDrawing>.
  * Fixed name of the drawing-to-isf converting method.
+ * Fixed crash when given an invalid drawing address.
 
 2009-08-05 (Valerio)
  * Extended Adam's last fix to the other main drawing properties.
