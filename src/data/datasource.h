@@ -63,10 +63,14 @@ namespace Isf
 
         /// Insert a byte at the end of the data
         void              append( char byte );
+        /// Insert bits at the end of the data
+        void              append( const QBitArray &bits );
         /// Insert bytes at the end of the data
         void              append( const QByteArray &bytes );
         /// Clear the data buffer
         void              clear();
+        /// Flush the current byte to the buffer
+        void              flush();
         /// Retrieve the next bit from the data
         bool              getBit();
         /// Retrieve the next <amount> bits from the data
@@ -87,6 +91,8 @@ namespace Isf
         void              seekRelative( int pos );
         /// Skip the rest of the current byte
         void              skipToNextByte();
+        /// Reset the current byte
+        void              skipToPrevByte();
 
 
       private: // Private methods

@@ -47,7 +47,7 @@ Aaand now you're set. :)
 Documentation:
 =================
 
-The ISF format is (albeit poorly*) documented: here's the sources we use.
+The ISF format is (albeit poorly*) documented: here's the sources we used.
 
 - Original Microsoft ISF specification, made open with their Open Specification Promise:
   http://download.microsoft.com/download/0/B/E/0BE8BDD7-E5E8-422A-ABFD-4342ED7AD886/InkSerializedFormat(ISF)Specification.pdf
@@ -55,6 +55,8 @@ The ISF format is (albeit poorly*) documented: here's the sources we use.
   http://synce.org/moin/FormatDocumentation/InkSerializedFormat
 - Original code from aMSN:
   https://amsn.svn.sourceforge.net/svnroot/amsn/trunk/amsn/utils/tclISF/src
+- Original code from emesene:
+  https://emesene.svn.sourceforge.net/svnroot/emesene/trunk/emesene/pyisf
 
 * = The specification was probably not meant for use by developers wanting to write
     an alternative implementation; there's a lot of guesswork to be done.

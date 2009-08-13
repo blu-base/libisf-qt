@@ -59,24 +59,123 @@ namespace Isf
     };
 
 
-    // Compress data using the Adaptive-Huffman algorithm
-    bool deflateHuffman( QByteArray &encodedData, quint8 maybeUnused, const QList<qint64> &source )
+
+    // Analyze the data to find the most appropriate index
+    quint8 getIndexHuffman( const QList<qint64> &data )
     {
-      Q_UNUSED( maybeUnused );
+      quint8 index = 0;
 
-      bool    result = false;
-//       quint32 index  = 1;
+      // TODO: Find out what the Huffman index algorithm is
+      Q_UNUSED( data )
+      index = 2;
 
-//       result = deflateHuffmanValue( encodedData, source.first() );
+      return index;
+    }
 
-      if( ! result )
+
+
+    // Compress data using the Adaptive-Huffman algorithm
+    bool deflateHuffman( QByteArray &encodedData, quint8 index, const QList<qint64> &source )
+    {
+      DataSource output( encodedData );
+
+      int previousDelta = 0, currentDelta = 0;
+      for( int pos = 0; pos < source.size(); ++pos )
       {
-        return result;
+        if( pos == 0 )
+        {
+          currentDelta = source[ pos ];
+        }
+        else
+        {
+          currentDelta = source[ pos ] - source[ pos - 1 ];
+        }
+
+        if( ! deflateHuffmanValue( output, index, currentDelta - previousDelta ) )
+        {
+#ifdef ISFQT_DEBUG
+          qDebug() << "Deflating failure for value:" << source[ pos ] << "- delta" << ( currentDelta - previousDelta );
+#endif
+          return false;
+        }
+
+        previousDelta = currentDelta;
       }
 
-      // TODO finish me!
+      // Flush any leftover bit to the byte array
+      output.flush();
 
-      return false;
+      encodedData = output.data();
+      return true;
+    }
+
+
+
+    // Compress a single value using the Adaptive-Huffman algorithm
+    bool deflateHuffmanValue( DataSource &output, quint8 index, qint64 value )
+    {
+      qint64 temp = value;
+      quint8 requiredBits = 0;
+      QBitArray valueBits;
+
+      // Fill in a bitAmounts local vector
+      QVector<int> bitAmounts;
+      for( int i = 0; i < HUFFMAN_BASE_SIZE; ++i )
+      {
+        if( bitAmounts_[ index ][ i ] == -1 )
+        {
+          break;
+        }
+
+        bitAmounts.append( bitAmounts_[ index ][ i ] );
+      }
+
+      // Find the number of bits needed to store this value
+      while( temp )
+      {
+        temp /= 2;
+        ++requiredBits;
+      }
+
+      while( ! bitAmounts.count( requiredBits ) )
+      {
+        ++requiredBits;
+      }
+
+      qint64 offset = ( value < 0 ) ? -value : +value;
+
+      quint8 prefixLength;
+      for( prefixLength = 1;
+           ( prefixLength < HUFFMAN_BASE_SIZE ) && ( offset >= huffmanBases_[ index ][ prefixLength ] ); prefixLength++ );
+
+
+//       quint8 lengthIndex = bitAmounts.indexOf( requiredBits );
+
+      // Write prefixLength 1s to the stream, then a 0
+      QBitArray bits( prefixLength );
+      bits.fill( true );
+      bits.clearBit( bits.size() - 1 );
+
+      // Write the number using the minimum possible number of bits
+      qint32 size = bitAmounts_[ index ][ prefixLength - 1 ];
+      qint64 mask = ( 1 << ( size - 1 ) ) - 1;
+
+      valueBits.resize( size );
+      offset = ( offset - huffmanBases_[ index ][ prefixLength - 1 ] ) & mask;
+      offset <<= 1;
+      offset |= ( value < 0 ) ? 1 : 0;
+
+      // Copy the resulting offset
+      for( qint64 i = 0; i < size; ++i )
+      {
+        valueBits.setBit( i, offset & ( 1 << ( size - i - 1 ) ) );
+      }
+
+      // Add the bits to the data source
+      output.append( bits );
+      output.append( valueBits );
+
+      return true;
     }
 
 
@@ -165,7 +264,7 @@ namespace Isf
       int previousDelta = 0, currentDelta = 0;
       for( int i = 0; i < decodedData.size(); ++i )
       {
-        int delta = ( currentDelta * 2 ) - previousDelta + decodedData.at( i );
+        int delta = ( currentDelta * 2 ) - previousDelta + decodedData[ i ];
         previousDelta = currentDelta;
         currentDelta = delta;
 

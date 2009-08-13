@@ -701,7 +701,6 @@ IsfError TagsParser::parseStroke( DataSource &source, Drawing &drawing )
 
   // The polygon is used to obtain the stroke's bounding rect
   QPolygon polygon( numPoints );
-
   for( quint64 i = 0; i < numPoints; ++i )
   {
     stroke->points.append( Point() );

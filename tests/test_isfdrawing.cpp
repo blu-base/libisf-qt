@@ -96,15 +96,16 @@ void TestIsfDrawing::parseValidRawIsfData()
 // Create a drawing and feed it to the parser
 void TestIsfDrawing::createDrawing()
 {
-  qDebug() << "Creating drawing from ISF -------------------------";
-  QByteArray data1 = readTestIsfData( "tests/test1.isf" );
-  Drawing drawing = Parser::isfToDrawing( data1 );
+  qDebug() << "------------------------- Creating drawing from ISF -------------------------";
+  QByteArray data1( readTestIsfData( "tests/line2.isf" ) );
+  Isf::Drawing drawing1 = Isf::Parser::isfToDrawing( data1 );
 
-  qDebug() << "Writing drawing to ISF file ---------------------";
-  QByteArray data2 = Parser::drawingToIsf( drawing );
+  qDebug() << "------------------------- Writing drawing to ISF file -------------------------";
+  QByteArray data2( Isf::Parser::drawingToIsf( drawing1 ) );
   qDebug() << "Size:" << data2.size();
-  qDebug() << "Reading it back -------------------------";
-  Parser::isfToDrawing( data2 );
+
+  qDebug() << "------------------------- Reading it back -------------------------";
+  Isf::Drawing drawing2 = Isf::Parser::isfToDrawing( data2 );
 
   QVERIFY( data1 == data2 );
 }

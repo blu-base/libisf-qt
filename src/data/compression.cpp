@@ -36,6 +36,14 @@ namespace Isf
     // Decompress data autodetecting the algorithm to use
     bool inflate( DataSource &source, quint64 length, QList<qint64> &decodedData )
     {
+      if( source.atEnd() )
+      {
+#ifdef ISFQT_DEBUG
+        qWarning() << "Source was at end!";
+#endif
+        return false;
+      }
+
       bool       result;
       uchar      byte           = source.getByte();
       uchar      algorithm      = ( byte & MaskByte );
@@ -71,9 +79,8 @@ namespace Isf
 
         case Huffman:
 #ifdef ISFQT_DEBUG_VERBOSE
-          qDebug() << "- Inflating" << length << "items using the Huffman algorithm and a block size of" << blockSize;
+          qDebug() << "- Inflating" << length << "items using the Huffman algorithm and index" << blockSize;
 #endif
-
           result = inflateHuffman( source, length, blockSize, decodedData );
           break;
 
@@ -100,10 +107,9 @@ namespace Isf
     // Compress data autodetecting the algorithm to use
     bool deflate( QByteArray &encodedData, quint64 length, const QList<qint64> &source, DataType dataType )
     {
-      bool   result;
-      quint8 blockSize;
+      bool result;
 
-      // TODO Is really this one the method to detect the algorithm to use?
+      // TODO Is this really how to detect the algorithm to use?
       Algorithm algorithm;
       if( source.count() == 1 )
       {
@@ -118,7 +124,8 @@ namespace Isf
       switch( algorithm )
       {
         case Gorilla:
-          blockSize = getBlockSizeGorilla( source );
+        {
+          quint8 blockSize = getBlockSizeGorilla( source );
 
           // Write the data encoding algorithm and block size
           encodedData.append( blockSize | Gorilla );
@@ -126,16 +133,22 @@ namespace Isf
           // Deflate the data
           result = deflateGorilla( encodedData, blockSize, source );
           break;
+        }
+
 
         case Huffman:
-//           blockSize = getBlockSizeHuffman( source );
+        {
+          quint8 index = getIndexHuffman( source );
 
-          // Write the data encoding algorithm and block size
-          encodedData.append( /*blockSize |*/ Huffman );
+          // Write the data encoding algorithm and index
+          encodedData.append( index | Huffman );
 
           // Deflate the data
-          result = deflateHuffman( encodedData, 1 /* ?!? */, source );
+          result = deflateHuffman( encodedData, index, source );
           break;
+        }
+
+
         default:
 #ifdef ISFQT_DEBUG
           qDebug() << "Encoding algorithm not implemented! (data type:" << dataType

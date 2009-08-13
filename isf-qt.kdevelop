@@ -36,13 +36,13 @@
       <mainprogram>/home/valerio/kmess/trunk/contrib/isf-qt/build/tests/decode/test_decode</mainprogram>
       <directoryradio>custom</directoryradio>
       <customdirectory>./build/</customdirectory>
-      <programargs> tests/test2.isf</programargs>
+      <programargs>  tests/line.isf</programargs>
       <terminal>false</terminal>
       <autocompile>false</autocompile>
       <envvars>
         <envvar value="en-US.UTF-8" name="LANG" />
       </envvars>
-      <globaldebugarguments> tests/test9.isf </globaldebugarguments>
+      <globaldebugarguments>  tests/line2.isf</globaldebugarguments>
       <globalcwd>/home/valerio/kmess/trunk/contrib/isf-qt</globalcwd>
       <useglobalprogram>false</useglobalprogram>
       <autoinstall>false</autoinstall>

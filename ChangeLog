@@ -1,4 +1,8 @@
 
+2009-08-13 (Valerio)
+ * Added DataSource method to append bit arrays to the data.
+ * Implemented Huffman encoding. Still missing is the algo to select the best encoding index.
+
 2009-08-07 (Valerio)
  * Added an AUTHORS file with credits.
  * Implemented Gorilla compression.

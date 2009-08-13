@@ -314,7 +314,7 @@ IsfError TagsWriter::addStrokes( DataSource &source, const Drawing &drawing )
       xPoints.append( point.position.x() );
       yPoints.append( point.position.y() );
     }
-qDebug() << "deflating..";
+
     deflate( blockData, stroke->points.count(), xPoints, Points );
     deflate( blockData, stroke->points.count(), yPoints, Points );
 

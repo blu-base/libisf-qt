@@ -14,6 +14,7 @@ ENDMACRO( add_multiple_tests )
 ADD_MULTIPLE_TESTS(
   isfdrawing
   multibyte_coding
+  algorithms
 )
 
 

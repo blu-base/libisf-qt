@@ -30,7 +30,7 @@ using namespace Compress;
 
 // Constructor with no initial data
 DataSource::DataSource()
-: currentBitIndex_( 0 )
+: currentBitIndex_( 8 ) // Invalid position in the current byte
 {
   buffer_.open( QBuffer::ReadWrite );
 
@@ -41,7 +41,7 @@ DataSource::DataSource()
 
 // Constructor
 DataSource::DataSource( const QByteArray &data )
-: currentBitIndex_( 0 )
+: currentBitIndex_( 8 )
 {
   buffer_.setData( data );
   buffer_.open( QBuffer::ReadWrite );
@@ -81,6 +81,95 @@ void DataSource::append( char byte )
   // Prepare the first byte to be read
   if( wasEmpty )
   {
+    currentBitIndex_ = 8;
+  }
+}
+
+
+
+/// Insert bits at the end of the data
+void DataSource::append( const QBitArray &constBits )
+{
+  if( constBits.size() == 0 )
+  {
+#ifdef ISFDATA_DEBUG_VERBOSE
+    qDebug() << "Not writing an empty bit array, skipping.";
+#endif
+    return;
+  }
+
+  if( buffer_.size() != 0 )
+  {
+    buffer_.seek( buffer_.size() );
+  }
+
+  quint8 initialPos = 0;
+  quint8 size = constBits.size();
+
+  // If there are unwritten bits, add them to the input bit array
+  if( currentBitIndex_ != 8 )
+  {
+    size += currentBitIndex_;
+  }
+
+  QBitArray bits( size );
+
+  // Copy on the input bit array the current byte then the input bits
+  if( currentBitIndex_ != 8 )
+  {
+    initialPos = currentBitIndex_;
+    for( quint8 idx = 0; idx < currentBitIndex_; ++idx )
+    {
+      bits[ idx ] = currentByte_[ idx ];
+    }
+  }
+  for( quint8 idx = 0; idx < constBits.size(); ++idx )
+  {
+    bits[ idx + initialPos ] = constBits[ idx ];
+  }
+
+  quint8 bit = 7;
+  quint8 byte = 0;
+  QByteArray bytes;
+  quint8 byteWiseSize = bits.size() - ( bits.size() % 8 );
+
+  // Skip writing if there are no full bytes
+  if( byteWiseSize != 0 )
+  {
+    for( quint8 idx = 0; idx < byteWiseSize; ++idx )
+    {
+      byte |= bits[ idx ] << bit;
+
+      // A byte was filled, push it to the bytearray
+      if( bit-- == 0 )
+      {
+        bytes.append( byte );
+        bit = 7;
+        byte = 0;
+      }
+    }
+
+    // Write the bytes in the buffer
+    if( bytes.size() > 0 && buffer_.write( bytes ) != bytes.size() )
+    {
+      qWarning() << "DataSource::append() - Write failed at buffer position" << buffer_.pos();
+      return;
+    }
+  }
+
+  // Move any remaining bits to the current byte
+  quint8 remainingBitSize = ( bits.size() - byteWiseSize );
+  if( remainingBitSize > 0 )
+  {
+    for( currentBitIndex_ = 0; currentBitIndex_ < remainingBitSize; ++currentBitIndex_ )
+    {
+      currentByte_[ currentBitIndex_ ] = bits[ currentBitIndex_ + byteWiseSize ];
+    }
+  }
+  else
+  {
+    currentByte_.clear();
+    currentByte_.resize( 8 );
     currentBitIndex_ = 8;
   }
 }
@@ -135,7 +224,7 @@ void DataSource::clear()
   buffer_.open( QIODevice::ReadWrite );
   buffer_.seek( 0 );
 
-  currentBitIndex_ = 0;
+  currentBitIndex_ = 8;
 
   currentByte_.clear();
   currentByte_.resize( 8 );
@@ -147,6 +236,30 @@ void DataSource::clear()
 const QByteArray &DataSource::data() const
 {
   return buffer_.data();
+}
+
+
+
+// Flush the current byte to the buffer
+void DataSource::flush()
+{
+  if( currentBitIndex_ == 8 )
+  {
+    return;
+  }
+
+  quint8 bit = 7;
+  quint8 byte = 0;
+  for( quint8 index = 0; index < currentBitIndex_; ++index )
+  {
+    byte |= currentByte_[ index ] << bit--;
+  }
+
+  // Write the bytes in the buffer
+  if( buffer_.write( (char*)&byte, 1 ) != 1 )
+  {
+    qWarning() << "DataSource::flush() - Write failed at buffer position" << buffer_.pos();
+  }
 }
 
 
@@ -249,7 +362,7 @@ void DataSource::moveByteToBitArray()
   {
     qWarning() << "DataSource:moveByteToBitArray() - The buffer is empty!";
     currentByte_.clear();
-    currentBitIndex_ = 0;
+    currentBitIndex_ = 8;
     return;
   }
 
@@ -257,7 +370,7 @@ void DataSource::moveByteToBitArray()
   {
     qWarning() << "DataSource:moveByteToBitArray() - The buffer was completely parsed!";
     currentByte_.clear();
-    currentBitIndex_ = 0;
+    currentBitIndex_ = 8;
     return;
   }
 
@@ -355,10 +468,7 @@ void DataSource::setData( const QByteArray &data )
   buffer_.open( QIODevice::ReadWrite );
   buffer_.seek( 0 );
 
-  currentBitIndex_ = 0;
-
-  // Move the first byte from the new data in the bit array
-  moveByteToBitArray();
+  currentBitIndex_ = 8;
 }
 
 
@@ -372,6 +482,14 @@ void DataSource::skipToNextByte()
   }
 
   moveByteToBitArray();
+}
+
+
+
+// Reset the current byte
+void DataSource::skipToPrevByte()
+{
+  currentBitIndex_ = 8;
 }
 
 
