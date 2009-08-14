@@ -27,22 +27,22 @@
     <secondaryLanguages/>
     <projectname>isf-qt</projectname>
     <description>LibISF-Qt is a library to encode and decode Microsoft's Digital Ink format (Ink Serialized Format).</description>
-    <defaultencoding></defaultencoding>
+    <defaultencoding/>
     <versioncontrol>kdevsubversion</versioncontrol>
   </general>
   <kdevcustomproject>
     <filelistdirectory>/home/valerio/kmess/trunk/contrib/isf-qt/</filelistdirectory>
     <run>
-      <mainprogram>/home/valerio/kmess/trunk/contrib/isf-qt/build/tests/decode/test_decode</mainprogram>
+      <mainprogram>/home/valerio/kmess/trunk/contrib/isf-qt/build/tests/test_isfdrawing</mainprogram>
       <directoryradio>custom</directoryradio>
       <customdirectory>./build/</customdirectory>
-      <programargs>  tests/line.isf</programargs>
+      <programargs>#  tests/mess.isf</programargs>
       <terminal>false</terminal>
       <autocompile>false</autocompile>
       <envvars>
         <envvar value="en-US.UTF-8" name="LANG" />
       </envvars>
-      <globaldebugarguments>  tests/line2.isf</globaldebugarguments>
+      <globaldebugarguments>#  tests/line2.isf</globaldebugarguments>
       <globalcwd>/home/valerio/kmess/trunk/contrib/isf-qt</globalcwd>
       <useglobalprogram>false</useglobalprogram>
       <autoinstall>false</autoinstall>
@@ -62,8 +62,8 @@
         <default/>
       </environments>
       <prio>0</prio>
-      <defaulttarget></defaulttarget>
-      <makeoptions></makeoptions>
+      <defaulttarget/>
+      <makeoptions/>
     </make>
     <filetypes>
       <filetype>*.h</filetype>
@@ -83,9 +83,9 @@
     </blacklist>
     <other>
       <prio>0</prio>
-      <otherbin></otherbin>
-      <defaulttarget></defaulttarget>
-      <otheroptions></otheroptions>
+      <otherbin/>
+      <defaulttarget/>
+      <otheroptions/>
       <selectedenvironment>default</selectedenvironment>
       <environments>
         <Debug/>
@@ -161,7 +161,7 @@
     <creategettersetter>
       <prefixGet>get</prefixGet>
       <prefixSet>set</prefixSet>
-      <prefixVariable></prefixVariable>
+      <prefixVariable/>
       <parameterName>value</parameterName>
       <inlineGet>true</inlineGet>
       <inlineSet>true</inlineSet>
@@ -189,11 +189,11 @@
   </kdevfileview>
   <kdevdebugger>
     <general>
-      <gdbpath></gdbpath>
-      <dbgshell></dbgshell>
-      <configGdbScript></configGdbScript>
-      <runShellScript></runShellScript>
-      <runGdbScript></runGdbScript>
+      <gdbpath/>
+      <dbgshell/>
+      <configGdbScript/>
+      <runShellScript/>
+      <runGdbScript/>
       <breakonloadinglibs>true</breakonloadinglibs>
       <separatetty>false</separatetty>
       <floatingtoolbar>false</floatingtoolbar>

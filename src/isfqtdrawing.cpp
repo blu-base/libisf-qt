@@ -70,13 +70,40 @@ Drawing::~Drawing()
 
 
 /**
- * Return True if this instance of Drawing is invalid (NULL), False otherwise.
+ * Clean up the drawing
  *
- * @return True if this is a NULL Drawing, FALSE otherwise.
+ * This restores the drawing to its initial state, an empty drawing.
  */
-bool Drawing::isNull() const
+void Drawing::clear()
 {
-  return isNull_;
+  // Clean up the internal property lists
+  qDeleteAll( metrics_ );
+  qDeleteAll( strokeInfo_ );
+  qDeleteAll( strokes_ );
+  qDeleteAll( transforms_ );
+  qDeleteAll( attributes_ );
+  metrics_.clear();
+  strokeInfo_.clear();
+  strokes_.clear();
+  transforms_.clear();
+  attributes_.clear();
+
+  // Invalidate the current item pointers
+  currentMetrics_ = 0;
+  currentPointInfo_ = 0;
+  currentStrokeInfo_ = 0;
+  currentTransform_ = 0;
+
+  // Nullify the other properties
+  boundingRect_ = QRect();
+  canvas_ = QRect();
+  error_ = ISF_ERROR_NONE;
+  hasXData_ = true;
+  hasYData_ = true;
+  isNull_ = true;
+  maxGuid_ = 0;
+  maxPenSize_ = QSizeF();
+  size_ = QSize();
 }
 
 
@@ -231,6 +258,18 @@ QPixmap Drawing::getPixmap()
 #endif
 
   return pixmap;
+}
+
+
+
+/**
+ * Return True if this instance of Drawing is invalid (NULL), False otherwise.
+ *
+ * @return True if this is a NULL Drawing, FALSE otherwise.
+ */
+bool Drawing::isNull() const
+{
+  return isNull_;
 }
 
 

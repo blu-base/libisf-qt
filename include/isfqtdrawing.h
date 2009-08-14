@@ -54,14 +54,16 @@ namespace Isf
 
       /// Constructor
                                 Drawing();
-      ///Destructor
+      /// Destructor
                                ~Drawing();
+      /// Clean up the drawing
+      void                      clear();
+      /// Return the last error
+      IsfError                  error() const;
       /// Convert the ISF drawing into a pixmap
       QPixmap                   getPixmap();
       /// Return whether this is a null Drawing
       bool                      isNull() const;
-      /// Return the last error
-      IsfError                  error() const;
 
 
     public: // Public static methods

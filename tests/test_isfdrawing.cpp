@@ -45,13 +45,12 @@ void TestIsfDrawing::emptyConstructor_NullDrawing()
 // invalid ISF version numbers should return a null Drawing
 void TestIsfDrawing::invalidVersion_NullDrawing()
 {
-// Annoying stuff adds decoding debug output while I'm testing with createDrawing()
-//   QByteArray data;
-//   data.append(0x0B);  // isf version 11 - invalid.
-//
-//   Drawing drawing = Parser::isfToDrawing( data );
-//   QCOMPARE( drawing.isNull(), true );
-//   QVERIFY( drawing.error() == ISF_ERROR_BAD_VERSION );
+  QByteArray data;
+  data.append(0x0B);  // isf version 11 - invalid.
+
+  Drawing drawing = Parser::isfToDrawing( data );
+  QCOMPARE( drawing.isNull(), true );
+  QVERIFY( drawing.error() == ISF_ERROR_BAD_VERSION );
 }
 
 
@@ -59,9 +58,8 @@ void TestIsfDrawing::invalidVersion_NullDrawing()
 // by default the parser error should be ISF_ERROR_NONE
 void TestIsfDrawing::parserErrorNoneByDefault()
 {
-// Annoying stuff adds decoding debug output while I'm testing with createDrawing()
-//   Drawing drawing;
-//   QCOMPARE( drawing.error(), ISF_ERROR_NONE );
+  Drawing drawing;
+  QCOMPARE( drawing.error(), ISF_ERROR_NONE );
 }
 
 
@@ -69,14 +67,13 @@ void TestIsfDrawing::parserErrorNoneByDefault()
 // an invalid stream size should give a null drawing.
 void TestIsfDrawing::invalidStreamSize_NullDrawing()
 {
-// Annoying stuff adds decoding debug output while I'm testing with createDrawing()
-//   QByteArray data;
-//   data.append((char)0x00);  // ISF version 1.0.
-//   data.append(0x01);  // stream size of 1 byte, but only 3 bytes of data.
-//
-//   Drawing drawing = Parser::isfToDrawing( data );
-//   QCOMPARE( drawing.isNull(), true );
-//   QCOMPARE( drawing.error(), ISF_ERROR_BAD_STREAMSIZE );
+  QByteArray data;
+  data.append((char)0x00);  // ISF version 1.0.
+  data.append(0x01);  // stream size of 1 byte, but only 3 bytes of data.
+
+  Drawing drawing = Parser::isfToDrawing( data );
+  QCOMPARE( drawing.isNull(), true );
+  QCOMPARE( drawing.error(), ISF_ERROR_BAD_STREAMSIZE );
 }
 
 
@@ -85,10 +82,9 @@ void TestIsfDrawing::invalidStreamSize_NullDrawing()
 // drawing with the appropriate number of strokes.
 void TestIsfDrawing::parseValidRawIsfData()
 {
-// Annoying stuff adds decoding debug output while I'm testing with createDrawing()
-//   QByteArray data = readTestIsfData("tests/test1.isf");
-//   Drawing drawing = Parser::isfToDrawing( data );
-//   QCOMPARE( drawing.isNull(), false );
+  QByteArray data = readTestIsfData("tests/test1.isf");
+  Drawing drawing = Parser::isfToDrawing( data );
+  QCOMPARE( drawing.isNull(), false );
 }
 
 
@@ -106,8 +102,6 @@ void TestIsfDrawing::createDrawing()
 
   qDebug() << "------------------------- Reading it back -------------------------";
   Isf::Drawing drawing2 = Isf::Parser::isfToDrawing( data2 );
-
-  QVERIFY( data1 == data2 );
 }
 
 

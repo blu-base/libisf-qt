@@ -1,4 +1,7 @@
 
+2009-08-14 (Valerio)
+ * Added Drawing::clean() method to reset a drawing without creating a new one.
+
 2009-08-13 (Valerio)
  * Added DataSource method to append bit arrays to the data.
  * Implemented Huffman encoding. Still missing is the algo to select the best encoding index.
