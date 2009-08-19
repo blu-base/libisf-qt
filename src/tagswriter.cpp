@@ -73,10 +73,11 @@ IsfError TagsWriter::addAttributeTable( DataSource &source, const Drawing &drawi
     {
       blockData.append( encodeUInt( GUID_COLORREF ) );
 
-      // Prepare the color value, it needs to be stored in BGR format
-      quint64 value = (info->color.blue()  << 24)
-                    | (info->color.green() << 16)
-                    | (info->color.red()   <<  8);
+      // Prepare the color value, it needs to be stored in BGR format,
+      // in the 24 least significant bits
+      quint64 value = ( info->color.blue () << 16 )
+                    | ( info->color.green() <<  8 )
+                    | ( info->color.red  () <<  0 );
       blockData.append( encodeUInt( value ) );
 
       // Add the transparency if needed
@@ -188,24 +189,25 @@ IsfError TagsWriter::addTransformationTable( DataSource &source, const Drawing &
       {
 #ifdef ISFQT_DEBUG_VERBOSE
         qDebug() << "  - Transform: TAG_TRANSFORM_SCALE_AND_TRANSLATE";
+        qDebug() << "  - Transformation details - "
+                 << "Scale X:" << trans->m11()
+                 << "Scale Y:" << trans->m22()
+                 << "Translate X:" << trans->dx()
+                 << "Translate Y:" << trans->dy();
 #endif
         transformTag = TAG_TRANSFORM_SCALE_AND_TRANSLATE;
-        blockData.append( encodeFloat( trans->dy() ) );
-        blockData.append( encodeFloat( trans->dx() ) );
         blockData.append( encodeFloat( trans->m22() * HiMetricToPixel ) );
         blockData.append( encodeFloat( trans->m11() * HiMetricToPixel ) );
-#ifdef ISFQT_DEBUG_VERBOSE
-      qDebug() << "- Transformation details - "
-               << "Scale X:" << trans->m11()
-               << "Scale Y:" << trans->m22()
-               << "Translate X:" << trans->dx()
-               << "Translate Y:" << trans->dy();
-#endif
+        blockData.append( encodeFloat( trans->dy() ) );
+        blockData.append( encodeFloat( trans->dx() ) );
       }
       else
       {
 #ifdef ISFQT_DEBUG_VERBOSE
         qDebug() << "  - Transform: TAG_TRANSFORM_TRANSLATE";
+        qDebug() << "  - Transformation details - "
+                << "Translate X:" << trans->dx()
+                << "Translate Y:" << trans->dy();
 #endif
         transformTag = TAG_TRANSFORM_TRANSLATE;
         blockData.append( encodeFloat( trans->dy() ) );
@@ -220,6 +222,8 @@ IsfError TagsWriter::addTransformationTable( DataSource &source, const Drawing &
       {
 #ifdef ISFQT_DEBUG_VERBOSE
         qDebug() << "  - Transform: TAG_TRANSFORM_ISOTROPIC_SCALE";
+        qDebug() << "  - Transformation details - "
+                 << "Scale:" << (trans->m11() * HiMetricToPixel);
 #endif
         transformTag = TAG_TRANSFORM_ISOTROPIC_SCALE;
         blockData.append( encodeFloat( trans->m11() * HiMetricToPixel ) );
@@ -228,6 +232,9 @@ IsfError TagsWriter::addTransformationTable( DataSource &source, const Drawing &
       {
 #ifdef ISFQT_DEBUG_VERBOSE
         qDebug() << "  - Transform: TAG_TRANSFORM_ANISOTROPIC_SCALE";
+        qDebug() << "  - Transformation details - "
+                 << "Scale X:" << trans->m11()
+                 << "Scale Y:" << trans->m22();
 #endif
         transformTag = TAG_TRANSFORM_ANISOTROPIC_SCALE;
         blockData.append( encodeFloat( trans->m22() * HiMetricToPixel ) );
@@ -246,6 +253,16 @@ IsfError TagsWriter::addTransformationTable( DataSource &source, const Drawing &
       blockData.append( encodeFloat( .0f ) );
       blockData.append( encodeFloat( .0f ) );
       blockData.append( encodeFloat( trans->m11() * HiMetricToPixel ) );
+
+#ifdef ISFQT_DEBUG_VERBOSE
+      qDebug() << "- Transformation details - "
+               << "Scale X:" << trans->m11()
+               << "Shear X:" << trans->m21()
+               << "Scale Y:" << trans->m22()
+               << "Shear Y:" << trans->m12()
+               << "Translate X:" << trans->dx()
+               << "Translate Y:" << trans->dy();
+#endif
     }
 
     blockData.prepend( encodeUInt( transformTag ) );

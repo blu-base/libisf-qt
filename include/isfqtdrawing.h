@@ -61,7 +61,7 @@ namespace Isf
       /// Return the last error
       IsfError                  error() const;
       /// Convert the ISF drawing into a pixmap
-      QPixmap                   getPixmap();
+      QPixmap                   getPixmap( const QColor backgroundColor = Qt::white );
       /// Return whether this is a null Drawing
       bool                      isNull() const;
 

@@ -357,7 +357,7 @@ namespace Isf
       /**
        * Convert a raw ISF data stream into a drawing
        */
-      static Drawing     reader( const QByteArray &isfData );
+      static Drawing    &reader( const QByteArray &isfData );
 
       /**
        * Convert a drawing into a raw ISF data stream

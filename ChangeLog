@@ -11,6 +11,10 @@
  * Renamed the Isf::PointInfo structure to Isf::AttributeSet, because the old name made no sense.
  * Added manipulation methods for strokes, transformations and attribute sets.
  * Fixed compiler warning. Thanks to Émeric Dupont.
+ * Fixed colors in written streams.
+ * Fixed the Scale&Translate transformation once again.
+ * Isf::Drawings are now created on the heap instead of on the stack, to avoid unwanted object
+   deletions.
 
 2009-08-14 (Valerio)
  * Added Drawing::clean() method to reset a drawing without creating a new one.

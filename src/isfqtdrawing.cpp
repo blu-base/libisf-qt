@@ -51,6 +51,9 @@ Drawing::Drawing()
 , isNull_( true )
 , maxGuid_( 0 )
 {
+#ifdef ISFQT_DEBUG_VERBOSE
+  qDebug() << "** Created new ISF drawing **";
+#endif
 }
 
 
@@ -65,6 +68,10 @@ Drawing::~Drawing()
   qDeleteAll( strokes_ );
   qDeleteAll( transforms_ );
   qDeleteAll( attributeSets_ );
+
+#ifdef ISFQT_DEBUG_VERBOSE
+  qDebug() << "** Destroyed ISF drawing object **";
+#endif
 }
 
 
@@ -269,10 +276,10 @@ QList<AttributeSet*> Drawing::getAttributeSets()
 
 
 
-QPixmap Drawing::getPixmap()
+QPixmap Drawing::getPixmap( const QColor backgroundColor )
 {
   QPixmap pixmap( size_ );
-  pixmap.fill( Qt::white );
+  pixmap.fill( backgroundColor );
   QPainter painter( &pixmap );
 
 #ifdef ISFQT_DEBUG

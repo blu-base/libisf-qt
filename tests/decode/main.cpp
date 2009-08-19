@@ -69,7 +69,6 @@ class TestDecode : public QMainWindow, private Ui::TestDecode
 
         qDebug() << "------------------------- Writing drawing to ISF file -------------------------";
         QByteArray data2( Isf::Stream::writer( drawing ) );
-        qDebug() << "Size:" << data2.size();
 
         qDebug() << "------------------------- Reading it back -------------------------";
         drawing = Isf::Stream::reader( data2 );
@@ -81,7 +80,7 @@ class TestDecode : public QMainWindow, private Ui::TestDecode
       }
       else
       {
-        label_->setPixmap( drawing.getPixmap() );
+        label_->setPixmap( drawing.getPixmap( Qt::transparent ) );
       }
     }
 

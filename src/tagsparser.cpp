@@ -534,7 +534,9 @@ IsfError TagsParser::parseTransformation( DataSource &source, Drawing &drawing, 
 #ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "- Transformation details - "
                << "Scale X:" << transform->m11()
+               << "Shear X:" << transform->m21()
                << "Scale Y:" << transform->m22()
+               << "Shear Y:" << transform->m12()
                << "Translate X:" << transform->dx()
                << "Translate Y:" << transform->dy();
 #endif
@@ -584,11 +586,9 @@ IsfError TagsParser::parseTransformation( DataSource &source, Drawing &drawing, 
 
     case TAG_TRANSFORM_SCALE_AND_TRANSLATE:
     {
-      transform->setMatrix( Compress::decodeFloat( source ) / HiMetricToPixel
-                          , .0f
-                          , .0f
-                          , Compress::decodeFloat( source ) / HiMetricToPixel
-                          , Compress::decodeFloat( source )
+      transform->scale    ( Compress::decodeFloat( source ) / HiMetricToPixel
+                          , Compress::decodeFloat( source ) / HiMetricToPixel );
+      transform->translate( Compress::decodeFloat( source )
                           , Compress::decodeFloat( source ) );
 
 #ifdef ISFQT_DEBUG_VERBOSE
