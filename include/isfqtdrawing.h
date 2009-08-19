@@ -80,18 +80,20 @@ namespace Isf
       bool                      deleteStroke( quint32 index );
       /// Remove a transformation from the drawing
       bool                      deleteTransform( quint32 index );
+      /// Finalize a modified drawing. Call before using it
+      void                      finalizeChanges();
       /// Retrieve an attribute set to manipulate it
       AttributeSet             *getAttributeSet( quint32 index );
       /// Retrieve the attribute sets
-      QList<AttributeSet*>      getAttributeSets();
+      const QList<AttributeSet*>getAttributeSets();
       /// Retrieve a stroke to manipulate it
       Stroke                   *getStroke( quint32 index );
       /// Retrieve the strokes
-      QList<Stroke*>            getStrokes();
+      const QList<Stroke*>      getStrokes();
       /// Retrieve a transformation to manipulate it
       QMatrix                  *getTransform( quint32 index );
       /// Retrieve the transformations
-      QList<QMatrix*>           getTransforms();
+      const QList<QMatrix*>     getTransforms();
       /// Change the current attribute set
       bool                      setCurrentAttributeSet( AttributeSet *attributeSet );
       /// Change the new current attribute set

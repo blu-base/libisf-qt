@@ -78,6 +78,9 @@ IsfError TagsWriter::addAttributeTable( DataSource &source, const Drawing &drawi
       quint64 value = ( info->color.blue () << 16 )
                     | ( info->color.green() <<  8 )
                     | ( info->color.red  () <<  0 );
+#ifdef ISFQT_DEBUG_VERBOSE
+      qDebug() << "  - Color:" << info->color.name();
+#endif
       blockData.append( encodeUInt( value ) );
 
       // Add the transparency if needed
@@ -85,6 +88,9 @@ IsfError TagsWriter::addAttributeTable( DataSource &source, const Drawing &drawi
       {
         blockData.append( encodeUInt( GUID_TRANSPARENCY ) );
         blockData.append( encodeUInt( info->color.alpha() ) );
+#ifdef ISFQT_DEBUG_VERBOSE
+        qDebug() << "  - Alpha:" << info->color.alpha();
+#endif
       }
     }
 
@@ -92,12 +98,18 @@ IsfError TagsWriter::addAttributeTable( DataSource &source, const Drawing &drawi
     if( info->penSize != defaultAttributeSet.penSize )
     {
       blockData.append( encodeUInt( GUID_PEN_WIDTH ) );
-      blockData.append( encodeUInt( info->penSize.width() ) );
+      blockData.append( encodeUInt( (quint64)info->penSize.width() ) );
 
+#ifdef ISFQT_DEBUG_VERBOSE
+      qDebug() << "  - Pen width:" << (quint64)info->penSize.width();
+#endif
       if( info->penSize.width() != info->penSize.height() )
       {
         blockData.append( encodeUInt( GUID_PEN_HEIGHT ) );
-        blockData.append( encodeUInt( info->penSize.height() ) );
+        blockData.append( encodeUInt( (quint64)info->penSize.height() ) );
+#ifdef ISFQT_DEBUG_VERBOSE
+      qDebug() << "  - Pen height:" << (quint64)info->penSize.height();
+#endif
       }
     }
 
@@ -110,6 +122,9 @@ IsfError TagsWriter::addAttributeTable( DataSource &source, const Drawing &drawi
         blockData.append( encodeUInt( GUID_PEN_TIP ) );
         blockData.append( encodeUInt( 0 ) ); // Value unknown, is the tag enough?
         flags ^= IsRectangle;
+#ifdef ISFQT_DEBUG_VERBOSE
+        qDebug() << "  - isRectangle flag";
+#endif
       }
 /*
       if( flags & IsHighlighter )
@@ -120,9 +135,16 @@ IsfError TagsWriter::addAttributeTable( DataSource &source, const Drawing &drawi
       }
 */
 
+      // Add FitToCurve too for now, as a test
+      flags |= FitToCurve;
+
       // Copy the other flags as they are
       blockData.append( encodeUInt( GUID_DRAWING_FLAGS ) );
       blockData.append( encodeUInt( flags ) );
+
+#ifdef ISFQT_DEBUG_VERBOSE
+      qDebug() << "  - Flags bitfield:" << flags;
+#endif
     }
 
 

@@ -144,14 +144,14 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
   }
 
   drawing.attributeSets_.append( new AttributeSet() );
-  AttributeSet *info = drawing.attributeSets_.last();
+  AttributeSet *set = drawing.attributeSets_.last();
 
   // set this once when we get the first DRAW_ATTRS_BLOCK. then,
   // everytime we get a DIDX we can update it. if we don't do this
   // then the first stroke will have the same colour as the last stroke.
   if ( drawing.currentAttributeSet_ == &drawing.defaultAttributeSet_ )
   {
-    drawing.currentAttributeSet_ = info;
+    drawing.currentAttributeSet_ = set;
   }
 
 #ifdef ISFQT_DEBUG_VERBOSE
@@ -180,11 +180,11 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
         // as QRgb stores the value in BGR order: QRgb(RRGGBB) <-- value(BBGGRR).
         // TODO: It also contains an alpha value, ignored here for now because it's unknown if
         // it is needed or not
-        info->color = QColor( qBlue ( invertedColor ),
+        set->color = QColor( qBlue ( invertedColor ),
                               qGreen( invertedColor ),
                               qRed  ( invertedColor ) );
 #ifdef ISFQT_DEBUG_VERBOSE
-        qDebug() << "- Got pen color" << info->color.name().toUpper();
+        qDebug() << "- Got pen color" << set->color.name().toUpper();
 #endif
         break;
       }
@@ -194,20 +194,20 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
         qDebug() << "- Got pen width" << QString::number( (float)value, 'g', 16 )
                  << "(" << (value/HiMetricToPixel) << "pixels )";
 #endif
-        if( ! info->penSize.isValid() )
+        if( ! set->penSize.isValid() )
         {
           // In square/round pens the width will be the only value present.
-          info->penSize.setHeight( (float)value );
+          set->penSize.setHeight( (float)value );
         }
 
-        info->penSize.setWidth( (float)value );
+        set->penSize.setWidth( (float)value );
         break;
 
       case GUID_PEN_HEIGHT:
 #ifdef ISFQT_DEBUG_VERBOSE
         qDebug() << "- Got pen height" << QString::number( (float)value, 'g', 16 );
 #endif
-        info->penSize.setHeight( (float)value );
+        set->penSize.setHeight( (float)value );
         break;
 
       case GUID_PEN_TIP:
@@ -216,12 +216,12 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
 #endif
         if( value )
         {
-          info->flags |= IsRectangle;
+          set->flags |= IsRectangle;
         }
         break;
 
       case GUID_DRAWING_FLAGS:
-        info->flags = (StrokeFlags)( ( 0XFF00 & info->flags ) | (ushort) value );
+        set->flags = (StrokeFlags)( ( 0XFF00 & set->flags ) | (ushort) value );
 #ifdef ISFQT_DEBUG_VERBOSE
         qDebug() << "- Got flags value:" << value;
         if( value & FitToCurve )
@@ -253,7 +253,7 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
 #ifdef ISFQT_DEBUG_VERBOSE
         qDebug() << "- Got pen transparency" << value;
 #endif
-        info->color.setAlpha( value );
+        set->color.setAlpha( value );
         break;
 
       case GUID_ROP:
@@ -286,13 +286,13 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
 
   // Update the drawing's maximum pen size.
   // This value is used to adjust the drawing borders to include thick strokes
-  if( info->penSize.width() > drawing.maxPenSize_.width() )
+  if( set->penSize.width() > drawing.maxPenSize_.width() )
   {
-    drawing.maxPenSize_.setWidth( info->penSize.width() );
+    drawing.maxPenSize_.setWidth( set->penSize.width() );
   }
-  if( info->penSize.height() > drawing.maxPenSize_.height() )
+  if( set->penSize.height() > drawing.maxPenSize_.height() )
   {
-    drawing.maxPenSize_.setHeight( info->penSize.height() );
+    drawing.maxPenSize_.setHeight( set->penSize.height() );
   }
 
 

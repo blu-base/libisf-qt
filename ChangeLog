@@ -15,6 +15,10 @@
  * Fixed the Scale&Translate transformation once again.
  * Isf::Drawings are now created on the heap instead of on the stack, to avoid unwanted object
    deletions.
+ * Added optional parameter to Isf::Drawing::getPixmap() to choose the background color of
+   the created image.
+ * Added a method to compute some useful values before rendering new and changed drawings.
+ * Added a couple stream writer improvements.
 
 2009-08-14 (Valerio)
  * Added Drawing::clean() method to reset a drawing without creating a new one.

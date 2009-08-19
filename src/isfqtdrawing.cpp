@@ -89,6 +89,10 @@ qint32 Drawing::addAttributeSet( AttributeSet *newAttributeSet )
     return -1;
   }
 
+  // Convert the attribute set's properties into HiMetric units
+  newAttributeSet->penSize *= HiMetricToPixel;
+
+  isNull_ = false;
   attributeSets_.append( newAttributeSet );
 
   return ( attributeSets_.count() - 1 );
@@ -109,6 +113,18 @@ qint32 Drawing::addStroke( Stroke *newStroke )
     return -1;
   }
 
+  quint64 numPoints = newStroke->points.count();
+
+  // The polygon is used to determine the stroke's bounding rect
+  QPolygon polygon( numPoints );
+  for( quint64 index = 0; index < numPoints; ++index )
+  {
+    polygon.setPoint( index, newStroke->points.at( index ).position );
+  }
+  newStroke->boundingRect = polygon.boundingRect();
+
+
+  isNull_ = false;
   strokes_.append( newStroke );
 
   return ( strokes_.count() - 1 );
@@ -129,6 +145,7 @@ qint32 Drawing::addTransform( QMatrix *newTransform )
     return -1;
   }
 
+  isNull_ = false;
   transforms_.append( newTransform );
 
   return ( transforms_.count() - 1 );
@@ -247,6 +264,56 @@ IsfError Drawing::error() const
 
 
 /**
+ * Finalize a modified drawing
+ *
+ * When making changes to a drawing, you need to call this method to
+ * have LibISF-Qt compute the drawing dimensions and other properties.
+ */
+void Drawing::finalizeChanges()
+{
+  // Update the drawing's maximum pen size
+  maxPenSize_ = QSize( 0, 0 );
+  foreach( AttributeSet *set, attributeSets_ )
+  {
+    // This value is used to adjust the drawing borders to include thick strokes
+    if( set->penSize.width() > maxPenSize_.width() )
+    {
+      maxPenSize_.setWidth( set->penSize.width() );
+    }
+    if( set->penSize.height() > maxPenSize_.height() )
+    {
+      maxPenSize_.setHeight( set->penSize.height() );
+    }
+  }
+
+  // Compute the bounding rectangle and the drawing size
+  boundingRect_ = QRect();
+  foreach( Stroke *stroke, strokes_ )
+  {
+    boundingRect_ = boundingRect_.united( stroke->boundingRect );
+  }
+
+  QSize penSize( maxPenSize_.toSize() );
+  boundingRect_.adjust( -penSize.width() - 1, -penSize.height() - 1,
+                        +penSize.width() + 1, +penSize.height() + 1 );
+
+  size_ = boundingRect_.size();
+
+  // If there are no transformations, add one ourselves
+  if( transforms_.isEmpty() )
+  {
+    QMatrix *transform = new QMatrix();
+    transform->scale( 1.f, 1.f );
+    transform->translate( .01f, .01f );
+
+    transforms_.append( transform );
+  }
+
+}
+
+
+
+/**
  * Retrieve an attribute set to manipulate it
  *
  * @param index Index of the attribute set to get
@@ -269,7 +336,7 @@ AttributeSet *Drawing::getAttributeSet( quint32 index )
  *
  * @return The list of existing attribute sets
  */
-QList<AttributeSet*> Drawing::getAttributeSets()
+const QList<AttributeSet*> Drawing::getAttributeSets()
 {
   return attributeSets_;
 }
@@ -439,7 +506,7 @@ Stroke *Drawing::getStroke( quint32 index )
  *
  * @return The list of existing strokes
  */
-QList<Stroke*> Drawing::getStrokes()
+const QList<Stroke*> Drawing::getStrokes()
 {
   return strokes_;
 }
@@ -469,7 +536,7 @@ QMatrix *Drawing::getTransform( quint32 index )
  *
  * @return The list of existing transformations
  */
-QList<QMatrix*> Drawing::getTransforms()
+const QList<QMatrix*> Drawing::getTransforms()
 {
   return transforms_;
 }
