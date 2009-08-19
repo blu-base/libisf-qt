@@ -243,7 +243,7 @@ const QByteArray &DataSource::data() const
 // Flush the current byte to the buffer
 void DataSource::flush()
 {
-  if( currentBitIndex_ == 8 )
+  if( currentBitIndex_ >= 8 )
   {
     return;
   }
@@ -273,11 +273,27 @@ quint8 DataSource::getBitIndex()
 
 
 // Retrieve the next bit from the data
-bool DataSource::getBit()
+bool DataSource::getBit( bool *ok )
 {
   if( currentBitIndex_ >= 8 )
   {
-    moveByteToBitArray();
+    // Also check the index again, in case somehow moveByteToBitArray()
+    // fails to move the bit index
+    if( ! moveByteToBitArray() || currentBitIndex_ >= 8 )
+    {
+      if( ok != 0 )
+      {
+        *ok = false;
+      }
+      return false;
+    }
+  }
+
+  Q_ASSERT( currentByte_.size() == 8 );
+
+  if( ok != 0 )
+  {
+    *ok = true;
   }
 
   return currentByte_.at( currentBitIndex_++ );
@@ -286,20 +302,39 @@ bool DataSource::getBit()
 
 
 // Retrieve the next <amount> bits from the data
-quint64 DataSource::getBits( quint8 amount )
+quint64 DataSource::getBits( quint8 amount, bool *ok )
 {
   if( amount > 64 )
   {
     qWarning() << "DataSource:getBits() - Cannot retrieve" << amount << "bits, the maximum is 64 bits!";
-    return 0;
+
+    if( ok != 0 )
+    {
+      *ok = false;
+    }
+
+    return 0LL;
   }
 
+  bool gotBitOk;
   quint8 bitIndex = 0;
   quint64 value = 0;
 
   while( ! atEnd( true ) && bitIndex < amount )
   {
-    if( getBit() )
+    bool bit = getBit( &gotBitOk );
+
+    if( ! gotBitOk )
+    {
+      if( ok != 0 )
+      {
+        *ok = false;
+      }
+
+      return 0LL;
+    }
+
+    if( bit )
     {
 #if Q_BYTE_ORDER == Q_BIG_ENDIAN
       value |= 1 << bitIndex;
@@ -311,41 +346,84 @@ quint64 DataSource::getBits( quint8 amount )
     ++bitIndex;
   }
 
+  // Done!
+  if( ok != 0 )
+  {
+    *ok = true;
+  }
+
   return value;
 }
 
 
 
 // Retrieve the next byte from the data
-char DataSource::getByte()
+char DataSource::getByte( bool *ok )
 {
-  quint8 pos = 0;
-  qint8 byte = 0;
+  bool   gotBitOk;
+  quint8 pos      = 0;
+  qint8  byte     = 0;
 
   while( pos < 8 )
   {
+    bool bit = getBit( &gotBitOk );
+
+    if( ! gotBitOk )
+    {
+      if( ok != 0 )
+      {
+        *ok = false;
+      }
+
+      return 0;
+    }
+
 #if Q_BYTE_ORDER == Q_BIG_ENDIAN
-    byte |= ( getBit() << pos++ );
+    byte |= ( bit << pos++ );
 #else
-    byte |= ( getBit() << ( 7 - pos++ ) );
+    byte |= ( bit << ( 7 - pos++ ) );
 #endif
   }
 
+  // Done!
+  if( ok != 0 )
+  {
+    *ok = true;
+  }
   return byte;
 }
 
 
 
 // Retrieve the next <amount> bytes from the data
-QByteArray DataSource::getBytes( quint8 amount )
+QByteArray DataSource::getBytes( quint8 amount, bool *ok )
 {
   QByteArray bytes;
-  quint8     index = 0;
+  bool       gotByteOk;
+  quint8     index     = 0;
 
   while( ! atEnd() && index < amount )
   {
-    bytes.append( getByte() );
+    quint8 byte = getByte( &gotByteOk );
+
+    if( ! gotByteOk )
+    {
+      if( ok != 0 )
+      {
+        *ok = false;
+      }
+
+      return QByteArray();
+    }
+
+    bytes.append( byte );
     ++index;
+  }
+
+  // Done!
+  if( ok != 0 )
+  {
+    *ok = true;
   }
 
   return bytes;
@@ -354,7 +432,7 @@ QByteArray DataSource::getBytes( quint8 amount )
 
 
 // Move a byte from the buffer into the bit array
-void DataSource::moveByteToBitArray()
+bool DataSource::moveByteToBitArray()
 {
   uchar byte = 0;
 
@@ -363,7 +441,7 @@ void DataSource::moveByteToBitArray()
     qWarning() << "DataSource:moveByteToBitArray() - The buffer is empty!";
     currentByte_.clear();
     currentBitIndex_ = 8;
-    return;
+    return false;
   }
 
   if( buffer_.atEnd() )
@@ -371,13 +449,13 @@ void DataSource::moveByteToBitArray()
     qWarning() << "DataSource:moveByteToBitArray() - The buffer was completely parsed!";
     currentByte_.clear();
     currentBitIndex_ = 8;
-    return;
+    return false;
   }
 
   if( buffer_.read( (char*)&byte, 1 ) != 1 )
   {
     qWarning() << "DataSource::moveByteToBitArray() - Read failed at buffer position" << buffer_.pos();
-    return;
+    return false;
   }
 
 
@@ -391,6 +469,8 @@ void DataSource::moveByteToBitArray()
   }
 
   currentBitIndex_ = 0;
+
+  return true;
 }
 
 
@@ -433,6 +513,14 @@ void DataSource::prepend( const QByteArray &bytes )
   {
     moveByteToBitArray();
   }
+}
+
+
+
+// Return to the start of the buffer
+void DataSource::reset()
+{
+  buffer_.reset();
 }
 
 

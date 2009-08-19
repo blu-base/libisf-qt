@@ -58,14 +58,23 @@ namespace Isf
     // Decodes a multibyte signed integer into a qint64.
     qint64 decodeInt( DataSource &source )
     {
+      bool isNegative = false;
       qint64 value = decodeUInt( source );
 
-      if( value & 1 )
+      // The least significant bit contains the sign
+      if( value & 0x01 )
+      {
+        isNegative = true;
+      }
+
+      // Remove the sign bit from the raw value
+      value >>= 1;
+
+      // Apply the sign
+      if( isNegative )
       {
         value *= -1;
       }
-
-      value >>= 1;
 
       return value;
     }

@@ -22,6 +22,7 @@ DONE
     - Encoding
     - Decoding
 - Properly parse generated ISF test data
+- Generate new ISF data
 - Parse ISF data from WLM
 - Add new strokes to an IsfDrawing
 - Stroke attributes: width, colour, pressure

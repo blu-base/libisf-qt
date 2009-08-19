@@ -24,7 +24,7 @@
 #include <IsfQt>
 
 #include <QMap>
-#include <QTransform>
+#include <QMatrix>
 #include <QPaintDevice>
 
 
@@ -95,7 +95,7 @@ namespace Isf
       // Link to the currently used stroke info data
       StrokeInfo               *currentStrokeInfo_;
       // Link to the currently used transformation
-      QTransform               *currentTransform_;
+      QMatrix                  *currentTransform_;
       // Link to the default metric data
       Metrics                   defaultMetrics_;
       // Link to the default point info data
@@ -103,7 +103,7 @@ namespace Isf
       // Link to the default stroke info data
       StrokeInfo                defaultStrokeInfo_;
       // Link to the default transformation
-      QTransform                defaultTransform_;
+      QMatrix                   defaultTransform_;
       // Last parsing error (if there is one)
       IsfError                  error_;
       // Whether the drawing contains X coordinates or not
@@ -125,7 +125,7 @@ namespace Isf
       // List of strokes composing this drawing
       QList<Stroke*>            strokes_;
       // Transformation matrices
-      QList<QTransform*>        transforms_;
+      QList<QMatrix*>           transforms_;
 
   };
 

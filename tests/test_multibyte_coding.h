@@ -29,6 +29,9 @@ private slots:
 
     void signedEncode();
     void signedDecode();
+
+    void floatEncode();
+    void floatDecode();
 };
 
 #endif // TESTMULTIBYTECODING_H

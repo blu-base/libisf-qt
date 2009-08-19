@@ -1,4 +1,12 @@
 
+2009-08-19 (Valerio)
+ * Added DataSource::reset() method to start reading data back from the start.
+ * Added to DataSource some ways to detect errors.
+ * Rewritten the multi-byte encoding tests.
+ * Switched away from QTransform to QMatrix for transformations.
+ * Fixed the write order of transformation values.
+ * Fixed stroke saving. The library should now be able to generate new ink.
+
 2009-08-14 (Valerio)
  * Added Drawing::clean() method to reset a drawing without creating a new one.
 

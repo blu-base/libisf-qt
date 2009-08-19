@@ -156,47 +156,65 @@ IsfError TagsWriter::addTransformationTable( DataSource &source, const Drawing &
 {
   QByteArray blockData;
   QByteArray tagContents;
-  quint64 transformTag;
+  quint64    transformTag;
+
+  /**
+   * QTransform is too complex for the 2D transformations we need to do;
+   * but QMatrix is too simple: it doesn't 'remember' rotations. So we
+   * save rotations as generic transformations.
+   * Possible solutions:
+   * 1) Create a struct containing the transform matrix data and use
+   *    that instead of QMatrices;
+   * 2) Switch (again!) to QTransform and fix the inconsistencies.
+   */
 
 #ifdef ISFQT_DEBUG_VERBOSE
   qDebug() << "- Adding" << drawing.transforms_.count() << "transformations...";
   quint8 counter = 0;
 #endif
 
-  foreach( const QTransform *trans, drawing.transforms_ )
+  foreach( const QMatrix *trans, drawing.transforms_ )
   {
-    if( trans->isRotating() )
+    /**
+     * All transforms are written backwards because they're stored my most
+     * significant value first.
+     */
+
+    // Detect translation
+    if( trans->dx() || trans->dy() )
     {
+      // Detect scaling
+      if( trans->m11() || trans->m22() )
+      {
 #ifdef ISFQT_DEBUG_VERBOSE
-      qDebug() << "  - Transform: TAG_TRANSFORM_ROTATE";
+        qDebug() << "  - Transform: TAG_TRANSFORM_SCALE_AND_TRANSLATE";
 #endif
-      transformTag = TAG_TRANSFORM_ROTATE;
-      blockData.append( encodeFloat( trans->m11() * 100.0f ) );
+        transformTag = TAG_TRANSFORM_SCALE_AND_TRANSLATE;
+        blockData.append( encodeFloat( trans->dy() ) );
+        blockData.append( encodeFloat( trans->dx() ) );
+        blockData.append( encodeFloat( trans->m22() * HiMetricToPixel ) );
+        blockData.append( encodeFloat( trans->m11() * HiMetricToPixel ) );
+#ifdef ISFQT_DEBUG_VERBOSE
+      qDebug() << "- Transformation details - "
+               << "Scale X:" << trans->m11()
+               << "Scale Y:" << trans->m22()
+               << "Translate X:" << trans->dx()
+               << "Translate Y:" << trans->dy();
+#endif
+      }
+      else
+      {
+#ifdef ISFQT_DEBUG_VERBOSE
+        qDebug() << "  - Transform: TAG_TRANSFORM_TRANSLATE";
+#endif
+        transformTag = TAG_TRANSFORM_TRANSLATE;
+        blockData.append( encodeFloat( trans->dy() ) );
+        blockData.append( encodeFloat( trans->dx() ) );
+      }
     }
     else
-    if( trans->isScaling() && trans->isTranslating() )
-    {
-#ifdef ISFQT_DEBUG_VERBOSE
-      qDebug() << "  - Transform: TAG_TRANSFORM_SCALE_AND_TRANSLATE";
-#endif
-      transformTag = TAG_TRANSFORM_SCALE_AND_TRANSLATE;
-      blockData.append( encodeFloat( trans->m11() * HiMetricToPixel ) );
-      blockData.append( encodeFloat( trans->m22() * HiMetricToPixel ) );
-      blockData.append( encodeFloat( trans->dx () ) );
-      blockData.append( encodeFloat( trans->dy () ) );
-    }
-    else
-    if( ! trans->isScaling() && trans->isTranslating() )
-    {
-#ifdef ISFQT_DEBUG_VERBOSE
-      qDebug() << "  - Transform: TAG_TRANSFORM_TRANSLATE";
-#endif
-      transformTag = TAG_TRANSFORM_TRANSLATE;
-      blockData.append( encodeFloat( trans->dx() ) );
-      blockData.append( encodeFloat( trans->dy() ) );
-    }
-    else
-    if( trans->isScaling() && ! trans->isTranslating() )
+    // Detect scaling
+    if( trans->m11() || trans->m22() )
     {
       if( trans->m11() == trans->m22() )
       {
@@ -212,8 +230,8 @@ IsfError TagsWriter::addTransformationTable( DataSource &source, const Drawing &
         qDebug() << "  - Transform: TAG_TRANSFORM_ANISOTROPIC_SCALE";
 #endif
         transformTag = TAG_TRANSFORM_ANISOTROPIC_SCALE;
-        blockData.append( encodeFloat( trans->m11() * HiMetricToPixel ) );
         blockData.append( encodeFloat( trans->m22() * HiMetricToPixel ) );
+        blockData.append( encodeFloat( trans->m11() * HiMetricToPixel ) );
       }
     }
     else
@@ -222,12 +240,12 @@ IsfError TagsWriter::addTransformationTable( DataSource &source, const Drawing &
       qDebug() << "  - Transform: TAG_TRANSFORM";
 #endif
       transformTag = TAG_TRANSFORM;
-      blockData.append( encodeFloat( trans->m11() * HiMetricToPixel ) );
-      blockData.append( encodeFloat( trans->m12() ) );
-      blockData.append( encodeFloat( trans->m21() ) );
-      blockData.append( encodeFloat( trans->m22() * HiMetricToPixel ) );
-      blockData.append( encodeFloat( trans->dx () ) );
       blockData.append( encodeFloat( trans->dy () ) );
+      blockData.append( encodeFloat( trans->dx () ) );
+      blockData.append( encodeFloat( trans->m22() * HiMetricToPixel ) );
+      blockData.append( encodeFloat( .0f ) );
+      blockData.append( encodeFloat( .0f ) );
+      blockData.append( encodeFloat( trans->m11() * HiMetricToPixel ) );
     }
 
     blockData.prepend( encodeUInt( transformTag ) );
@@ -240,7 +258,7 @@ IsfError TagsWriter::addTransformationTable( DataSource &source, const Drawing &
 #endif
   }
 
-  if( drawing.attributes_.count() > 1 )
+  if( drawing.transforms_.count() > 1 )
   {
     tagContents.prepend( encodeUInt( tagContents.size() ) );
     tagContents.prepend( encodeUInt( TAG_TRANSFORM_TABLE ) );
@@ -265,9 +283,9 @@ IsfError TagsWriter::addStrokes( DataSource &source, const Drawing &drawing )
 #endif
 
   // Last set of attibutes applied to a stroke
-  Metrics    *currentMetrics    = 0;
-  PointInfo  *currentPointInfo  = 0;
-  QTransform *currentTransform  = 0;
+  Metrics   *currentMetrics   = 0;
+  PointInfo *currentPointInfo = 0;
+  QMatrix   *currentTransform = 0;
 
   foreach( const Stroke *stroke, drawing.strokes_ )
   {
@@ -305,8 +323,14 @@ IsfError TagsWriter::addStrokes( DataSource &source, const Drawing &drawing )
       }
     }
 
+    // Flush the index tags
+    if( ! blockData.isEmpty() )
+    {
+      tagContents.append( blockData );
+      blockData.clear();
+    }
+
     // Write this stroke in the stream
-    blockData.append( encodeUInt( stroke->points.count() ) );
 
     QList<qint64> xPoints, yPoints;
     foreach( const Point &point, stroke->points )
@@ -315,127 +339,25 @@ IsfError TagsWriter::addStrokes( DataSource &source, const Drawing &drawing )
       yPoints.append( point.position.y() );
     }
 
-    deflate( blockData, stroke->points.count(), xPoints, Points );
-    deflate( blockData, stroke->points.count(), yPoints, Points );
+    deflate( blockData, xPoints, Points );
+    deflate( blockData, yPoints, Points );
 
+    // The stroke is made by tag, then payload size, then number of points, then
+    // the compressed points data
+    blockData.prepend( encodeUInt( stroke->points.count() ) );
     blockData.prepend( encodeUInt( blockData.size() ) );
     blockData.prepend( encodeUInt( TAG_STROKE ) );
 
     tagContents.append( blockData );
     blockData.clear();
-    source.append( tagContents );
 
 #ifdef ISFQT_DEBUG_VERBOSE
     qDebug() << "- Added stroke #" << ++counter;
 #endif
   }
-/*
-  quint64 payloadSize = decodeUInt( source );
-  quint64 initialPos = source.pos();
 
-  if( payloadSize == 0 )
-  {
-#ifdef ISFQT_DEBUG
-    qDebug() << "Invalid payload for TAG_STROKE";
-#endif
-    return ISF_ERROR_INVALID_PAYLOAD;
-  }
+  source.append( tagContents );
 
-  // Get the number of points which comprise this stroke
-  quint64 numPoints = decodeUInt( source );
-
-#ifdef ISFQT_DEBUG_VERBOSE
-  qDebug() << "- Tag size:" << payloadSize << "Points stored:" << numPoints;
-#endif
-
-  QList<qint64> xPointsData, yPointsData, pressureData;
-  if( ! inflate( source, numPoints, xPointsData ) )
-  {
-#ifdef ISFQT_DEBUG
-    qWarning() << "Decompression failure while extracting X points data!";
-    return ISF_ERROR_INVALID_PAYLOAD;
-#endif
-  }
-
-  if( ! inflate( source, numPoints, yPointsData ) )
-  {
-#ifdef ISFQT_DEBUG
-    qWarning() << "Decompression failure while extracting Y points data!";
-    return ISF_ERROR_INVALID_PAYLOAD;
-#endif
-  }
-
-  if(   drawing.currentStrokeInfo_->hasPressureData
-  &&  ! inflate( source, numPoints, pressureData ) )
-  {
-#ifdef ISFQT_DEBUG
-    qWarning() << "Decompression failure while extracting pressure data!";
-    return ISF_ERROR_INVALID_PAYLOAD;
-#endif
-  }
-
-  if( (uint)xPointsData.size() != numPoints || (uint)yPointsData.size() != numPoints )
-  {
-#ifdef ISFQT_DEBUG
-    qWarning() << "The points arrays have sizes x=" << xPointsData.size() << "y=" << yPointsData.size()
-              << "which do not match with the advertised size of" << numPoints;
-#endif
-  }
-
-  if( drawing.currentStrokeInfo_->hasPressureData
-  &&  (uint)pressureData.size() != numPoints )
-  {
-#ifdef ISFQT_DEBUG
-    qWarning() << "The pressure data has a size of" << pressureData.size()
-              << "which does not match with the advertised size of" << numPoints;
-#endif
-  }
-
-  // Add a new stroke
-  drawing.strokes_.append( Stroke() );
-  Stroke &stroke = drawing.strokes_[ drawing.strokes_.size() - 1 ];
-
-#ifdef ISFQT_DEBUG_VERBOSE
-  qDebug() << "- Added stroke #" << ( drawing.strokes_.count() - 1 );
-#endif
-
-  // The polygon is used to obtain the stroke's bounding rect
-  QPolygon polygon( numPoints );
-
-  for( quint64 i = 0; i < numPoints; ++i )
-  {
-    stroke.points.append( Point() );
-    Point &point = stroke.points[ stroke.points.size() - 1 ];
-
-    point.position.setX( xPointsData[ i ] );
-    point.position.setY( yPointsData[ i ] );
-
-    polygon.setPoint( i, xPointsData[ i ], yPointsData[ i ] );
-
-    if( drawing.currentStrokeInfo_->hasPressureData )
-    {
-      point.pressureLevel = pressureData[ i ];
-    }
-  }
-
-  stroke.boundingRect = polygon.boundingRect();
-  stroke.attributes   = drawing.currentPointInfo_;
-  stroke.info         = drawing.currentStrokeInfo_;
-  stroke.metrics      = drawing.currentMetrics_;
-  stroke.transform    = drawing.currentTransform_;
-
-  // Update the entire drawing's bounding rect
-  drawing.boundingRect_ = drawing.boundingRect_.united( stroke.boundingRect );
-
-  qint64 remainingPayloadSize = payloadSize - ( source.pos() - initialPos );
-  if( remainingPayloadSize > 0 )
-  {
-    analyzePayload( source,
-                    remainingPayloadSize,
-                    "Remaining stroke data: " + QString::number(remainingPayloadSize) +
-                    " bytes" );
-  }
-*/
   return ISF_ERROR_NONE;
 }
 

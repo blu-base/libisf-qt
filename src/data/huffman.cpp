@@ -78,6 +78,7 @@ namespace Isf
     bool deflateHuffman( QByteArray &encodedData, quint8 index, const QList<qint64> &source )
     {
       DataSource output( encodedData );
+      output.skipToNextByte();
 
       int previousDelta = 0, currentDelta = 0;
       for( int pos = 0; pos < source.size(); ++pos )

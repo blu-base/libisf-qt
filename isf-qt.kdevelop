@@ -27,7 +27,7 @@
     <secondaryLanguages/>
     <projectname>isf-qt</projectname>
     <description>LibISF-Qt is a library to encode and decode Microsoft's Digital Ink format (Ink Serialized Format).</description>
-    <defaultencoding/>
+    <defaultencoding></defaultencoding>
     <versioncontrol>kdevsubversion</versioncontrol>
   </general>
   <kdevcustomproject>
@@ -36,7 +36,7 @@
       <mainprogram>/home/valerio/kmess/trunk/contrib/isf-qt/build/tests/test_isfdrawing</mainprogram>
       <directoryradio>custom</directoryradio>
       <customdirectory>./build/</customdirectory>
-      <programargs>#  tests/mess.isf</programargs>
+      <programargs>#  tests/test1.isf</programargs>
       <terminal>false</terminal>
       <autocompile>false</autocompile>
       <envvars>
@@ -62,8 +62,8 @@
         <default/>
       </environments>
       <prio>0</prio>
-      <defaulttarget/>
-      <makeoptions/>
+      <defaulttarget></defaulttarget>
+      <makeoptions></makeoptions>
     </make>
     <filetypes>
       <filetype>*.h</filetype>
@@ -83,9 +83,9 @@
     </blacklist>
     <other>
       <prio>0</prio>
-      <otherbin/>
-      <defaulttarget/>
-      <otheroptions/>
+      <otherbin></otherbin>
+      <defaulttarget></defaulttarget>
+      <otheroptions></otheroptions>
       <selectedenvironment>default</selectedenvironment>
       <environments>
         <Debug/>
@@ -161,7 +161,7 @@
     <creategettersetter>
       <prefixGet>get</prefixGet>
       <prefixSet>set</prefixSet>
-      <prefixVariable/>
+      <prefixVariable></prefixVariable>
       <parameterName>value</parameterName>
       <inlineGet>true</inlineGet>
       <inlineSet>true</inlineSet>
@@ -189,11 +189,11 @@
   </kdevfileview>
   <kdevdebugger>
     <general>
-      <gdbpath/>
-      <dbgshell/>
-      <configGdbScript/>
-      <runShellScript/>
-      <runGdbScript/>
+      <gdbpath></gdbpath>
+      <dbgshell></dbgshell>
+      <configGdbScript></configGdbScript>
+      <runShellScript></runShellScript>
+      <runGdbScript></runGdbScript>
       <breakonloadinglibs>true</breakonloadinglibs>
       <separatetty>false</separatetty>
       <floatingtoolbar>false</floatingtoolbar>

@@ -181,7 +181,7 @@ QPixmap Drawing::getPixmap()
     if( currentTransform_ != stroke->transform )
     {
       currentTransform_ = stroke->transform;
-      painter.setWorldTransform( *currentTransform_, true );
+      painter.setWorldTransform( QTransform( *currentTransform_ ), true );
     }
 
 #ifdef ISFQT_DEBUG_VERBOSE

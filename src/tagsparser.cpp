@@ -517,7 +517,7 @@ IsfError TagsParser::parseTransformationTable( DataSource &source, Drawing &draw
 /// Read a drawing transformation matrix
 IsfError TagsParser::parseTransformation( DataSource &source, Drawing &drawing, quint64 transformType )
 {
-  QTransform *transform = new QTransform();
+  QMatrix *transform = new QMatrix();
 
   // Unlike the other transformations, scale is expressed in HiMetric units,
   // so we must convert it to pixels for rendering
@@ -527,19 +527,16 @@ IsfError TagsParser::parseTransformation( DataSource &source, Drawing &drawing, 
     case TAG_TRANSFORM:
       transform->setMatrix( Compress::decodeFloat( source ) / HiMetricToPixel
                           , Compress::decodeFloat( source )
-                          , .0f
                           , Compress::decodeFloat( source )
                           , Compress::decodeFloat( source ) / HiMetricToPixel
-                          , .0f
                           , Compress::decodeFloat( source )
-                          , Compress::decodeFloat( source )
-                          , 1.f );
+                          , Compress::decodeFloat( source ) );
 #ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "- Transformation details - "
                << "Scale X:" << transform->m11()
                << "Scale Y:" << transform->m22()
-               << "Translate X:" << transform->m31()
-               << "Translate Y:" << transform->m32();
+               << "Translate X:" << transform->dx()
+               << "Translate Y:" << transform->dy();
 #endif
       break;
 
@@ -580,23 +577,26 @@ IsfError TagsParser::parseTransformation( DataSource &source, Drawing &drawing, 
                           , Compress::decodeFloat( source ) );
 #ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "- Transformation details - "
-              << "Translate X:" << transform->m31()
-              << "Translate Y:" << transform->m32();
+              << "Translate X:" << transform->dx()
+              << "Translate Y:" << transform->dy();
 #endif
       break;
 
     case TAG_TRANSFORM_SCALE_AND_TRANSLATE:
     {
-      transform->scale    ( Compress::decodeFloat( source ) / HiMetricToPixel
-                          , Compress::decodeFloat( source ) / HiMetricToPixel );
-      transform->translate( Compress::decodeFloat( source )
+      transform->setMatrix( Compress::decodeFloat( source ) / HiMetricToPixel
+                          , .0f
+                          , .0f
+                          , Compress::decodeFloat( source ) / HiMetricToPixel
+                          , Compress::decodeFloat( source )
                           , Compress::decodeFloat( source ) );
+
 #ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "- Transformation details - "
                << "Scale X:" << transform->m11()
                << "Scale Y:" << transform->m22()
-               << "Translate X:" << transform->m31()
-               << "Translate Y:" << transform->m32();
+               << "Translate X:" << transform->dx()
+               << "Translate Y:" << transform->dy();
 #endif
       break;
     }

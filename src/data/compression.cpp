@@ -105,7 +105,7 @@ namespace Isf
 
 
     // Compress data autodetecting the algorithm to use
-    bool deflate( QByteArray &encodedData, quint64 length, const QList<qint64> &source, DataType dataType )
+    bool deflate( QByteArray &encodedData, const QList<qint64> &source, DataType dataType )
     {
       bool result;
 
@@ -130,6 +130,10 @@ namespace Isf
           // Write the data encoding algorithm and block size
           encodedData.append( blockSize | Gorilla );
 
+#ifdef ISFQT_DEBUG_VERBOSE
+          qDebug() << "- Deflating" << source.count() << "items using the Gorilla algorithm and a block size of" << blockSize;
+#endif
+
           // Deflate the data
           result = deflateGorilla( encodedData, blockSize, source );
           break;
@@ -142,6 +146,10 @@ namespace Isf
 
           // Write the data encoding algorithm and index
           encodedData.append( index | Huffman );
+
+#ifdef ISFQT_DEBUG_VERBOSE
+          qDebug() << "- Deflating" << source.count() << "items using the Huffman algorithm and index" << index;
+#endif
 
           // Deflate the data
           result = deflateHuffman( encodedData, index, source );

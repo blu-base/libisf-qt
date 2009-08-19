@@ -70,7 +70,7 @@ namespace Isf
     /// Decompress data autodetecting the algorithm to use
     bool inflate( DataSource &source, quint64 length, QList<qint64> &decodedData );
     /// Compress data autodetecting the algorithm to use
-    bool deflate( QByteArray &destination, quint64 length, const QList<qint64> &decodedData, DataType dataType );
+    bool deflate( QByteArray &destination, const QList<qint64> &decodedData, DataType dataType );
   }
 }
 

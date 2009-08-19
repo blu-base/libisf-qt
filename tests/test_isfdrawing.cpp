@@ -82,7 +82,8 @@ void TestIsfDrawing::invalidStreamSize_NullDrawing()
 // drawing with the appropriate number of strokes.
 void TestIsfDrawing::parseValidRawIsfData()
 {
-  QByteArray data = readTestIsfData("tests/test1.isf");
+  QByteArray data;
+  readTestIsfData( "tests/test1.isf", data );
   Drawing drawing = Parser::isfToDrawing( data );
   QCOMPARE( drawing.isNull(), false );
 }
@@ -93,12 +94,18 @@ void TestIsfDrawing::parseValidRawIsfData()
 void TestIsfDrawing::createDrawing()
 {
   qDebug() << "------------------------- Creating drawing from ISF -------------------------";
-  QByteArray data1( readTestIsfData( "tests/line2.isf" ) );
+  QByteArray data1;
+  readTestIsfData( "tests/test3.isf", data1 );
   Isf::Drawing drawing1 = Isf::Parser::isfToDrawing( data1 );
 
   qDebug() << "------------------------- Writing drawing to ISF file -------------------------";
   QByteArray data2( Isf::Parser::drawingToIsf( drawing1 ) );
-  qDebug() << "Size:" << data2.size();
+
+  // Write the ISF data on a file too
+  QFile file( "tests/created.isf" );
+  QVERIFY( file.open( QIODevice::WriteOnly ) );
+  file.write( data2 );
+  file.close();
 
   qDebug() << "------------------------- Reading it back -------------------------";
   Isf::Drawing drawing2 = Isf::Parser::isfToDrawing( data2 );
@@ -108,23 +115,17 @@ void TestIsfDrawing::createDrawing()
 
 // read some test raw ISF data from a file on the filesystem and
 // return it as a QByteArray.
-QByteArray TestIsfDrawing::readTestIsfData( const QString &filename )
+void TestIsfDrawing::readTestIsfData( const QString &filename, QByteArray &byteArray )
 {
   QFile file( filename );
-  if ( !file.exists() )
-  {
-    qWarning() << "Test ISF file" << filename << "does not exist.";
-    return QByteArray();
-  }
+  QVERIFY( file.exists() );
 
   // read file and convert to qbytearray.
-  if ( !file.open( QIODevice::ReadOnly ) )
-  {
-    qWarning() << "Failed to open ISF data file" << filename;
-    return QByteArray();
-  }
+  QVERIFY( file.open( QIODevice::ReadOnly ) );
 
-  return file.readAll();
+  byteArray = file.readAll();
+
+  file.close();
 }
 
 

@@ -27,11 +27,11 @@
 #include <QColor>
 #include <QList>
 #include <QMap>
+#include <QMatrix>
 #include <QPointF>
 #include <QRectF>
 #include <QSizeF>
 #include <QtGlobal>
-#include <QTransform>
 
 
 
@@ -314,7 +314,7 @@ namespace Isf
     /// List of points
     QList<Point>  points;
     /// Link to this stroke's transformation, if any
-    QTransform   *transform;
+    QMatrix      *transform;
   };
 
 

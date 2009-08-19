@@ -72,19 +72,21 @@ namespace Isf
         /// Flush the current byte to the buffer
         void              flush();
         /// Retrieve the next bit from the data
-        bool              getBit();
+        bool              getBit( bool *ok = 0 );
         /// Retrieve the next <amount> bits from the data
-        quint64           getBits( quint8 amount );
+        quint64           getBits( quint8 amount, bool *ok = 0 );
         /// Retrieve the index of the current bit
         quint8            getBitIndex();
         /// Retrieve the next byte from the data
-        char              getByte();
+        char              getByte( bool *ok = 0 );
         /// Retrieve the next <amount> bytes from the data
-        QByteArray        getBytes( quint8 amount );
+        QByteArray        getBytes( quint8 amount, bool *ok = 0 );
         /// Insert a byte at the beginning of the data
         void              prepend( char byte );
         /// Insert bytes at the beginning of the data
         void              prepend( const QByteArray &bytes );
+        /// Return to the start of the buffer
+        void              reset();
         /// Replace the data array with another
         void              setData( const QByteArray &data );
         /// Seek back and forth in the stream
@@ -98,7 +100,7 @@ namespace Isf
       private: // Private methods
 
         // Move a byte from the buffer into the bit array
-        void              moveByteToBitArray();
+        bool              moveByteToBitArray();
 
 
       private: // Private properties

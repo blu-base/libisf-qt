@@ -22,7 +22,7 @@
 #define TAGSPARSER_H
 
 #include <QMap>
-#include <QTransform>
+#include <QMatrix>
 #include <QString>
 
 #include <IsfQt>
