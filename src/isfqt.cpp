@@ -48,7 +48,7 @@ using namespace Compress;
  * @param isfData Raw ISF data to interpret.
  * @return A new Drawing object representing the data.
  */
-Drawing Parser::isfToDrawing( const QByteArray &rawData )
+Drawing Stream::reader( const QByteArray &rawData )
 {
   Drawing drawing;
   DataSource isfData( rawData );
@@ -494,7 +494,7 @@ Drawing Parser::isfToDrawing( const QByteArray &rawData )
 /**
   * Convert a drawing into raw data in ISF format
   */
-QByteArray Parser::drawingToIsf( const Drawing &drawing )
+QByteArray Stream::writer( const Drawing &drawing )
 {
   if( &drawing == 0 || drawing.isNull() || drawing.error() != ISF_ERROR_NONE )
   {

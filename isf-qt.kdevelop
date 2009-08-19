@@ -27,7 +27,7 @@
     <secondaryLanguages/>
     <projectname>isf-qt</projectname>
     <description>LibISF-Qt is a library to encode and decode Microsoft's Digital Ink format (Ink Serialized Format).</description>
-    <defaultencoding></defaultencoding>
+    <defaultencoding/>
     <versioncontrol>kdevsubversion</versioncontrol>
   </general>
   <kdevcustomproject>
@@ -62,8 +62,8 @@
         <default/>
       </environments>
       <prio>0</prio>
-      <defaulttarget></defaulttarget>
-      <makeoptions></makeoptions>
+      <defaulttarget/>
+      <makeoptions/>
     </make>
     <filetypes>
       <filetype>*.h</filetype>
@@ -83,9 +83,9 @@
     </blacklist>
     <other>
       <prio>0</prio>
-      <otherbin></otherbin>
-      <defaulttarget></defaulttarget>
-      <otheroptions></otheroptions>
+      <otherbin/>
+      <defaulttarget/>
+      <otheroptions/>
       <selectedenvironment>default</selectedenvironment>
       <environments>
         <Debug/>
@@ -161,7 +161,7 @@
     <creategettersetter>
       <prefixGet>get</prefixGet>
       <prefixSet>set</prefixSet>
-      <prefixVariable></prefixVariable>
+      <prefixVariable/>
       <parameterName>value</parameterName>
       <inlineGet>true</inlineGet>
       <inlineSet>true</inlineSet>
@@ -189,11 +189,11 @@
   </kdevfileview>
   <kdevdebugger>
     <general>
-      <gdbpath></gdbpath>
-      <dbgshell></dbgshell>
-      <configGdbScript></configGdbScript>
-      <runShellScript></runShellScript>
-      <runGdbScript></runGdbScript>
+      <gdbpath/>
+      <dbgshell/>
+      <configGdbScript/>
+      <runShellScript/>
+      <runGdbScript/>
       <breakonloadinglibs>true</breakonloadinglibs>
       <separatetty>false</separatetty>
       <floatingtoolbar>false</floatingtoolbar>

@@ -46,14 +46,14 @@ class TestDecode : public QMainWindow, private Ui::TestDecode
 
       qDebug() << "------------------------- Creating drawing from ISF -------------------------";
       QByteArray data1( readTestIsfData( qApp->arguments().at( 1 ) ) );
-      Isf::Drawing drawing1 = Isf::Parser::isfToDrawing( data1 );
+      Isf::Drawing drawing1 = Isf::Stream::reader( data1 );
 
       qDebug() << "------------------------- Writing drawing to ISF file -------------------------";
-      QByteArray data2( Isf::Parser::drawingToIsf( drawing1 ) );
+      QByteArray data2( Isf::Stream::writer( drawing1 ) );
       qDebug() << "Size:" << data2.size();
 
       qDebug() << "------------------------- Reading it back -------------------------";
-      Isf::Drawing drawing2 = Isf::Parser::isfToDrawing( data2 );
+      Isf::Drawing drawing2 = Isf::Stream::reader( data2 );
 
 
       if( drawing2.isNull() )
