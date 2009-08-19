@@ -212,9 +212,9 @@ Drawing Stream::reader( const QByteArray &rawData )
 
             quint64 value = decodeUInt( isfData );
 
-            if( value < (uint)drawing.attributes_.count() )
+            if( value < (uint)drawing.attributeSets_.count() )
             {
-              drawing.currentAttributeSet_ = drawing.attributes_[ value ];
+              drawing.currentAttributeSet_ = drawing.attributeSets_[ value ];
 #ifdef ISFQT_DEBUG_VERBOSE
               qDebug() << "- Next strokes will use drawing attributes #" << value;
 #endif

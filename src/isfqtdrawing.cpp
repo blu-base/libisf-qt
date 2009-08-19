@@ -64,7 +64,67 @@ Drawing::~Drawing()
   qDeleteAll( strokeInfo_ );
   qDeleteAll( strokes_ );
   qDeleteAll( transforms_ );
-  qDeleteAll( attributes_ );
+  qDeleteAll( attributeSets_ );
+}
+
+
+
+/**
+ * Add new a attribute set to the drawing
+ *
+ * @param attributes The attribute set to add
+ * @return Index of the new attribute set or -1 on failure
+ */
+qint32 Drawing::addAttributeSet( AttributeSet *newAttributeSet )
+{
+  if( newAttributeSet == 0 )
+  {
+    return -1;
+  }
+
+  attributeSets_.append( newAttributeSet );
+
+  return ( attributeSets_.count() - 1 );
+}
+
+
+
+/**
+ * Add a new stroke to the drawing
+ *
+ * @param attributes The stroke to add
+ * @return Index of the new stroke or -1 on failure
+ */
+qint32 Drawing::addStroke( Stroke *newStroke )
+{
+  if( newStroke == 0 )
+  {
+    return -1;
+  }
+
+  strokes_.append( newStroke );
+
+  return ( strokes_.count() - 1 );
+}
+
+
+
+/**
+ * Add a new transformation to the drawing
+ *
+ * @param attributes The transform to add
+ * @return Index of the new transform or -1 on failure
+ */
+qint32 Drawing::addTransform( QMatrix *newTransform )
+{
+  if( newTransform == 0 )
+  {
+    return -1;
+  }
+
+  transforms_.append( newTransform );
+
+  return ( transforms_.count() - 1 );
 }
 
 
@@ -81,12 +141,12 @@ void Drawing::clear()
   qDeleteAll( strokeInfo_ );
   qDeleteAll( strokes_ );
   qDeleteAll( transforms_ );
-  qDeleteAll( attributes_ );
-  metrics_   .clear();
-  strokeInfo_.clear();
-  strokes_   .clear();
-  transforms_.clear();
-  attributes_.clear();
+  qDeleteAll( attributeSets_ );
+  metrics_      .clear();
+  strokeInfo_   .clear();
+  strokes_      .clear();
+  transforms_   .clear();
+  attributeSets_.clear();
 
   // Invalidate the current item pointers
   currentMetrics_      = 0;
@@ -109,6 +169,63 @@ void Drawing::clear()
 
 
 /**
+ * Remove some attribute set from the drawing
+ *
+ * @param index Index of the attribute set to delete
+ * @return bool
+ */
+bool Drawing::deleteAttributeSet( quint32 index )
+{
+  if( (qint64)index >= attributeSets_.count() )
+  {
+    return false;
+  }
+
+  delete attributeSets_.takeAt( index );
+  return true;
+}
+
+
+
+/**
+ * Remove a stroke from the drawing
+ *
+ * @param index Index of the stroke to delete
+ * @return bool
+ */
+bool Drawing::deleteStroke( quint32 index )
+{
+  if( (qint64)index >= strokes_.count() )
+  {
+    return false;
+  }
+
+  delete strokes_.takeAt( index );
+  return true;
+}
+
+
+
+/**
+ * Remove a transformation from the drawing
+ *
+ * @param index Index of the transform to delete
+ * @return bool
+ */
+bool Drawing::deleteTransform( quint32 index )
+{
+  if( (qint64)index >= transforms_.count() )
+  {
+    return false;
+  }
+
+  delete transforms_.takeAt( index );
+  return true;
+}
+
+
+
+/**
  * Return the last error that has occurred
  *
  * If nothing went wrong, this returns ISF_ERROR_NONE.
@@ -118,6 +235,36 @@ void Drawing::clear()
 IsfError Drawing::error() const
 {
   return error_;
+}
+
+
+
+/**
+ * Retrieve an attribute set to manipulate it
+ *
+ * @param index Index of the attribute set to get
+ * @return AttributeSet or 0 if not found
+ */
+AttributeSet *Drawing::getAttributeSet( quint32 index )
+{
+  if( (qint64)index >= attributeSets_.count() )
+  {
+    return 0;
+  }
+
+  return attributeSets_.at( index );
+}
+
+
+
+/**
+ * Retrieve the attribute sets
+ *
+ * @return The list of existing attribute sets
+ */
+QList<AttributeSet*> Drawing::getAttributeSets()
+{
+  return attributeSets_;
 }
 
 
@@ -263,6 +410,66 @@ QPixmap Drawing::getPixmap()
 
 
 /**
+ * Retrieve a stroke to manipulate it
+ *
+ * @param index Index of the stroke to get
+ * @return Stroke or 0 if not found
+ */
+Stroke *Drawing::getStroke( quint32 index )
+{
+  if( (qint64)index >= strokes_.count() )
+  {
+    return 0;
+  }
+
+  return strokes_.at( index );
+}
+
+
+
+/**
+ * Retrieve the strokes
+ *
+ * @return The list of existing strokes
+ */
+QList<Stroke*> Drawing::getStrokes()
+{
+  return strokes_;
+}
+
+
+
+/**
+ * Retrieve a transformation to manipulate it
+ *
+ * @param index Index of the transform to get
+ * @return QMatrix or 0 if not found
+ */
+QMatrix *Drawing::getTransform( quint32 index )
+{
+  if( (qint64)index >= transforms_.count() )
+  {
+    return 0;
+  }
+
+  return transforms_.at( index );
+}
+
+
+
+/**
+ * Retrieve the transformations
+ *
+ * @return The list of existing transformations
+ */
+QList<QMatrix*> Drawing::getTransforms()
+{
+  return transforms_;
+}
+
+
+
+/**
  * Return True if this instance of Drawing is invalid (NULL), False otherwise.
  *
  * @return True if this is a NULL Drawing, FALSE otherwise.
@@ -270,6 +477,50 @@ QPixmap Drawing::getPixmap()
 bool Drawing::isNull() const
 {
   return isNull_;
+}
+
+
+
+/**
+ * Change the current attribute set
+ *
+ * This will change the attribute set which will be applied to the next strokes.
+ *
+ * @param attributeSet the new attribute set
+ * @return bool
+ */
+bool Drawing::setCurrentAttributeSet( AttributeSet *attributeSet )
+{
+  if( ! attributeSets_.contains( attributeSet ) )
+  {
+    return false;
+  }
+
+  currentAttributeSet_ = attributeSet;
+
+  return true;
+}
+
+
+
+/**
+ * Change the current transformation
+ *
+ * This will change the transformation which will be applied to the next strokes.
+ *
+ * @param attributeSet the new transformation
+ * @return bool
+ */
+bool Drawing::setCurrentTransform( QMatrix *transform )
+{
+  if( ! transforms_.contains( transform ) )
+  {
+    return false;
+  }
+
+  currentTransform_ = transform;
+
+  return true;
 }
 
 

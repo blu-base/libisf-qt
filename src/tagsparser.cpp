@@ -143,8 +143,8 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
     return ISF_ERROR_INVALID_PAYLOAD;
   }
 
-  drawing.attributes_.append( new AttributeSet() );
-  AttributeSet *info = drawing.attributes_.last();
+  drawing.attributeSets_.append( new AttributeSet() );
+  AttributeSet *info = drawing.attributeSets_.last();
 
   // set this once when we get the first DRAW_ATTRS_BLOCK. then,
   // everytime we get a DIDX we can update it. if we don't do this
@@ -155,7 +155,7 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
   }
 
 #ifdef ISFQT_DEBUG_VERBOSE
-  qDebug() << "- Added drawing attribute block #" << ( drawing.attributes_.count() - 1 );
+  qDebug() << "- Added drawing attribute block #" << ( drawing.attributeSets_.count() - 1 );
 #endif
 
   qint64 payloadEnd = source.pos() + payloadSize;

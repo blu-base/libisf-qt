@@ -66,6 +66,38 @@ namespace Isf
       bool                      isNull() const;
 
 
+    public: // Manipulation methods
+
+      /// Add new attribute set to the drawing
+      qint32                    addAttributeSet( AttributeSet *newAttributeSet );
+      /// Add a new stroke to the drawing
+      qint32                    addStroke( Stroke *newStroke );
+      /// Add a new transformation to the drawing
+      qint32                    addTransform( QMatrix *newTransform );
+      /// Remove an attribute set from the drawing
+      bool                      deleteAttributeSet( quint32 index );
+      /// Remove a stroke from the drawing
+      bool                      deleteStroke( quint32 index );
+      /// Remove a transformation from the drawing
+      bool                      deleteTransform( quint32 index );
+      /// Retrieve an attribute set to manipulate it
+      AttributeSet             *getAttributeSet( quint32 index );
+      /// Retrieve the attribute sets
+      QList<AttributeSet*>      getAttributeSets();
+      /// Retrieve a stroke to manipulate it
+      Stroke                   *getStroke( quint32 index );
+      /// Retrieve the strokes
+      QList<Stroke*>            getStrokes();
+      /// Retrieve a transformation to manipulate it
+      QMatrix                  *getTransform( quint32 index );
+      /// Retrieve the transformations
+      QList<QMatrix*>           getTransforms();
+      /// Change the current attribute set
+      bool                      setCurrentAttributeSet( AttributeSet *attributeSet );
+      /// Change the new current attribute set
+      bool                      setCurrentTransform( QMatrix *transform );
+
+
     public: // Public static methods
 
       /// Convert a value in himetric units to pixels, given a paint device
@@ -83,7 +115,7 @@ namespace Isf
     private: // Private properties
 
       // List of attributes of the points in the drawing
-      QList<AttributeSet*>      attributes_;
+      QList<AttributeSet*>      attributeSets_;
       // Bounding rectangle of the drawing
       QRect                     boundingRect_;
       // Virtual drawing canvas dimensions

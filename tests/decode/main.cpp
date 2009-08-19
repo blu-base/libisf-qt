@@ -37,34 +37,54 @@ class TestDecode : public QMainWindow, private Ui::TestDecode
 
     void test()
     {
+      bool rewrite = false;
+      QString fileName;
+      QStringList arguments( qApp->arguments() );
+      arguments.removeAt( 0 );
 
-      if( qApp->arguments().count() < 2 )
+      if( arguments.count() < 1 )
       {
         label_->setText( "You must specify the name of an ISF file to test!" );
         return;
       }
 
-      qDebug() << "------------------------- Creating drawing from ISF -------------------------";
-      QByteArray data1( readTestIsfData( qApp->arguments().at( 1 ) ) );
-      Isf::Drawing drawing1 = Isf::Stream::reader( data1 );
+      if( arguments.contains( "--rewrite" ) )
+      {
+        rewrite = true;
+        arguments.removeAt( arguments.indexOf( "--rewrite" ) );
+      }
 
-      qDebug() << "------------------------- Writing drawing to ISF file -------------------------";
-      QByteArray data2( Isf::Stream::writer( drawing1 ) );
-      qDebug() << "Size:" << data2.size();
+      Isf::Drawing drawing;
 
-      qDebug() << "------------------------- Reading it back -------------------------";
-      Isf::Drawing drawing2 = Isf::Stream::reader( data2 );
+      if( ! rewrite )
+      {
+        QByteArray data( readTestIsfData( arguments.at( 0 ) ) );
+        drawing = Isf::Stream::reader( data );
+      }
+      else
+      {
+        qDebug() << "------------------------- Creating drawing from ISF -------------------------";
+        QByteArray data1( readTestIsfData( arguments.at( 0 ) ) );
+        drawing = Isf::Stream::reader( data1 );
 
+        qDebug() << "------------------------- Writing drawing to ISF file -------------------------";
+        QByteArray data2( Isf::Stream::writer( drawing ) );
+        qDebug() << "Size:" << data2.size();
 
-      if( drawing2.isNull() )
+        qDebug() << "------------------------- Reading it back -------------------------";
+        drawing = Isf::Stream::reader( data2 );
+      }
+
+      if( drawing.isNull() )
       {
         label_->setText( "Invalid file contents!" );
       }
       else
       {
-        label_->setPixmap( drawing2.getPixmap() );
+        label_->setPixmap( drawing.getPixmap() );
       }
     }
+
 
     TestDecode()
     {

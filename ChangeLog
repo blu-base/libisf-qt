@@ -9,6 +9,8 @@
  * Renamed Isf::Parser::isfToDrawing() and Isf::Parser::drawingToIsf()
    to Isf::Stream::reader() and Isf::Stream::writer() to enhance readability.
  * Renamed the Isf::PointInfo structure to Isf::AttributeSet, because the old name made no sense.
+ * Added manipulation methods for strokes, transformations and attribute sets.
+ * Fixed compiler warning. Thanks to Émeric Dupont.
 
 2009-08-14 (Valerio)
  * Added Drawing::clean() method to reset a drawing without creating a new one.

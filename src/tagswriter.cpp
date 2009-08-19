@@ -62,11 +62,11 @@ IsfError TagsWriter::addAttributeTable( DataSource &source, const Drawing &drawi
   AttributeSet defaultAttributeSet;
 
 #ifdef ISFQT_DEBUG_VERBOSE
-  qDebug() << "- Adding" << drawing.attributes_.count() << "attributes...";
+  qDebug() << "- Adding" << drawing.attributeSets_.count() << "attributes...";
   quint8 counter = 0;
 #endif
 
-  foreach( const AttributeSet *info, drawing.attributes_ )
+  foreach( const AttributeSet *info, drawing.attributeSets_ )
   {
     // Add the color to the attribute block
     if( info->color != defaultAttributeSet.color )
@@ -134,7 +134,7 @@ IsfError TagsWriter::addAttributeTable( DataSource &source, const Drawing &drawi
 #endif
   }
 
-  if( drawing.attributes_.count() > 1 )
+  if( drawing.attributeSets_.count() > 1 )
   {
     tagContents.prepend( encodeUInt( tagContents.size() ) );
     tagContents.prepend( encodeUInt( TAG_DRAW_ATTRS_TABLE ) );
@@ -301,14 +301,14 @@ IsfError TagsWriter::addStrokes( DataSource &source, const Drawing &drawing )
       }
     }
     // There is more than one set of attributes, assign each stroke to its own
-    if( drawing.attributes_.count() > 1 )
+    if( drawing.attributeSets_.count() > 1 )
     {
       // Only write a DIDX if this stroke needs a different attribute set than the last stroke
       if( currentAttributeSet != stroke->attributes )
       {
         currentAttributeSet = stroke->attributes;
         blockData.append( encodeUInt( TAG_DIDX ) );
-        blockData.append( encodeUInt( drawing.attributes_.indexOf( stroke->attributes ) ) );
+        blockData.append( encodeUInt( drawing.attributeSets_.indexOf( stroke->attributes ) ) );
       }
     }
     // There is more than one set of attributes, assign each stroke to its own

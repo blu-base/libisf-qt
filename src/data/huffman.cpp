@@ -147,7 +147,10 @@ namespace Isf
 
       quint8 prefixLength;
       for( prefixLength = 1;
-           ( prefixLength < HUFFMAN_BASE_SIZE ) && ( offset >= huffmanBases_[ index ][ prefixLength ] ); prefixLength++ );
+           ( prefixLength < HUFFMAN_BASE_SIZE ) && ( offset >= huffmanBases_[ index ][ prefixLength ] ); prefixLength++ )
+      {
+        // Empty loop on purpose
+      }
 
 
 //       quint8 lengthIndex = bitAmounts.indexOf( requiredBits );

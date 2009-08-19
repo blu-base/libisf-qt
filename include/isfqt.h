@@ -232,7 +232,7 @@ namespace Isf
     AttributeSet()
     : color( Qt::black )
     , flags( 0x10 )      // Meaning unknown
-    , penSize( 20, 20 )  // +/- 8px in HiMetric units
+    , penSize( 20.f, 20.f )  // +/- 8px in HiMetric units
     {
     }
 
@@ -274,10 +274,22 @@ namespace Isf
    */
   struct Point
   {
-    /// Constructor
+    /// Empty constructor
     Point()
     : position( 0, 0 )
     , pressureLevel( 0 )
+    {
+    }
+    /// Constructor with point only
+    Point( const QPoint &point )
+    : position( point )
+    , pressureLevel( 0 )
+    {
+    }
+    /// Constructor with point and pressure
+    Point( const QPoint &point, const qint64 pressure )
+    : position( point )
+    , pressureLevel( pressure )
     {
     }
 
