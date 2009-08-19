@@ -42,7 +42,7 @@ using namespace Compress;
  */
 Drawing::Drawing()
 : currentMetrics_( 0 )
-, currentPointInfo_( 0 )
+, currentAttributeSet_( 0 )
 , currentStrokeInfo_( 0 )
 , currentTransform_( 0 )
 , error_( ISF_ERROR_NONE )
@@ -82,28 +82,28 @@ void Drawing::clear()
   qDeleteAll( strokes_ );
   qDeleteAll( transforms_ );
   qDeleteAll( attributes_ );
-  metrics_.clear();
+  metrics_   .clear();
   strokeInfo_.clear();
-  strokes_.clear();
+  strokes_   .clear();
   transforms_.clear();
   attributes_.clear();
 
   // Invalidate the current item pointers
-  currentMetrics_ = 0;
-  currentPointInfo_ = 0;
-  currentStrokeInfo_ = 0;
-  currentTransform_ = 0;
+  currentMetrics_      = 0;
+  currentAttributeSet_ = 0;
+  currentStrokeInfo_   = 0;
+  currentTransform_    = 0;
 
   // Nullify the other properties
   boundingRect_ = QRect();
-  canvas_ = QRect();
-  error_ = ISF_ERROR_NONE;
-  hasXData_ = true;
-  hasYData_ = true;
-  isNull_ = true;
-  maxGuid_ = 0;
-  maxPenSize_ = QSizeF();
-  size_ = QSize();
+  canvas_       = QRect();
+  error_        = ISF_ERROR_NONE;
+  hasXData_     = true;
+  hasYData_     = true;
+  isNull_       = true;
+  maxGuid_      = 0;
+  maxPenSize_   = QSizeF();
+  size_         = QSize();
 }
 
 
@@ -150,10 +150,10 @@ QPixmap Drawing::getPixmap()
 #endif
 
   // Keep record of the currently used properties, to avoid re-setting them for each stroke
-  currentMetrics_    = 0;
-  currentPointInfo_  = 0;
-  currentStrokeInfo_ = 0;
-  currentTransform_  = 0;
+  currentMetrics_       = 0;
+  currentAttributeSet_  = 0;
+  currentStrokeInfo_    = 0;
+  currentTransform_     = 0;
 
   int index = 0;
   foreach( const Stroke *stroke, strokes_ )
@@ -164,13 +164,13 @@ QPixmap Drawing::getPixmap()
       // TODO need to convert all units somehow?
 //       painter.setSomething( currentMetrics );
     }
-    if( currentPointInfo_ != stroke->attributes )
+    if( currentAttributeSet_ != stroke->attributes )
     {
-      currentPointInfo_ = stroke->attributes;
+      currentAttributeSet_ = stroke->attributes;
 
-      float penSizePixels = Drawing::himetricToPixels( currentPointInfo_->penSize.width(), pixmap );
+      float penSizePixels = Drawing::himetricToPixels( currentAttributeSet_->penSize.width(), pixmap );
 
-      pen.setColor( currentPointInfo_->color );
+      pen.setColor( currentAttributeSet_->color );
       pen.setWidthF( penSizePixels );
       painter.setPen( pen );
     }
@@ -186,7 +186,7 @@ QPixmap Drawing::getPixmap()
 
 #ifdef ISFQT_DEBUG_VERBOSE
     qDebug() << "Rendering stroke" << index << "containing" << stroke->points.count() << "points";
-    qDebug() << "- Stroke color:" << currentPointInfo_->color.name() << "Pen size:" << pen.widthF();
+    qDebug() << "- Stroke color:" << currentAttributeSet_->color.name() << "Pen size:" << pen.widthF();
 #endif
 
     if( stroke->points.count() > 1 )
@@ -243,7 +243,7 @@ QPixmap Drawing::getPixmap()
     pen.setColor( QColor( Qt::red ) );
     painter.setPen( pen );
     painter.drawText( stroke.points.first().position, QString::number( index ) );
-    pen.setColor( currentPointInfo_->color );
+    pen.setColor( currentAttributeSet_->color );
     painter.setPen( pen );
 #endif
 */

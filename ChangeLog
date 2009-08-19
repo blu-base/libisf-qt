@@ -8,6 +8,7 @@
  * Fixed stroke saving. The library should now be able to generate new ink.
  * Renamed Isf::Parser::isfToDrawing() and Isf::Parser::drawingToIsf()
    to Isf::Stream::reader() and Isf::Stream::writer() to enhance readability.
+ * Renamed the Isf::PointInfo structure to Isf::AttributeSet, because the old name made no sense.
 
 2009-08-14 (Valerio)
  * Added Drawing::clean() method to reset a drawing without creating a new one.

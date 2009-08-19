@@ -226,10 +226,10 @@ namespace Isf
   /**
    * Drawing attributes for points
    */
-  struct PointInfo
+  struct AttributeSet
   {
     /// Constructor
-    PointInfo()
+    AttributeSet()
     : color( Qt::black )
     , flags( 0x10 )      // Meaning unknown
     , penSize( 20, 20 )  // +/- 8px in HiMetric units
@@ -306,7 +306,7 @@ namespace Isf
     /// Bounding rectangle of this stroke
     QRect         boundingRect;
     /// Link to the attributes of this stroke's points, if any
-    PointInfo    *attributes;
+    AttributeSet *attributes;
     /// Link to this stroke's attributes, if any
     StrokeInfo   *info;
     /// Link to this stroke's metrics, if any

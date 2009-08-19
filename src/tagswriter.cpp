@@ -57,19 +57,19 @@ IsfError TagsWriter::addHiMetricSize( DataSource &source, const Drawing &drawing
 /// Write a table of points attributes
 IsfError TagsWriter::addAttributeTable( DataSource &source, const Drawing &drawing )
 {
-  QByteArray blockData;
-  QByteArray tagContents;
-  PointInfo defaultPoint;
+  QByteArray   blockData;
+  QByteArray   tagContents;
+  AttributeSet defaultAttributeSet;
 
 #ifdef ISFQT_DEBUG_VERBOSE
   qDebug() << "- Adding" << drawing.attributes_.count() << "attributes...";
   quint8 counter = 0;
 #endif
 
-  foreach( const PointInfo *info, drawing.attributes_ )
+  foreach( const AttributeSet *info, drawing.attributes_ )
   {
     // Add the color to the attribute block
-    if( info->color != defaultPoint.color )
+    if( info->color != defaultAttributeSet.color )
     {
       blockData.append( encodeUInt( GUID_COLORREF ) );
 
@@ -88,7 +88,7 @@ IsfError TagsWriter::addAttributeTable( DataSource &source, const Drawing &drawi
     }
 
     // Add the pen size
-    if( info->penSize != defaultPoint.penSize )
+    if( info->penSize != defaultAttributeSet.penSize )
     {
       blockData.append( encodeUInt( GUID_PEN_WIDTH ) );
       blockData.append( encodeUInt( info->penSize.width() ) );
@@ -101,7 +101,7 @@ IsfError TagsWriter::addAttributeTable( DataSource &source, const Drawing &drawi
     }
 
     // Add the other drawing flags
-    if( info->flags != defaultPoint.flags )
+    if( info->flags != defaultAttributeSet.flags )
     {
       StrokeFlags flags = info->flags;
       if( flags & IsRectangle )
@@ -283,9 +283,9 @@ IsfError TagsWriter::addStrokes( DataSource &source, const Drawing &drawing )
 #endif
 
   // Last set of attibutes applied to a stroke
-  Metrics   *currentMetrics   = 0;
-  PointInfo *currentPointInfo = 0;
-  QMatrix   *currentTransform = 0;
+  Metrics      *currentMetrics      = 0;
+  AttributeSet *currentAttributeSet = 0;
+  QMatrix      *currentTransform    = 0;
 
   foreach( const Stroke *stroke, drawing.strokes_ )
   {
@@ -304,9 +304,9 @@ IsfError TagsWriter::addStrokes( DataSource &source, const Drawing &drawing )
     if( drawing.attributes_.count() > 1 )
     {
       // Only write a DIDX if this stroke needs a different attribute set than the last stroke
-      if( currentPointInfo != stroke->attributes )
+      if( currentAttributeSet != stroke->attributes )
       {
-        currentPointInfo = stroke->attributes;
+        currentAttributeSet = stroke->attributes;
         blockData.append( encodeUInt( TAG_DIDX ) );
         blockData.append( encodeUInt( drawing.attributes_.indexOf( stroke->attributes ) ) );
       }
@@ -360,231 +360,5 @@ IsfError TagsWriter::addStrokes( DataSource &source, const Drawing &drawing )
 
   return ISF_ERROR_NONE;
 }
-
-
-
-/*
-/// Write the table of GUIDs from the data
-IsfError TagsWriter::addGuidTable( DataSource &source, const Drawing &drawing )
-{
-  quint64 guidTableSize = decodeUInt( source );
-
-  // GUIDs are 16 bytes long
-  quint8 numGuids = guidTableSize / 16;
-  // Maximum GUID present in the file
-  drawing.maxGuid_ = 99 + numGuids;
-
-#ifdef ISFQT_DEBUG_VERBOSE
-  qDebug() << "- GUID table has" << numGuids << "entries for total" << guidTableSize << "bytes:";
-#endif
-
-  quint8 index = 0;
-
-  while( ! source.atEnd() && index < numGuids )
-  {
-    // 100 is the first index available for custom GUIDs
-    quint8 guidIndex = index + 100;
-
-#ifdef ISFQT_DEBUG_VERBOSE
-    qDebug() << "  - Index" << QString::number( guidIndex ).rightJustified( ' ', 5 )
-            << "->" << source.getBytes( 16 ).toHex();
-#else
-    Q_UNUSED( guidIndex )
-#endif
-
-    ++index;
-  }
-
-  return ISF_ERROR_NONE;
-}
-
-
-
-/// Write payload: Persistent Format
-IsfError TagsWriter::addPersistentFormat( DataSource &source, const Drawing &drawing )
-{
-  Q_UNUSED( drawing )
-
-  // Unknown content
-  analyzePayload( source, "Persistent Format" );
-
-  return ISF_ERROR_NONE;
-}
-
-
-
-/// Write the ink canvas dimensions
-IsfError TagsWriter::addInkSpaceRectangle( DataSource &source, const Drawing &drawing )
-{
-  // This tag has a fixed 4-byte size
-  drawing.canvas_.setLeft  ( decodeInt( source ) );
-  drawing.canvas_.setTop   ( decodeInt( source ) );
-  drawing.canvas_.setRight ( decodeInt( source ) );
-  drawing.canvas_.setBottom( decodeInt( source ) );
-
-#ifdef ISFQT_DEBUG
-  qDebug() << "- Got drawing canvas:" << drawing.canvas_;
-#endif
-
-  return ISF_ERROR_NONE;
-}
-
-
-
-/// Write payload: Metric Table
-IsfError TagsWriter::addMetricTable( DataSource &source, const Drawing &drawing )
-{
-  IsfError result = ISF_ERROR_NONE;
-  quint64 payloadSize = decodeUInt( source );
-
-  if( payloadSize == 0 )
-  {
-#ifdef ISFQT_DEBUG
-    qDebug() << "Invalid payload for TAG_METRIC_TABLE";
-#endif
-    return ISF_ERROR_INVALID_PAYLOAD;
-  }
-
-  qint64 payloadEnd = source.pos() + payloadSize;
-  while( result == ISF_ERROR_NONE && source.pos() < payloadEnd && ! source.atEnd() )
-  {
-    result = parseMetricBlock( source, drawing );
-  }
-
-  return result;
-}
-
-
-
-/// Write payload: Metric Block
-IsfError TagsWriter::addMetricBlock( DataSource &source, const Drawing &drawing )
-{
-  Q_UNUSED( drawing )
-
-  quint64 payloadSize = decodeUInt( source );
-
-  if( payloadSize == 0 )
-  {
-#ifdef ISFQT_DEBUG
-    qDebug() << "Invalid payload for TAG_METRIC_BLOCK";
-#endif
-    return ISF_ERROR_INVALID_PAYLOAD;
-  }
-
-  // Skip it, its usefulness is lesser than making the parser to actually work :)
-  source.seekRelative( payloadSize );
-
-#ifdef ISFQT_DEBUG_VERBOSE
-  qDebug() << "- Skipped metrics block";
-#endif
-
-  return ISF_ERROR_NONE;
-}
-
-
-
-/// Write a stroke description block
-IsfError TagsWriter::addStrokeDescBlock( DataSource &source, const Drawing &drawing )
-{
-  quint64 payloadSize = decodeUInt( source );
-
-  if( payloadSize == 0 )
-  {
-#ifdef ISFQT_DEBUG
-    qDebug() << "Invalid payload for TAG_STROKE_DESC_BLOCK";
-#endif
-    return ISF_ERROR_INVALID_PAYLOAD;
-  }
-
-#ifdef ISFQT_DEBUG_VERBOSE
-  qDebug() << "- Finding stroke description properties in the next" << payloadSize << "bytes";
-#endif
-
-  drawing.strokeInfo_.append( StrokeInfo() );
-  StrokeInfo &info = drawing.strokeInfo_.last();
-
-  // set this once when we get the first TAG_STROKE_DESC_BLOCK. then,
-  // everytime we get a SIDX we can update it. if we don't do this
-  // then the first stroke will have the same stroke info as the last stroke.
-  if ( drawing.currentStrokeInfo_ == &drawing.defaultStrokeInfo_ )
-  {
-    drawing.currentStrokeInfo_ = &info;
-  }
-
-#ifdef ISFQT_DEBUG_VERBOSE
-  qDebug() << "- Added stroke info block #" << ( drawing.strokeInfo_.count() - 1 );
-#endif
-
-  qint64 payloadEnd = source.pos() + payloadSize;
-  while( source.pos() < payloadEnd && ! source.atEnd() )
-  {
-    quint64 tag = decodeUInt( source );
-
-    switch( tag )
-    {
-      case TAG_NO_X:
-#ifdef ISFQT_DEBUG_VERBOSE
-        qDebug() << "- Stroke contains no X coordinates";
-#endif
-        info.hasXData = false;
-        break;
-
-      case TAG_NO_Y:
-#ifdef ISFQT_DEBUG_VERBOSE
-        qDebug() << "- Stroke contains no Y coordinates";
-#endif
-        info.hasYData = false;
-        break;
-
-      case TAG_BUTTONS:
-#ifdef ISFQT_DEBUG_VERBOSE
-        qDebug() << "- Buttons...";
-#endif
-        break;
-
-      case TAG_STROKE_PROPERTY_LIST:
-#ifdef ISFQT_DEBUG_VERBOSE
-        qDebug() << "- Property list...";
-#endif
-        break;
-
-      default: // List of Stroke packet properties
-#ifdef ISFQT_DEBUG_VERBOSE
-        qDebug() << "- Packet properties list:" << QString::number( tag, 10 );
-#endif
-        info.hasPressureData = true;
-        // TODO How is this list made?
-        break;
-    }
-  }
-
-  return ISF_ERROR_NONE;
-}
-
-
-
-/// Write a stroke description table
-IsfError TagsWriter::addStrokeDescTable( DataSource &source, const Drawing &drawing )
-{
-  IsfError result = ISF_ERROR_NONE;
-  quint64 payloadSize = decodeUInt( source );
-
-  if( payloadSize == 0 )
-  {
-#ifdef ISFQT_DEBUG
-    qDebug() << "Invalid payload for TAG_STROKE_DESC_TABLE";
-#endif
-    return ISF_ERROR_INVALID_PAYLOAD;
-  }
-
-  qint64 payloadEnd = source.pos() + payloadSize;
-  while( result == ISF_ERROR_NONE && source.pos() < payloadEnd && ! source.atEnd() )
-  {
-    result = parseStrokeDescBlock( source, drawing );
-  }
-
-  return result;
-}
-*/
 
 

@@ -83,7 +83,7 @@ namespace Isf
     private: // Private properties
 
       // List of attributes of the points in the drawing
-      QList<PointInfo*>         attributes_;
+      QList<AttributeSet*>      attributes_;
       // Bounding rectangle of the drawing
       QRect                     boundingRect_;
       // Virtual drawing canvas dimensions
@@ -91,7 +91,7 @@ namespace Isf
       // Link to the currently used metric data
       Metrics                  *currentMetrics_;
       // Link to the currently used point info data
-      PointInfo                *currentPointInfo_;
+      AttributeSet             *currentAttributeSet_;
       // Link to the currently used stroke info data
       StrokeInfo               *currentStrokeInfo_;
       // Link to the currently used transformation
@@ -99,7 +99,7 @@ namespace Isf
       // Link to the default metric data
       Metrics                   defaultMetrics_;
       // Link to the default point info data
-      PointInfo                 defaultPointInfo_;
+      AttributeSet              defaultAttributeSet_;
       // Link to the default stroke info data
       StrokeInfo                defaultStrokeInfo_;
       // Link to the default transformation

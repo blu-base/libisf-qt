@@ -112,10 +112,10 @@ Drawing Stream::reader( const QByteArray &rawData )
           drawing.isNull_ = false;
 
           // Fill up the default properties
-          drawing.currentMetrics_    = &drawing.defaultMetrics_;
-          drawing.currentPointInfo_  = &drawing.defaultPointInfo_;
-          drawing.currentStrokeInfo_ = &drawing.defaultStrokeInfo_;
-          drawing.currentTransform_  = &drawing.defaultTransform_;
+          drawing.currentMetrics_       = &drawing.defaultMetrics_;
+          drawing.currentAttributeSet_  = &drawing.defaultAttributeSet_;
+          drawing.currentStrokeInfo_    = &drawing.defaultStrokeInfo_;
+          drawing.currentTransform_     = &drawing.defaultTransform_;
 
           // start looking for ISF tags.
           state = ISF_PARSER_TAG;
@@ -214,7 +214,7 @@ Drawing Stream::reader( const QByteArray &rawData )
 
             if( value < (uint)drawing.attributes_.count() )
             {
-              drawing.currentPointInfo_ = drawing.attributes_[ value ];
+              drawing.currentAttributeSet_ = drawing.attributes_[ value ];
 #ifdef ISFQT_DEBUG_VERBOSE
               qDebug() << "- Next strokes will use drawing attributes #" << value;
 #endif

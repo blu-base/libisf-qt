@@ -143,15 +143,15 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
     return ISF_ERROR_INVALID_PAYLOAD;
   }
 
-  drawing.attributes_.append( new PointInfo() );
-  PointInfo *info = drawing.attributes_.last();
+  drawing.attributes_.append( new AttributeSet() );
+  AttributeSet *info = drawing.attributes_.last();
 
   // set this once when we get the first DRAW_ATTRS_BLOCK. then,
   // everytime we get a DIDX we can update it. if we don't do this
   // then the first stroke will have the same colour as the last stroke.
-  if ( drawing.currentPointInfo_ == &drawing.defaultPointInfo_ )
+  if ( drawing.currentAttributeSet_ == &drawing.defaultAttributeSet_ )
   {
-    drawing.currentPointInfo_ = info;
+    drawing.currentAttributeSet_ = info;
   }
 
 #ifdef ISFQT_DEBUG_VERBOSE
@@ -718,7 +718,7 @@ IsfError TagsParser::parseStroke( DataSource &source, Drawing &drawing )
   }
 
   stroke->boundingRect = polygon.boundingRect();
-  stroke->attributes   = drawing.currentPointInfo_;
+  stroke->attributes   = drawing.currentAttributeSet_;
   stroke->info         = drawing.currentStrokeInfo_;
   stroke->metrics      = drawing.currentMetrics_;
   stroke->transform    = drawing.currentTransform_;
