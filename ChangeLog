@@ -1,3 +1,5 @@
+2009-08-20 (Adam)
+ * Fix install path of FindIsfQt.cmake.
 
 2009-08-19 (Valerio)
  * Added DataSource::reset() method to start reading data back from the start.

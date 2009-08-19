@@ -61,4 +61,4 @@ CONFIGURE_FILE( cmake/IsfQtConfig.cmake.in "${CMAKE_CURRENT_BINARY_DIR}/IsfQtCon
 INSTALL( FILES ${CMAKE_CURRENT_BINARY_DIR}/IsfQtConfig.cmake
          DESTINATION ${LIB_INSTALL_DIR}/isfqt )
 INSTALL( FILES cmake/FindIsfQt.cmake
-         DESTINATION ${SHARED_INSTALL_DIR}/cmake/Modules )
+         DESTINATION ${CMAKE_ROOT}/Modules )
