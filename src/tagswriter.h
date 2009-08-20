@@ -48,10 +48,14 @@ namespace Isf
   {
     public: // Static public methods
 
+      /// Write the persistent format tag
+      static IsfError addPersistentFormat( DataSource &source, const Drawing &drawing );
       /// Write the drawing dimensions
       static IsfError addHiMetricSize( DataSource &source, const Drawing &drawing );
       /// Write a table of points attributes
       static IsfError addAttributeTable( DataSource &source, const Drawing &drawing );
+      /// Write a table of metrics
+      static IsfError addMetricsTable( DataSource &source, const Drawing &drawing );
       /// Write a table of transformation matrices
       static IsfError addTransformationTable( DataSource &source, const Drawing &drawing );
       /// Write the strokes

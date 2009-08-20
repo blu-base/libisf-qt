@@ -1,3 +1,13 @@
+
+2009-08-20 (Valerio)
+ * Implemented writing metric blocks into ISF streams.
+ * Fixed transformation/attributeSet/metrics index writing, now the index tags are written only
+   when necessary.
+ * Removed all user-side required conversions between HiMetric units and pixels. The library
+   now only offers data expressed in pixels.
+ * Fixed a bug in writeHiMetricSize() which prevented ISF streams from being parsed by older
+   Microsoft.Ink libraries, like the one of Windows Messenger.
+
 2009-08-20 (Adam)
  * Fix install path of FindIsfQt.cmake.
  * Don't attempt to install FindIsfQt.cmake if the library is build bundled.

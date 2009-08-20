@@ -99,6 +99,14 @@ namespace Isf
 
 
 
+  /**
+   * Persistent Format version
+   *
+   * See TagsParser::parsePersistentFormat() for more info.
+   */
+  const uint ISF_PERSISTENT_FORMAT_VERSION = 65536;
+
+
 }
 
 

@@ -84,13 +84,56 @@ IsfError TagsParser::parseGuidTable( DataSource &source, Drawing &drawing )
 
 
 
-/// Read payload: Persistent Format
+/// Read the Persistent Format data
 IsfError TagsParser::parsePersistentFormat( DataSource &source, Drawing &drawing )
 {
   Q_UNUSED( drawing )
 
-  // Unknown content
-  analyzePayload( source, "Persistent Format" );
+  // This tag probably contains a version number or ID; it's made of a tag
+  // and a payload.
+  // The only observed value so far is 65536, multibyte-encoded as 0x808004,
+  // with a payload size of 3 bytes.
+
+  quint64 payloadSize    = decodeUInt( source );
+  quint64 sourcePosition = source.pos();
+
+  if( payloadSize == 0 )
+  {
+#ifdef ISFQT_DEBUG
+    qDebug() << "Invalid payload for TAG_PERSISTENT_FORMAT";
+#endif
+    return ISF_ERROR_INVALID_PAYLOAD;
+  }
+
+  // Try reading one multibyte value
+  quint64 version = decodeUInt( source );
+
+  // If we read some unexpected contents, dump them to help improving the library
+  quint32 actualPayloadSize = source.pos() - sourcePosition;
+  if( actualPayloadSize != payloadSize )
+  {
+#ifdef ISFQT_DEBUG
+    qDebug() << "Invalid payload contents for TAG_PERSISTENT_FORMAT!"
+             << "Read" << actualPayloadSize << "bytes instead of" << payloadSize;
+    source.seekRelative( - actualPayloadSize );
+    analyzePayload( source, payloadSize, "TAG_PERSISTENT_FORMAT unknown contents" );
+#endif
+  }
+
+  // Check the version, if it really is a version :)
+  if( version != ISF_PERSISTENT_FORMAT_VERSION )
+  {
+#ifdef ISFQT_DEBUG
+    qDebug() << "- Invalid Persistent Format version" << version;
+#endif
+    return ISF_ERROR_BAD_VERSION;
+  }
+#ifdef ISFQT_DEBUG
+  else
+  {
+    qDebug() << "- Persistent Format version ok.";
+  }
+#endif
 
   return ISF_ERROR_NONE;
 }
@@ -181,8 +224,8 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
         // TODO: It also contains an alpha value, ignored here for now because it's unknown if
         // it is needed or not
         set->color = QColor( qBlue ( invertedColor ),
-                              qGreen( invertedColor ),
-                              qRed  ( invertedColor ) );
+                             qGreen( invertedColor ),
+                             qRed  ( invertedColor ) );
 #ifdef ISFQT_DEBUG_VERBOSE
         qDebug() << "- Got pen color" << set->color.name().toUpper();
 #endif
@@ -194,20 +237,16 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
         qDebug() << "- Got pen width" << QString::number( (float)value, 'g', 16 )
                  << "(" << (value/HiMetricToPixel) << "pixels )";
 #endif
-        if( ! set->penSize.isValid() )
-        {
-          // In square/round pens the width will be the only value present.
-          set->penSize.setHeight( (float)value );
-        }
-
-        set->penSize.setWidth( (float)value );
+        // In square/round pens the width will be the only value present.
+        set->penSize.setWidth ( (float)value / HiMetricToPixel );
+        set->penSize.setHeight( (float)value / HiMetricToPixel );
         break;
 
       case GUID_PEN_HEIGHT:
 #ifdef ISFQT_DEBUG_VERBOSE
         qDebug() << "- Got pen height" << QString::number( (float)value, 'g', 16 );
 #endif
-        set->penSize.setHeight( (float)value );
+        set->penSize.setHeight( (float)value / HiMetricToPixel );
         break;
 
       case GUID_PEN_TIP:

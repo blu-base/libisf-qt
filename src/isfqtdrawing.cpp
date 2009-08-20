@@ -89,9 +89,6 @@ qint32 Drawing::addAttributeSet( AttributeSet *newAttributeSet )
     return -1;
   }
 
-  // Convert the attribute set's properties into HiMetric units
-  newAttributeSet->penSize *= HiMetricToPixel;
-
   isNull_ = false;
   attributeSets_.append( newAttributeSet );
 
@@ -304,11 +301,10 @@ void Drawing::finalizeChanges()
   {
     QMatrix *transform = new QMatrix();
     transform->scale( 1.f, 1.f );
-    transform->translate( .01f, .01f );
+    transform->translate( .0f, .0f );
 
     transforms_.append( transform );
   }
-
 }
 
 
@@ -389,10 +385,8 @@ QPixmap Drawing::getPixmap( const QColor backgroundColor )
     {
       currentAttributeSet_ = stroke->attributes;
 
-      float penSizePixels = Drawing::himetricToPixels( currentAttributeSet_->penSize.width(), pixmap );
-
       pen.setColor( currentAttributeSet_->color );
-      pen.setWidthF( penSizePixels );
+      pen.setWidthF( currentAttributeSet_->penSize.width() );
       painter.setPen( pen );
     }
     if( currentStrokeInfo_ != stroke->info )

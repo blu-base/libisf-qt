@@ -231,8 +231,8 @@ namespace Isf
     /// Constructor
     AttributeSet()
     : color( Qt::black )
-    , flags( 0x10 )      // Meaning unknown
-    , penSize( 20.f, 20.f )  // +/- 8px in HiMetric units
+    , flags( 0x10 )        // Meaning unknown
+    , penSize( 8.f, 8.f )  // Default pen is 8.0 pixels wide
     {
     }
 

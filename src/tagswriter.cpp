@@ -34,16 +34,40 @@ using namespace Isf::Compress;
 
 
 
+      /// Write the persistent format tag
+IsfError TagsWriter::addPersistentFormat( DataSource &source, const Drawing &drawing )
+{
+  Q_UNUSED( drawing );
+
+  QByteArray tagContents;
+
+  tagContents.append( encodeUInt( ISF_PERSISTENT_FORMAT_VERSION ) );
+
+  tagContents.prepend( encodeUInt( tagContents.size() ) );
+  tagContents.prepend( encodeUInt( TAG_PERSISTENT_FORMAT ) );
+
+  source.append( tagContents );
+
+#ifdef ISFQT_DEBUG_VERBOSE
+  qDebug() << "- Persistent Format version";
+#endif
+
+  return ISF_ERROR_NONE;
+}
+
+
+
 /// Write the drawing dimensions
 IsfError TagsWriter::addHiMetricSize( DataSource &source, const Drawing &drawing )
 {
+  QByteArray tagContents;
+
+  tagContents.append( encodeInt( drawing.size_.width () ) );
+  tagContents.append( encodeInt( drawing.size_.height() ) );
+
   encodeUInt( source, TAG_HIMETRIC_SIZE );
-
-  // This tag has a fixed size of 2 bytes. Nevertheless, it must have a payload size field. wtf.
-  encodeUInt( source, 2 );
-
-  encodeInt( source, drawing.size_.width () );
-  encodeInt( source, drawing.size_.height() );
+  encodeUInt( source, tagContents.size() );
+  source.append( tagContents );
 
 #ifdef ISFQT_DEBUG_VERBOSE
   qDebug() << "- Added drawing dimensions:" << drawing.size_;
@@ -98,17 +122,17 @@ IsfError TagsWriter::addAttributeTable( DataSource &source, const Drawing &drawi
     if( info->penSize != defaultAttributeSet.penSize )
     {
       blockData.append( encodeUInt( GUID_PEN_WIDTH ) );
-      blockData.append( encodeUInt( (quint64)info->penSize.width() ) );
+      blockData.append( encodeUInt( info->penSize.width() * HiMetricToPixel ) );
 
 #ifdef ISFQT_DEBUG_VERBOSE
-      qDebug() << "  - Pen width:" << (quint64)info->penSize.width();
+      qDebug() << "  - Pen width:" << ( info->penSize.width() * HiMetricToPixel );
 #endif
       if( info->penSize.width() != info->penSize.height() )
       {
         blockData.append( encodeUInt( GUID_PEN_HEIGHT ) );
-        blockData.append( encodeUInt( (quint64)info->penSize.height() ) );
+        blockData.append( encodeUInt( info->penSize.height() * HiMetricToPixel ) );
 #ifdef ISFQT_DEBUG_VERBOSE
-      qDebug() << "  - Pen height:" << (quint64)info->penSize.height();
+      qDebug() << "  - Pen height:" << ( info->penSize.height() * HiMetricToPixel );
 #endif
       }
     }
@@ -168,6 +192,82 @@ IsfError TagsWriter::addAttributeTable( DataSource &source, const Drawing &drawi
   }
 
   source.append( tagContents );
+
+  return ISF_ERROR_NONE;
+}
+
+
+
+/// Write a table of metrics
+IsfError TagsWriter::addMetricsTable( DataSource &source, const Drawing &drawing )
+{
+  QByteArray   metricData;
+  QByteArray   metricBlockData;
+  QByteArray   tagData;
+  Metrics      defaultMetrics;
+  Metric      *defaultMetric;
+
+#ifdef ISFQT_DEBUG_VERBOSE
+  qDebug() << "- Adding" << drawing.metrics_.count() << "metrics...";
+  quint8 counter = 0;
+#endif
+
+  foreach( const Metrics *metrics, drawing.metrics_ )
+  {
+    QMapIterator<int,Metric> it( metrics->items );
+    while( it.hasNext() )
+    {
+      it.next();
+      const quint64 &property = it.key  ();
+      const Metric  &metric   = it.value();
+
+      // Skip metrics which are set to the default
+      defaultMetric = &defaultMetrics.items[ property ];
+      if( defaultMetric->min        == metric.min
+      &&  defaultMetric->max        == metric.max
+      &&  defaultMetric->units      == metric.units
+      &&  defaultMetric->resolution == metric.resolution )
+      {
+        continue;
+      }
+
+      // Write the metric data
+      metricData.append( encodeInt( metric.min ) );
+      metricData.append( encodeInt( metric.max ) );
+      metricData.append( (uchar) metric.units );
+      metricData.append( encodeFloat( metric.resolution ) );
+
+      // Write how much data is there
+      metricData.prepend( encodeUInt( metricData.size() ) );
+
+      // Write the property ID
+      metricData.prepend( encodeUInt( property ) );
+
+      // Flush the metric
+      metricBlockData.append( metricData );
+      metricData.clear();
+    }
+
+    // Flush the metrics block
+    tagData.append( encodeUInt( metricBlockData.size() ) );
+    tagData.append( metricBlockData );
+    metricBlockData.clear();
+
+#ifdef ISFQT_DEBUG_VERBOSE
+    qDebug() << "- Added metrics block #" << ++counter;
+#endif
+  }
+
+  if( drawing.metrics_.count() > 1 )
+  {
+    tagData.prepend( encodeUInt( TAG_METRIC_TABLE ) );
+  }
+  else
+  {
+    tagData.prepend( encodeUInt( TAG_METRIC_BLOCK ) );
+  }
+
+  source.append( tagData );
 
   return ISF_ERROR_NONE;
 }
@@ -331,6 +431,13 @@ IsfError TagsWriter::addStrokes( DataSource &source, const Drawing &drawing )
     // There is more than one set of metrics, assign each stroke to its own
     if( drawing.metrics_.count() > 1 )
     {
+      // Make sure that the first strokes use the first metrics list (write a MIDX only
+      // when needed)
+      if( currentMetrics == 0 )
+      {
+        currentMetrics = drawing.metrics_.first();
+      }
+
       // Only write a MIDX if this stroke needs different metrics than the last stroke
       if( currentMetrics != stroke->metrics )
       {
@@ -342,6 +449,13 @@ IsfError TagsWriter::addStrokes( DataSource &source, const Drawing &drawing )
     // There is more than one set of attributes, assign each stroke to its own
     if( drawing.attributeSets_.count() > 1 )
     {
+      // Make sure that the first strokes use the first attribute set (write a DIDX only
+      // when needed)
+      if( currentAttributeSet == 0 )
+      {
+        currentAttributeSet = drawing.attributeSets_.first();
+      }
+
       // Only write a DIDX if this stroke needs a different attribute set than the last stroke
       if( currentAttributeSet != stroke->attributes )
       {
@@ -353,6 +467,13 @@ IsfError TagsWriter::addStrokes( DataSource &source, const Drawing &drawing )
     // There is more than one set of attributes, assign each stroke to its own
     if( drawing.metrics_.count() > 1 )
     {
+      // Make sure that the first strokes use the first transform (write a TIDX only
+      // when needed)
+      if( currentTransform == 0 )
+      {
+        currentTransform = drawing.transforms_.first();
+      }
+
       // Only write a TIDX if this stroke needs a different transform than the last stroke
       if( currentTransform != stroke->transform )
       {
