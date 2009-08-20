@@ -1,5 +1,6 @@
 2009-08-20 (Adam)
  * Fix install path of FindIsfQt.cmake.
+ * Don't attempt to install FindIsfQt.cmake if the library is build bundled.
 
 2009-08-19 (Valerio)
  * Added DataSource::reset() method to start reading data back from the start.

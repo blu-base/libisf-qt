@@ -58,7 +58,9 @@ CONFIGURE_FILE( cmake/IsfQtConfig.cmake.in "${CMAKE_CURRENT_BINARY_DIR}/IsfQtCon
 
 #### Installation ####
 
-INSTALL( FILES ${CMAKE_CURRENT_BINARY_DIR}/IsfQtConfig.cmake
-         DESTINATION ${LIB_INSTALL_DIR}/isfqt )
-INSTALL( FILES cmake/FindIsfQt.cmake
-         DESTINATION ${CMAKE_ROOT}/Modules )
+IF( NOT IS_BUNDLED_BUILD )
+  INSTALL( FILES ${CMAKE_CURRENT_BINARY_DIR}/IsfQtConfig.cmake
+          DESTINATION ${LIB_INSTALL_DIR}/isfqt )
+  INSTALL( FILES cmake/FindIsfQt.cmake
+          DESTINATION ${CMAKE_ROOT}/Modules )
+ENDIF( NOT IS_BUNDLED_BUILD )
