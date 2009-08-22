@@ -1,3 +1,13 @@
+2009-08-23 (Adam)
+ * Bug fixes in isf-qt: properly assign stroke attributes when changing colour on InkEdit.
+ * Fix a crash that would occur if stroke attributes or transform were null.
+ * Initial version of isf-qt InkEdit committed. Works reasonably well. Not integrated in KMess yet.
+ * Added a cropping property to Isf::Drawing. When true, Drawing::getImage returns a cropped image
+   and getSize returns the cropped size. When false, does the opposite. Necessary for InkEdit to
+   properly support adding strokes to loaded Ink data.
+ * Add a test application for new InkEdit. Can create, save and load Ink data in both raw ISF and
+   ISF-base64 format.
+ * Fix a bug in tagswriter which cause corrupt ISF data if there were no metric blocks.
 
 2009-08-20 (Valerio)
  * Implemented writing metric blocks into ISF streams.

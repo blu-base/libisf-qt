@@ -262,10 +262,11 @@ IsfError TagsWriter::addMetricsTable( DataSource &source, const Drawing &drawing
   {
     tagData.prepend( encodeUInt( TAG_METRIC_TABLE ) );
   }
-  else
+  else if ( drawing.metrics_.count() == 1 )
   {
     tagData.prepend( encodeUInt( TAG_METRIC_BLOCK ) );
   }
+  // else: don't do anything.
 
   source.append( tagData );
 

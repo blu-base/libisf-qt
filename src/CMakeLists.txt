@@ -11,27 +11,31 @@ SET( ISFQT_SOURCES
      tagsparser.cpp
      tagswriter.cpp
      isfqt.cpp
+     isfinkedit.cpp
    )
 
 SET( ISFQT_PUBLIC_HEADERS
      ../include/isfqt.h
      ../include/isfqtdrawing.h
+     ../include/isfinkedit.h
      ../include/IsfQt
      ../include/IsfQtDrawing
+     ../include/IsfInkEdit
    )
 
 
 #### Compilation ####
 
+QT4_WRAP_CPP( MOC_SRCS ../include/isfinkedit.h )
+
 INCLUDE_DIRECTORIES( ${QT_INCLUDES} ${CMAKE_CURRENT_BINARY_DIR} )
 
-ADD_LIBRARY( isf-qt SHARED ${ISFQT_SOURCES} )
+ADD_LIBRARY( isf-qt SHARED ${ISFQT_SOURCES} ${MOC_SRCS} )
 TARGET_LINK_LIBRARIES( isf-qt ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} )
 
 SET_TARGET_PROPERTIES( isf-qt PROPERTIES
                               VERSION    ${ISFQT_VERSION}
                               SOVERSION  ${ISFQT_VERSION} )
-
 
 #### Installation ####
 

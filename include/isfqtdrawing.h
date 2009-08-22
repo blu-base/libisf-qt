@@ -86,6 +86,10 @@ namespace Isf
       AttributeSet             *getAttributeSet( quint32 index );
       /// Retrieve the attribute sets
       const QList<AttributeSet*>getAttributeSets();
+      /// Return if cropping is on
+      bool                      getCropping();
+      /// Return the pixel size of the drawing
+      QSize                     getSize();
       /// Retrieve a stroke to manipulate it
       Stroke                   *getStroke( quint32 index );
       /// Retrieve the strokes
@@ -94,11 +98,12 @@ namespace Isf
       QMatrix                  *getTransform( quint32 index );
       /// Retrieve the transformations
       const QList<QMatrix*>     getTransforms();
+      /// Set the cropping mode
+      void                      setCropping( bool on );
       /// Change the current attribute set
       bool                      setCurrentAttributeSet( AttributeSet *attributeSet );
       /// Change the new current attribute set
       bool                      setCurrentTransform( QMatrix *transform );
-
 
     public: // Public static methods
 
@@ -122,6 +127,8 @@ namespace Isf
       QRect                     boundingRect_;
       // Virtual drawing canvas dimensions
       QRect                     canvas_;
+      // Cropping mode?
+      bool                      cropping_;
       // Link to the currently used metric data
       Metrics                  *currentMetrics_;
       // Link to the currently used point info data

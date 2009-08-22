@@ -508,7 +508,7 @@ QByteArray Stream::writer( const Drawing &drawing )
 #endif
     return QByteArray();
   }
-
+ 
   DataSource isfData;
 
   // Write the persistent format tag
@@ -530,6 +530,7 @@ QByteArray Stream::writer( const Drawing &drawing )
   TagsWriter::addStrokes( isfData, drawing );
 
   // Write the stream size (at the start of the stream)
+  qDebug() << "ISF DATA SIZE:"<<isfData.size();
   encodeUInt( isfData, isfData.size(), true/*prepend*/ );
 
   // Write the version number (at the start of the stream)

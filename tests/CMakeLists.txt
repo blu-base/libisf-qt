@@ -20,3 +20,4 @@ ADD_MULTIPLE_TESTS(
 
 # Compile the ISF decoder test
 ADD_SUBDIRECTORY( decode )
+ADD_SUBDIRECTORY( inkedit )
