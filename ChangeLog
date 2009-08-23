@@ -1,4 +1,18 @@
 2009-08-23 (Adam)
+ * InkEdit now shows a custom cursor - a point drawn with the current stroke colour and width.
+ * Drawing now calculates its bounding rectangle as necessary. Calls to finalizeChanges are not
+   necessary anymore.
+ * Remove cropping. Found a better method whereby InkEdit will draw the rendered ISF using the 
+   offset provided by the bounding rectangle of Isf::Drawing.
+ * Supply the FitToCurve flag for all strokes. Windows will render them using Bezier smoothing, making
+   them appear nicer.
+ * Upgrade the TestInkEdit application. Supports multiple stroke colours and pen widths.
+ * Remove InkEdit::getImageBytes and replace with InkEdit::getBytes. InkEdit doesn't write to GIF.
+ * Support changing the colour of the InkEdit canvas.
+ * Add a convenience method, InkEdit::save(), that will write the ISF drawing to a given QIODevice.
+   Optionally will write the drawing in base64.
+
+2009-08-23 (Adam)
  * Bug fixes in isf-qt: properly assign stroke attributes when changing colour on InkEdit.
  * Fix a crash that would occur if stroke attributes or transform were null.
  * Initial version of isf-qt InkEdit committed. Works reasonably well. Not integrated in KMess yet.

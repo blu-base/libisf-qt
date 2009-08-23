@@ -39,20 +39,35 @@ class InkEdit : public QWidget
   Q_OBJECT
 
   public:
+    /**
+     * The various types of pens supported by InkEdit.
+     *
+     * Currently only two are supported; DrawingPen (for drawing Ink)
+     * and EraserPen, for erasing ink stroke-by-stroke.
+     */
+    enum PenType
+    {
+      DrawingPen,
+      EraserPen
+    };
+    
+  public:
     // Constructor
                         InkEdit( QWidget *parent = 0 );
+    // Destructor
+                        ~InkEdit();
+    // Get a QByteArray representing the Drawing instance.
+    QByteArray          getBytes();
     // Return the drawn ISF image
     Isf::Drawing       *getDrawing();
     // Return the Ink image as a QImage
     QImage              getImage();
-    // Change the colour for the pen
-    void                setPenColor( QColor newColor );
-    // Change the size of the pen, in pixels
-    void                setPenSize( uint pixels );
     // Erase the stroke at a given point.
     void                eraseStroke( QPoint &strokePoint );
     // Returns true if the image is empty
     bool                isEmpty();
+    // Save the drawing to a QIODevice, optionally base64 encoded.
+    void                save( QIODevice &device, bool base64 = false );
     // Change the current ink drawing.
     void                setDrawing( Isf::Drawing *drawing );
     // Provide a sensible default size
@@ -61,6 +76,14 @@ class InkEdit : public QWidget
   public slots:
     // Clear the current image
     void                clear();
+    // Set the canvas background color
+    void                setCanvasColor( QColor newColor );
+    // Change the colour for the pen
+    void                setPenColor( QColor newColor );
+    // Change the size of the pen, in pixels
+    void                setPenSize( int pixels );
+    // Change the pen to an eraser that erases strokes
+    void                setPenType( PenType type );
 
   protected: // protected methods
     // Implements all events to grep the mouse pointer
@@ -75,10 +98,18 @@ class InkEdit : public QWidget
     void                drawLineTo( const QPoint &endPoint );
     // Clear the buffer pixmap
     void                clearBuffer();
-    
+    // Update the cursor
+    void                updateCursor();
+
   private: // private attribute
+    // Color of the canvas background
+    QColor              canvasColor_;
     // Color of current pen
     QColor              color_;
+    // Cursor pixmap
+    QPixmap             cursorPixmap_;
+    // Current cursor
+    QCursor             cursor_;
     // It's true if the erase brush was selected.
     bool                erasingImage_;
     // Current image data
@@ -88,7 +119,9 @@ class InkEdit : public QWidget
     // True if the user is painting
     bool                scribbling_;
     // Pen size, in pixels.
-    uint                penSize_;
+    int                 penSize_;
+    // Pen type
+    PenType             penType_;
     // The current stroke being drawn
     Isf::Stroke         *currentStroke_;
     // The pixmap buffer where in progress strokes are drawn.

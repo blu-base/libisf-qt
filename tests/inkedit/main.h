@@ -21,6 +21,8 @@
 #ifndef MAIN_H
 #define MAIN_H
 
+#include "ui_testinkedit.h"
+
 #include <IsfQtDrawing>
 
 #include <QApplication>
@@ -30,11 +32,12 @@
 #include <QLabel>
 #include <QMainWindow>
 #include <QVBoxLayout>
+#include <QAbstractButton>
 
 #include <IsfInkEdit>
 
 
-class TestInkEdit : public QWidget
+class TestInkEdit : public QWidget, public Ui::TestInkEdit
 {
   Q_OBJECT
   
@@ -48,12 +51,9 @@ class TestInkEdit : public QWidget
     void saveInk();
     void loadInk();
     void clearInk();
+    void penTypeChanged( QAbstractButton *button );
+    void chooseColor();
 
-  private:
-    Isf::InkEdit *editor_;
-    QPushButton *cmdSave_;
-    QPushButton *cmdLoad_;
-    QLabel      *sayLabel_;
 };
 
 #endif

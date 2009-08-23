@@ -17,6 +17,8 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "isfqt-internal.h"
+
 #include "isfinkedit.h"
 #include "isfqtdrawing.h"
 
@@ -46,19 +48,67 @@ InkEdit::InkEdit( QWidget *parent )
 , currentStroke_( 0 )
 , drawingDirty_( true )
 {
-  
+  setCanvasColor( Qt::white );
   setPenColor( Qt::black );
   setPenSize( 4 );
   
-  drawing_ = new Isf::Drawing();
-  //drawing_->setBoundingRect( rect() );
+  clear();
 
   // prepare the buffer
   clearBuffer();
 
+  // create a custom cursor
+  updateCursor();
+  
+  // start with a drawing pen by default.
+  setPenType( DrawingPen );
+
   setAttribute( Qt::WA_StaticContents );
 }
 
+
+
+
+InkEdit::~InkEdit()
+{
+  if ( drawing_ != 0 )
+  {
+    delete drawing_;
+    drawing_ = 0;
+  }
+}
+
+
+
+
+/**
+ * Creates a QCursor that will be displayed when the mouse pointer moves over the widget.
+ *
+ * The cursor becomes a point, drawn with the current stroke colour and pen size.
+ */
+void InkEdit::updateCursor()
+{
+  if ( cursorPixmap_.isNull() )
+  {
+    cursorPixmap_ = QPixmap( QSize( 32, 32 ) );
+  }
+  
+  cursorPixmap_.fill( Qt::transparent );
+  
+  QPainter painter( &cursorPixmap_ );
+  
+  painter.setRenderHints( QPainter::Antialiasing | QPainter::SmoothPixmapTransform, true );
+  painter.setPen( QPen( color_, penSize_, Qt::SolidLine, Qt::RoundCap,
+                        Qt::RoundJoin ) );
+
+  // now draw a point.
+  painter.drawPoint( QPoint( cursorPixmap_.size().width() / 2, cursorPixmap_.size().height() / 2 ) );
+  
+  cursor_ = QCursor( cursorPixmap_ );
+  
+  // create our cursor.
+  setCursor( cursor_ );
+}
 
 
 
@@ -73,8 +123,9 @@ QSize InkEdit::sizeHint() const
   }
   else
   {
-    qDebug() << "NEW SIZE HINT:"<<drawing_->getSize();
-    return drawing_->getSize();
+    QRect boundingRect = drawing_->getBoundingRect();
+    boundingRect.setTopLeft( QPoint( 0, 0 ) );
+    return boundingRect.size();
   }
 }
 
@@ -86,14 +137,11 @@ QSize InkEdit::sizeHint() const
  */
 void InkEdit::clear()
 {
-  if ( drawing_ != 0 )
+  if ( drawing_ == 0 )
   {
-    delete drawing_;
-    drawing_ = 0;
+    drawing_ = new Isf::Drawing();
   }
-  
-  drawing_ = new Isf::Drawing();
-
+  drawing_->clear();
   drawingDirty_ = true;
   
   update();
@@ -109,14 +157,14 @@ void InkEdit::clear()
  * @param newColor A QColor object for the new color.
  */
 void InkEdit::setPenColor( QColor newColor )
-{
-  if ( drawing_ == 0 )
-  {
-    qWarning() << "Uninitialized usage of InkEdit!";
-    return;
-  }
-  
+{  
+#ifdef ISFQT_DEBUG
+  qDebug() << "Setting new pen color:" << newColor.name();
+#endif
+
   color_ = newColor;
+  
+  updateCursor();
 }
 
 
@@ -127,10 +175,33 @@ void InkEdit::setPenColor( QColor newColor )
  *
  * @param pixels The size of the pen, in pixels.
  */
-void InkEdit::setPenSize( uint pixels )
+void InkEdit::setPenSize( int pixels )
 {
+#ifdef ISFQT_DEBUG
+  qDebug() << "Setting new pen size:" << pixels;
+#endif
   penSize_ = pixels;
+  
+  updateCursor();
 }
+
+
+
+
+/**
+ * Change the pen type. See the PenType enum documentation for more information.
+ *
+ * @param type The new pen type.
+ */
+void InkEdit::setPenType( PenType type )
+{
+#ifdef ISFQT_DEBUG
+  qDebug() << "Setting new pen type:" << type;
+#endif
+
+  penType_ = type;
+}
+
 
 
 
@@ -152,7 +223,7 @@ void InkEdit::drawLineTo( const QPoint &endPoint )
   {
     color = QColor( "white" );
   }
-
+  
   painter.setPen( QPen( color, penSize_, Qt::SolidLine, Qt::RoundCap,
                   Qt::RoundJoin ) );
 
@@ -179,7 +250,9 @@ void InkEdit::drawLineTo( const QPoint &endPoint )
 
 
 
-// Returns true if the image is empty
+/**
+ * Returns true if the Ink image is empty (i.e., no strokes). False otherwise.
+ */
 bool InkEdit::isEmpty()
 {
   return drawing_->isNull();
@@ -187,6 +260,9 @@ bool InkEdit::isEmpty()
 
 
 
+/**
+ * Start drawing the stroke; save any attribute data if necessary.
+ */
 void InkEdit::mousePressEvent( QMouseEvent *event )
 {
   if( drawing_ == 0 )
@@ -201,7 +277,6 @@ void InkEdit::mousePressEvent( QMouseEvent *event )
   }
 
   lastPoint_ = event->pos();
-  //cropImage( lastPoint_ );
   scribbling_ = true;
 
   // Search if there already is an attributes set compatible with the current one
@@ -212,7 +287,9 @@ void InkEdit::mousePressEvent( QMouseEvent *event )
     && color_ == set->color )
     {
       reusableAttributeSet = set;
+#ifdef ISFQT_DEBUG
       qDebug() << "Found an usable ISF attribute set";
+#endif
       break;
     }
   }
@@ -220,7 +297,9 @@ void InkEdit::mousePressEvent( QMouseEvent *event )
   // If none is found, create a new one
   if( ! reusableAttributeSet )
   {
+#ifdef ISFQT_DEBUG
     qDebug() << "Creating new attribute set";
+#endif
     reusableAttributeSet = new Isf::AttributeSet;
     reusableAttributeSet->color = color_;
     reusableAttributeSet->penSize.setWidth ( (qreal)penSize_ );
@@ -244,22 +323,24 @@ void InkEdit::mousePressEvent( QMouseEvent *event )
 }
 
 
-
+/**
+ * The mouse is moving; continue drawing the stroke.
+ */
 void InkEdit::mouseMoveEvent(QMouseEvent *event)
 {
+  if( ! ( event->buttons() & Qt::LeftButton ) || ! scribbling_ )
+  {
+    return;
+  }
+
   if( drawing_ == 0 )
   {
     qWarning() << "Uninitialized usage of InkEdit!";
     return;
   }
 
-  if( ! ( event->buttons() & Qt::LeftButton ) || ! scribbling_ )
-  {
-    return;
-  }
-
   QPoint position( event->pos() );
-  //cropImage ( position );
+
   drawLineTo( position );
 
   if( currentStroke_ == 0 )
@@ -276,6 +357,9 @@ void InkEdit::mouseMoveEvent(QMouseEvent *event)
 
 
 
+/**
+ * Handle drawing and saving of a stroke.
+ */
 void InkEdit::mouseReleaseEvent(QMouseEvent *event)
 {
   if( drawing_ == 0 )
@@ -290,9 +374,7 @@ void InkEdit::mouseReleaseEvent(QMouseEvent *event)
   }
 
   QPoint position = event->pos();
-  //cropImage(  position );
   drawLineTo( position );
-
 
   scribbling_ = false;
   emit inkChanged();
@@ -320,7 +402,9 @@ void InkEdit::mouseReleaseEvent(QMouseEvent *event)
 }
 
 
-
+/**
+ * Clear the pixmap buffer.
+ */
 void InkEdit::clearBuffer()
 {
   bufferPixmap_ = QPixmap( size() );
@@ -338,17 +422,15 @@ void InkEdit::paintEvent(QPaintEvent *event)
   QPainter painter( this );
   
   painter.save();
-  painter.setBrush( QBrush( Qt::white ) );  
+  painter.setBrush( QBrush( canvasColor_ ) );  
   painter.drawRect( QRect(0, 0, width(), height() ) );
   painter.restore();
   
-  if( drawing_ == 0 || drawing_->isNull() )
+  if( drawing_ == 0 )
   {
-    //qWarning() << "Uninitialized usage of InkEdit!";
+    qWarning() << "Uninitialized usage of InkEdit!";
     return;
   }
- 
-  drawing_->finalizeChanges();
   
   // draw the ISF first, then the buffer over the top.
   // buffer has a transparent background.
@@ -356,25 +438,36 @@ void InkEdit::paintEvent(QPaintEvent *event)
 
   if ( drawingDirty_ )
   {
+#ifdef ISFQT_DEBUG
+    qDebug() << "ISF pixmap cache dirty; re-caching.";
+#endif
     isfCachePixmap_ = isfPixmap;
     drawingDirty_ = false;
   }
 
-  painter.drawPixmap( QPoint(0, 0), isfPixmap );
+  QRect boundingRect = drawing_->getBoundingRect();
+  
+  // draw the pixmap starting at the boundingRect_ top left corner.
+  painter.drawPixmap( boundingRect.topLeft(), isfPixmap );
+  
+  // draw the buffer from 0,0.
   painter.drawPixmap( QPoint(0, 0), bufferPixmap_ );
   
 }
 
 
 
-// when the widget is resized, also resize the size of the
-// buffer pixmap
+// when resized, re-draw everything.
 void InkEdit::resizeEvent( QResizeEvent *event )
-{
+{ 
+  // need to resize the buffer pixmap.
+  clearBuffer();
+
   update();
 
   QWidget::resizeEvent( event );
 }
+
 
 
 
@@ -385,7 +478,7 @@ void InkEdit::resizeEvent( QResizeEvent *event )
  */
 QImage InkEdit::getImage()
 {
-  return drawing_->getPixmap(/* cropped */).toImage();
+  return drawing_->getPixmap().toImage();
 }
 
 
@@ -398,6 +491,62 @@ QImage InkEdit::getImage()
 Isf::Drawing *InkEdit::getDrawing()
 {
   return drawing_;
+}
+
+
+
+
+/**
+ * Save the current drawing to a give QIODevice, optionally base64 encoded (default no)
+ *
+ * If the base64 param is True, then the drawing will be written base64-encoded. This is
+ * helpful for transmission over mediums which are not binary-friendly.
+ *
+ * @param dev The QIODevice to save to.
+ * @param base64 If true, the drawing is written encoded with base64.
+ */
+
+void InkEdit::save( QIODevice &dev, bool base64 )
+{
+  if ( base64 )
+  {
+    dev.write( Isf::Stream::writer( *drawing_ ).toBase64() );
+  }
+  else
+  {
+    dev.write( Isf::Stream::writer( *drawing_ ) );
+  }
+}
+
+
+
+
+/**
+ * Returns a QByteArray filled with appropriate ISF data.
+ * @return A QByteArra filled with ISF data.
+ */
+QByteArray InkEdit::getBytes()
+{
+  return Isf::Stream::writer( *drawing_ );
+}
+
+
+
+
+/**
+ * Set the canvas colour (i.e., the background colour of the InkEdit control)
+ *
+ * Note that this is not saved with the Ink drawing.
+ *
+ * @param newColor The new canvas color.
+ */
+void InkEdit::setCanvasColor( QColor newColor )
+{
+#ifdef ISFQT_DEBUG
+  qDebug() << "Setting new canvas color:" << newColor.name();
+#endif
+  canvasColor_ = newColor;
+  update();
 }
 
 
@@ -420,193 +569,17 @@ void InkEdit::setDrawing( Isf::Drawing *drawing )
   }
   
   drawing_ = drawing;
-  
-  // don't crop displayed images or size data.
-  //drawing_->setCropping( false );
 
   // try to resize of the widget to accommodate the
   // drawing.
-  resize( drawing_->getSize() );
+  QRect boundingRect = drawing_->getBoundingRect();
+  boundingRect.setTopLeft( QPoint( 0, 0 ) );
+  
+  resize( boundingRect.width(), boundingRect.height() );
   
   drawingDirty_ = true;
 
   update();
 }
-
-
-#if 0
-// Return the bytes representing the image in the requested format
-QByteArray InkEdit::getImageBytes( InkFormat format ) const
-{
-  QByteArray imageBytes;
-
-#if KMESS_ENABLE_INK == 1
-  if( drawing_ == 0 )
-  {
-    qWarning() << "Uninitialized usage of InkEdit!";
-    return imageBytes;
-  }
-#else
-  // Neither of the ink formats is supported, abort
-  return imageBytes;
-#endif
-
-
-#ifdef KMESSDEBUG_INKEDIT_GENERAL
-  switch( format )
-  {
-    case FORMAT_ISF: qDebug() << "Obtaining ISF ink data"; break;
-    case FORMAT_GIF: qDebug() << "Obtaining GIF ink data"; break;
-  }
-#endif
-
-
-  // Verify if the requested ink format is supported by KMess or not
-  switch( format )
-  {
-    case FORMAT_ISF:
-#if KMESS_ENABLE_INK_ISF == 0
-      // ISF is not supported, why were we called for ISF data?
-      qWarning() << "ISF is not supported, but was requested!";
-#else
-      // Overwrite the image bytes with the ISF data stream
-      image_->isfData->finalizeChanges();
-      imageBytes = Isf::Stream::writer( *image_->isfData );
-      image_->isfData->clear();
-      image_->stroke = 0;
-#endif
-      break;
-
-
-    case FORMAT_GIF:
-#if KMESS_ENABLE_INK_GIF == 0
-      // GIF is not supported, why were we called for GIF data?
-      qWarning() << "GIF is not supported, but was requested!";
-#else
-      // Copy the interesting piece of the image over to a new image
-      QImage image( image_->pixels.copy( image_->area ).convertToFormat( QImage::Format_Indexed8, Qt::ThresholdDither ) );
-
-      // Initialise the gif variables
-      GifFileType    *gft      = NULL;
-      ColorMapObject *cmap     = NULL;
-      int             height   = image.height();
-      int             width    = image.width();
-      bool            gifError = false;
-
-      // Open a temporary file
-      QTemporaryFile tempFile( "kmess-ink-XXXXXX.gif" );
-      QFile tempFile2;
-      if( ! tempFile.open() )
-      {
-        qWarning() << "Couldn't open temporary file for GIF conversion.";
-        goto error;
-      }
-
-#ifdef KMESSDEBUG_INKEDIT_GENERAL
-      qDebug() << "Created temporary file to convert ink to GIF image.";
-#endif
-
-      // Convert the image to GIF using libgif
-      // This is needed because Windows Live Messenger (at least 2009) does not display inks
-      // which are not in GIF format (it doesn't even give an error).
-      gifError             = true;
-
-      // Open the gif file
-      gft = EGifOpenFileHandle( tempFile.handle() );
-      if( gft == 0 )
-      {
-        qWarning() << "Couldn't initialize gif library.";
-        goto error;
-      }
-
-      // Create the color map
-      cmap = MakeMapObject( image.numColors(), NULL );
-      if( cmap == 0 )
-      {
-        qWarning() << "Couldn't create map object for gif conversion (num colors = " << image.numColors() << ")";
-        goto error;
-      }
-
-      // Fill in the color map with the colors in the image color table
-      for( int i = 0; i < image.numColors(); i++ )
-      {
-        QRgb color = image.color( i );
-        cmap->Colors[i].Red = qRed( color );
-        cmap->Colors[i].Green = qGreen( color );
-        cmap->Colors[i].Blue = qBlue( color );
-      }
-
-      // Initialize the GIF file
-      if( EGifPutScreenDesc( gft, width, height, 8, 0, cmap) == GIF_ERROR )
-      {
-        qWarning() << "EGifPutScreenDesc failed.";
-        goto error;
-      }
-
-      // Initialize the GIF image
-      if( EGifPutImageDesc( gft, 0, 0, width, height, 0, NULL) == GIF_ERROR )
-      {
-        qWarning() << "EGifPutImageDesc failed.";
-        goto error;
-      }
-
-
-      // FIXME: This is the point where the artifacts are made.
-      // I don't know why, but if you run:
-      // EGifPutLine( gft, image.bits(), image.width() * image.height() )
-      // i.e. convert the complete image in one call, then the resulting image is mangled.
-      // Something is wrong with the width or so, it seems to be off by about two pixels. (Try it!)
-
-      // Write every line
-      for( int j = 0; j < height; j++ )
-      {
-        if( EGifPutLine( gft, image.scanLine( j ), width ) == GIF_ERROR )
-        {
-          qWarning() << "EGifPutLine failed for scanline" << j << "(height=" << image.height() << ";width=" << image.width() << ";bytesperline=" << image.bytesPerLine() << ")";
-          goto error;
-        }
-      }
-
-      // Clean up the GIF converter etc
-      EGifCloseFile( gft );
-      FreeMapObject( cmap );
-      gifError = false;
-
-      // Read the file back in
-      // Because the QTemporaryFile is opened in unbuffered mode, we have to flush it then re-open it with QFile.
-      tempFile.flush();
-      tempFile2.setFileName( tempFile.fileName() );
-      if( ! tempFile2.open( QIODevice::ReadOnly | QIODevice::Unbuffered ) )
-      {
-        qWarning() << "Couldn't reopen temporary file: " << tempFile2.errorString();
-        goto error;
-      }
-
-      imageBytes = tempFile2.readAll();
-
-      tempFile2.close();
-      tempFile.close();
-
-#ifdef KMESSDEBUG_INKEDIT_GENERAL
-      qDebug() << "Converted ink to GIF (" << image.height() << "x" << image.width() << "), sending " << imageBytes.size() << " bytes of image data.";
-#endif
-
-error:
-      if( gifError )
-      {
-        qWarning() << "A GIF error occured in getImageBytes, returning empty byte array. The error was: ";
-        PrintGifError();
-      }
-      else
-      {
-        qWarning() << "A non-GIF error occured in getImageBytes, returning empty byte array.";
-      }
-#endif  // KMESS_ENABLE_INK_GIF == 0
-      break;
-  }
-
-  return imageBytes;
-}
-#endif
 
 }; // namespace Isf

@@ -20,6 +20,7 @@
 
 #include <IsfQtDrawing>
 
+#include <QColorDialog>
 #include <QApplication>
 #include <QByteArray>
 #include <QDebug>
@@ -37,12 +38,32 @@
 
 #include "main.h"
 
+using namespace Isf;
+
 TestInkEdit::TestInkEdit()
 {
+  setupUi( this );
+  connect( cmdSave_, SIGNAL(clicked()), this, SLOT( saveInk() ) );
+  connect( cmdLoad_, SIGNAL(clicked()), this, SLOT( loadInk() ) );
+  connect( cmdClear_, SIGNAL(clicked()), this, SLOT( clearInk() )  );
+  
+  connect( cmdStrokeColor_, SIGNAL(clicked()), this, SLOT( chooseColor() )  );
+  connect( cmdCanvasColor_, SIGNAL(clicked()), this, SLOT( chooseColor() )  );
+  
+  QButtonGroup *grp = new QButtonGroup( this );
+  grp->addButton( rbDrawing_ );
+  grp->addButton( rbEraser_ );
+  
+  connect( grp, SIGNAL( buttonClicked( QAbstractButton * ) ), this, SLOT( penTypeChanged( QAbstractButton * ) ) );
+  
+  connect( spinWidth_, SIGNAL( valueChanged( int ) ), editor_, SLOT( setPenSize( int ) ) );
+
+  editor_->setPenSize( spinWidth_->value() );
+  /*
   setWindowTitle("Ink Edit Test");
   
   editor_ = new Isf::InkEdit();
-  editor_->setSizePolicy( QSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding ) );
+  editor_->setSizePolicy( QSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum ) );
 
   sayLabel_ = new QLabel();
   sayLabel_->setText( "Draw something!" );
@@ -61,7 +82,10 @@ TestInkEdit::TestInkEdit()
   connect( cmdClear_, SIGNAL(clicked()), this, SLOT( clearInk() )  );
 
   QVBoxLayout *layout = new QVBoxLayout();
+  QHBoxLayout *strokeBtnLayout = new QHBoxLayout();
+  
   layout->addWidget( sayLabel_ );
+
   layout->addWidget( editor_ );
   
   QHBoxLayout *ctlBtnLayout = new QHBoxLayout();
@@ -72,33 +96,57 @@ TestInkEdit::TestInkEdit()
   layout->addLayout( ctlBtnLayout );
   
   setLayout( layout );
+  */
 }
 
 TestInkEdit::~TestInkEdit()
 {
 }
-    
+
+
+void TestInkEdit::chooseColor()
+{
+  QColor color = QColorDialog::getColor();
+  if ( sender() == cmdStrokeColor_ )
+  {
+    editor_->setPenColor( color );
+  }
+  else
+  {
+    editor_->setCanvasColor( color );
+  }
+}
+
+
+void TestInkEdit::penTypeChanged( QAbstractButton *button )
+{
+  if( button == rbDrawing_ )
+  {
+    editor_->setPenType( InkEdit::DrawingPen );
+  }
+  else
+  {
+    editor_->setPenType( InkEdit::EraserPen );
+  }
+}
+
+
 void TestInkEdit::saveInk()
 {
   QString filter;
   QString saveFile = QFileDialog::getSaveFileName( this, "Save Ink", QString(), "Raw ISF (*.isf);;base64-encoded ISF (*.isf64)", &filter );
   if ( saveFile != QString() ) 
   {
-    Isf::Drawing *drawing = editor_->getDrawing();
-    drawing->finalizeChanges();
-    
-    QByteArray data = Isf::Stream::writer( *drawing );
-
     QFile file(saveFile);
     file.open(QIODevice::WriteOnly);
 
     if ( filter.contains("isf64") )
     {
-      file.write( data.toBase64() );
+      editor_->save( file, true );
     }
     else
     {
-      file.write( data );
+      editor_->save( file );
     }
     
     file.close();

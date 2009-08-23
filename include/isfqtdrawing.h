@@ -80,14 +80,12 @@ namespace Isf
       bool                      deleteStroke( quint32 index );
       /// Remove a transformation from the drawing
       bool                      deleteTransform( quint32 index );
-      /// Finalize a modified drawing. Call before using it
-      void                      finalizeChanges();
       /// Retrieve an attribute set to manipulate it
       AttributeSet             *getAttributeSet( quint32 index );
       /// Retrieve the attribute sets
       const QList<AttributeSet*>getAttributeSets();
-      /// Return if cropping is on
-      bool                      getCropping();
+      /// Return the QRect bounding rectangle
+      QRect                     getBoundingRect();
       /// Return the pixel size of the drawing
       QSize                     getSize();
       /// Retrieve a stroke to manipulate it
@@ -98,8 +96,6 @@ namespace Isf
       QMatrix                  *getTransform( quint32 index );
       /// Retrieve the transformations
       const QList<QMatrix*>     getTransforms();
-      /// Set the cropping mode
-      void                      setCropping( bool on );
       /// Change the current attribute set
       bool                      setCurrentAttributeSet( AttributeSet *attributeSet );
       /// Change the new current attribute set
@@ -127,8 +123,6 @@ namespace Isf
       QRect                     boundingRect_;
       // Virtual drawing canvas dimensions
       QRect                     canvas_;
-      // Cropping mode?
-      bool                      cropping_;
       // Link to the currently used metric data
       Metrics                  *currentMetrics_;
       // Link to the currently used point info data
