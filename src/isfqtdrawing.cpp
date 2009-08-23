@@ -601,10 +601,6 @@ Stroke *Drawing::getStrokeAtPoint( QPoint point )
 
   QListIterator<Stroke *> i( strokes_ );
   i.toBack();
-  
-  // only want points that fall in this search rect.
-  // saves us doing calculations for points that are nowhere near us.
-  QRect searchRect( point.x() - 5, point.y() - 5, 10, 10 );
 
   while( i.hasPrevious() )
   {
@@ -619,7 +615,24 @@ Stroke *Drawing::getStrokeAtPoint( QPoint point )
     // what's the pen size of this stroke? That way we have a "fudge factor"
     AttributeSet *set = s->attributes;
     float penSize = set->penSize.width();
+    float penHalfSize = penSize / 2;
+
+    // only want points that fall near the cursor. prevents searching unnecessary points.
+    QRect searchRect;
     
+    // search rect must accommodate pen size.
+    // the large the pen size, the bigger our search area has to be.
+    //
+    // minimum search area of 10x10 pixels.
+    if ( penHalfSize > 5 )
+    {
+      searchRect = QRect( point.x() - penHalfSize, point.y() - penHalfSize, penSize, penSize );
+    }
+    else
+    {
+      searchRect = QRect( point.x() - 5, point.y() - 5, 10, 10 );
+    }
+
     for( int j = 0; j < s->points.size() - 1; j++)
     {
       QPoint p1 = s->points.at(j).position;
@@ -651,7 +664,7 @@ Stroke *Drawing::getStrokeAtPoint( QPoint point )
       
       float height = ( 2 * area ) / b;
 
-      if ( height <= penSize / 2 )
+      if ( height <= penHalfSize )
       {
         // got one
         return s;
