@@ -1,6 +1,6 @@
 2009-08-23 (Adam)
- * Add Drawing::getStrokeAtPoint method. Uses an algorithm I made up on the back of a piece of paper.
-   Seems to work relatively well.
+ * Add Drawing::getStrokeAtPoint method. Uses Heron's Formula and triangle heights to determine
+   if the cursor is positioned above a stroke. Seems to work quite well and appears to be fast.
  * Basic eraser support working. Individual strokes can be erased.
  * InkEdit now shows a custom cursor - a point drawn with the current stroke colour and width.
  * Drawing now calculates its bounding rectangle as necessary. Calls to finalizeChanges are not

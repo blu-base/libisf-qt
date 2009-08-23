@@ -29,6 +29,7 @@
 #include <QPainter>
 #include <QPixmap>
 
+#include <cmath>
 
 using namespace Isf;
 using namespace Compress;
@@ -585,12 +586,17 @@ Stroke *Drawing::getStrokeAtPoint( QPoint point )
   3) Next, iterate through each pair of points in the stroke. If both of the points fall outside
      of the searching rectangle around the cursor, skip. Saves us checking hundreds of points when
      only a few will do.
-  4) a) For each pair of strokes that fall in the search area, construct a line between them.
-     b) Take the normal of this line. Rescale it's length to twice the width of the pen that drew the stroke.
-     c) Translate the position of the normal so it originates from the cursor position and moves toward the line
-        between the two strokes.
-     d) If these two lines intersect then we are hovering over a stroke. Return the stroke.
-     d) If they do not, we continue to the next pair of points.
+  4) a) For each pair of strokes, form a triangle whose points are defined by the two points for the
+        line segment, plus the cursor position.
+     b) Calculate the height of this triangle. To do so, use Heron's Formula plus the formula for the 
+        area of any triangle.
+     c) If the cursor is touching the drawn stroke, the height should be less than or equal to the 
+        half-width of the pen that drew the stroke.
+        
+    For reference (triangle sides a, b, c, height h)
+    Heron's Formula: area = sqrt(s * (s - a) * (s - b) * (s - c) ), where s = semiperimeter = 0.5*(a+b+c)
+                     area = 0.5*base*height;
+                     thus height = ( 2 * area ) / base.
   */
 
   QListIterator<Stroke *> i( strokes_ );
@@ -612,7 +618,7 @@ Stroke *Drawing::getStrokeAtPoint( QPoint point )
 
     // what's the pen size of this stroke? That way we have a "fudge factor"
     AttributeSet *set = s->attributes;
-    QSizeF fudge = set->penSize;
+    float penSize = set->penSize.width();
     
     for( int j = 0; j < s->points.size() - 1; j++)
     {
@@ -624,31 +630,32 @@ Stroke *Drawing::getStrokeAtPoint( QPoint point )
         continue;
       }
 
-      // form a line between these points.
-      QLineF line = QLineF( QPointF( p1 ), QPointF( p2 ) );
-      
-      // now, form a normal line.
-      QLineF norm = line.normalVector();
-      norm.setLength( fudge.width() ); // lots of fudge.
-      
-      // translate it so that the starting point is the point we're looking for.
-      QPointF floatPoint = QPointF( point );
-      if ( floatPoint.y() < p1.y() )
-      {
-        norm.translate( floatPoint - p1);
-      }
-      else
-      {
-        norm.translate( p1 - floatPoint );
-      }
+      QPointF cursorPos = QPointF( point );
+      QLineF base = QLineF( QPointF( p1 ), QPointF( p2 ) );
+      QLineF lineA = QLineF( QPointF( p1 ), cursorPos );
+      QLineF lineC = QLineF( QPointF( p2 ), cursorPos );
 
-      if ( line.intersect( norm, 0 ) != QLineF::NoIntersection )
+      // picture a triangle made up of the two points for the line segment, plus the 
+      // cursor position. The height of the triangle is the distance from the cursor point
+      // to the line segment. If the cursor lies on the line, then the height should be less than
+      // or equal to the half-width of the pen that drew the line.
+      //
+      // so, use Heron's Formula to get the area, plus A=0.5*base*height, re-arrange to get height.
+      //
+      // easy!
+      float sp = 0.5*( lineA.length() + base.length() + lineC.length() );
+      float a = lineA.length();
+      float b = base.length();
+      float c = lineC.length();
+      float area = sqrt( sp * (sp - a) * (sp - b) * (sp - c) );
+      
+      float height = ( 2 * area ) / b;
+
+      if ( height <= penSize / 2 )
       {
-        // got it!!
+        // got one
         return s;
       }
-      
-      // no dice. move on.
     }
   }
   
