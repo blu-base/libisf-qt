@@ -1,4 +1,7 @@
 2009-08-23 (Adam)
+ * Add Drawing::getStrokeAtPoint method. Uses an algorithm I made up on the back of a piece of paper.
+   Seems to work relatively well.
+ * Basic eraser support working. Individual strokes can be erased.
  * InkEdit now shows a custom cursor - a point drawn with the current stroke colour and width.
  * Drawing now calculates its bounding rectangle as necessary. Calls to finalizeChanges are not
    necessary anymore.

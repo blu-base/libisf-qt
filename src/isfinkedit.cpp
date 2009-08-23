@@ -88,6 +88,13 @@ InkEdit::~InkEdit()
  */
 void InkEdit::updateCursor()
 {
+  if ( penType_ == EraserPen )
+  {
+    cursor_ = QCursor( Qt::CrossCursor );
+    setCursor( cursor_ );
+    return;
+  }
+
   if ( cursorPixmap_.isNull() )
   {
     cursorPixmap_ = QPixmap( QSize( 32, 32 ) );
@@ -200,6 +207,8 @@ void InkEdit::setPenType( PenType type )
 #endif
 
   penType_ = type;
+  
+  updateCursor();
 }
 
 
@@ -276,8 +285,24 @@ void InkEdit::mousePressEvent( QMouseEvent *event )
     return;
   }
 
-  lastPoint_ = event->pos();
   scribbling_ = true;
+
+  if ( penType_ == EraserPen )
+  {
+    // is there a stroke here?
+    QPoint point = event->pos();
+    Stroke *s = drawing_->getStrokeAtPoint( point );
+    if ( s != 0 )
+    {
+      drawing_->deleteStroke( s );
+      drawingDirty_ = true;
+      update();
+    }
+    
+    return;
+  }
+    
+  lastPoint_ = event->pos();
 
   // Search if there already is an attributes set compatible with the current one
   Isf::AttributeSet *reusableAttributeSet = 0;
@@ -333,6 +358,21 @@ void InkEdit::mouseMoveEvent(QMouseEvent *event)
     return;
   }
 
+  if ( penType_ == EraserPen )
+  {
+    // is there a stroke here?
+    QPoint point = event->pos();
+    Stroke *s = drawing_->getStrokeAtPoint( point );
+    if ( s != 0 )
+    {
+      drawing_->deleteStroke( s );
+      drawingDirty_ = true;
+      update();
+    }
+    
+    return;
+  }
+
   if( drawing_ == 0 )
   {
     qWarning() << "Uninitialized usage of InkEdit!";
@@ -373,6 +413,11 @@ void InkEdit::mouseReleaseEvent(QMouseEvent *event)
     return;
   }
 
+  if ( penType_ == EraserPen )
+  {
+    return;
+  }
+  
   QPoint position = event->pos();
   drawLineTo( position );
 
@@ -423,7 +468,7 @@ void InkEdit::paintEvent(QPaintEvent *event)
   
   painter.save();
   painter.setBrush( QBrush( canvasColor_ ) );  
-  painter.drawRect( QRect(0, 0, width(), height() ) );
+  painter.drawRect( QRect(-1, -1, width() + 1 , height() + 1 ) );
   painter.restore();
   
   if( drawing_ == 0 )

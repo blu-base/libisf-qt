@@ -274,6 +274,24 @@ bool Drawing::deleteStroke( quint32 index )
 
 
 /**
+ * Delete a stroke object from the drawing.
+ *
+ * @param stroke The stroke to remove.
+ * @return bool
+ */
+bool Drawing::deleteStroke( Stroke *stroke )
+{
+  if ( ! strokes_.contains( stroke ) )
+  {
+    return false;
+  }
+  
+  return deleteStroke( strokes_.indexOf( stroke ) );
+}
+
+
+
+/**
  * Remove a transformation from the drawing
  *
  * @param index Index of the transform to delete
@@ -541,6 +559,100 @@ Stroke *Drawing::getStroke( quint32 index )
   }
 
   return strokes_.at( index );
+}
+
+
+
+/**
+ * Given a QPoint, return the Stroke object that
+ * passes through there. If no stroke passes through that point,
+ * returns NULL.
+ *
+ * If multiple Strokes pass through that point the most recently drawn stroke
+ * will be returned.
+ *
+ * @param point Point to check
+ * @return A Stroke instance or NULL if no Stroke passes through that point.
+ */
+Stroke *Drawing::getStrokeAtPoint( QPoint point )
+{
+  /*
+  Here's how this algorithm works:
+  
+  1) Iterate through strokes in reverse order.
+  2) For each stroke, check if the bounding rectangle contains the point where the cursor is.
+     If not, continue to the next stroke. Prevents us checking all the strokes.
+  3) Next, iterate through each pair of points in the stroke. If both of the points fall outside
+     of the searching rectangle around the cursor, skip. Saves us checking hundreds of points when
+     only a few will do.
+  4) a) For each pair of strokes that fall in the search area, construct a line between them.
+     b) Take the normal of this line. Rescale it's length to twice the width of the pen that drew the stroke.
+     c) Translate the position of the normal so it originates from the cursor position and moves toward the line
+        between the two strokes.
+     d) If these two lines intersect then we are hovering over a stroke. Return the stroke.
+     d) If they do not, we continue to the next pair of points.
+  */
+
+  QListIterator<Stroke *> i( strokes_ );
+  i.toBack();
+  
+  // only want points that fall in this search rect.
+  // saves us doing calculations for points that are nowhere near us.
+  QRect searchRect( point.x() - 5, point.y() - 5, 10, 10 );
+
+  while( i.hasPrevious() )
+  {
+    Stroke *s = i.previous();;
+    
+    // skip strokes where we're not near.
+    if ( ! s->boundingRect.contains( point ) )
+    {
+      continue;
+    }
+
+    // what's the pen size of this stroke? That way we have a "fudge factor"
+    AttributeSet *set = s->attributes;
+    QSizeF fudge = set->penSize;
+    
+    for( int j = 0; j < s->points.size() - 1; j++)
+    {
+      QPoint p1 = s->points.at(j).position;
+      QPoint p2 = s->points.at(j+1).position;
+      
+      if ( ! searchRect.contains( p1 ) && ! searchRect.contains( p2 ) )
+      {
+        continue;
+      }
+
+      // form a line between these points.
+      QLineF line = QLineF( QPointF( p1 ), QPointF( p2 ) );
+      
+      // now, form a normal line.
+      QLineF norm = line.normalVector();
+      norm.setLength( fudge.width() ); // lots of fudge.
+      
+      // translate it so that the starting point is the point we're looking for.
+      QPointF floatPoint = QPointF( point );
+      if ( floatPoint.y() < p1.y() )
+      {
+        norm.translate( floatPoint - p1);
+      }
+      else
+      {
+        norm.translate( p1 - floatPoint );
+      }
+
+      if ( line.intersect( norm, 0 ) != QLineF::NoIntersection )
+      {
+        // got it!!
+        return s;
+      }
+      
+      // no dice. move on.
+    }
+  }
+  
+  return 0;
 }
 
 

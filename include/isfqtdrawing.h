@@ -78,6 +78,7 @@ namespace Isf
       bool                      deleteAttributeSet( quint32 index );
       /// Remove a stroke from the drawing
       bool                      deleteStroke( quint32 index );
+      bool                      deleteStroke( Stroke *stroke ) ;
       /// Remove a transformation from the drawing
       bool                      deleteTransform( quint32 index );
       /// Retrieve an attribute set to manipulate it
@@ -88,6 +89,8 @@ namespace Isf
       QRect                     getBoundingRect();
       /// Return the pixel size of the drawing
       QSize                     getSize();
+      /// Return the stroke that passes through a given point.
+      Stroke                   *getStrokeAtPoint( QPoint point );
       /// Retrieve a stroke to manipulate it
       Stroke                   *getStroke( quint32 index );
       /// Retrieve the strokes
