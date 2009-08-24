@@ -756,7 +756,20 @@ IsfError TagsParser::parseStroke( DataSource &source, Drawing &drawing )
     }
   }
 
-  stroke->boundingRect = polygon.boundingRect();
+  // set the bounding rectangle.
+  if ( polygon.boundingRect().size() == QSize(1, 1) )
+  {
+    // can't have a 1px by 1px bounding rect - the eraser will never hit it.
+    // make the bounding rectange completely cover the drawn stroke.
+    float penSize = drawing.currentAttributeSet_->penSize.width();
+    QPoint point = stroke->points.at( 0 ).position;
+    stroke->boundingRect = QRect( point.x() - penSize / 2, point.y() - penSize / 2, penSize, penSize );
+  }
+  else
+  {
+    stroke->boundingRect = polygon.boundingRect();
+  }
+  
   stroke->attributes   = drawing.currentAttributeSet_;
   stroke->info         = drawing.currentStrokeInfo_;
   stroke->metrics      = drawing.currentMetrics_;

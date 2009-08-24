@@ -1,3 +1,8 @@
+2009-08-24 (Adam)
+ * Fix Drawing::getStrokeAtPoint to properly return point strokes.
+ * Prevent strokes from having a bounding rectangle of size 1x1 (otherwise the eraser never hit them)
+ * Tweak the collision distance to give a 25% margin of error (in practice this works well).
+
 2009-08-23 (Adam)
  * Add Drawing::getStrokeAtPoint method. Uses Heron's Formula and triangle heights to determine
    if the cursor is positioned above a stroke. Seems to work quite well and appears to be fast.

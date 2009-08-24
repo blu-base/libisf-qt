@@ -131,20 +131,32 @@ qint32 Drawing::addStroke( Stroke *newStroke )
   {
     polygon.setPoint( index, newStroke->points.at( index ).position );
   }
-  newStroke->boundingRect = polygon.boundingRect();
+  
+  // assign the attributes to the stroke.
+  newStroke->attributes = currentAttributeSet_;
+  
+  // add FitToCurve (Windows will use Bezier smoothing to make the ink look nice)
+  newStroke->attributes->flags |= FitToCurve;
 
+  // set the bounding rectangle.
+  if ( polygon.boundingRect().size() == QSize(1, 1) )
+  {
+    // can't have a 1px by 1px bounding rect - the eraser will never hit it.
+    // make the bounding rectange completely cover the drawn stroke.
+    float penSize = newStroke->attributes->penSize.width();
+    QPoint point = newStroke->points.at( 0 ).position;
+    newStroke->boundingRect = QRect( point.x() - penSize / 2, point.y() - penSize / 2, penSize, penSize );
+  }
+  else
+  {
+    newStroke->boundingRect = polygon.boundingRect();
+  }
 
   isNull_ = false;
   strokes_.append( newStroke );
 
   // force a bounding rectangle update
   boundingRect_ = QRect();
-
-  // assign the attributes to the stroke.
-  newStroke->attributes = currentAttributeSet_;
-  
-  // add FitToCurve (Windows will use Bezier smoothing to make the ink look nice)
-  newStroke->attributes->flags |= FitToCurve;
   
   return ( strokes_.count() - 1 );
 }
@@ -626,13 +638,27 @@ Stroke *Drawing::getStrokeAtPoint( QPoint point )
     // minimum search area of 10x10 pixels.
     if ( penHalfSize > 5 )
     {
-      searchRect = QRect( point.x() - penHalfSize, point.y() - penHalfSize, penSize, penSize );
+      // 25% extra room to move.
+      searchRect = QRect( point.x() - penHalfSize * 1.25, point.y() - penHalfSize * 1.25, penHalfSize * 1.25, penHalfSize * 1.25 );
     }
     else
     {
       searchRect = QRect( point.x() - 5, point.y() - 5, 10, 10 );
     }
 
+    // special case: a single point (sometimes it'll appear as a single point but
+    // be made up of two).
+    if ( s->points.size() == 1 || s->points.size() == 2 )
+    {
+      QLineF dist = QLineF( QPointF( s->points.at(0).position ), QPointF( point ) );
+      if ( dist.length() <= penHalfSize * 1.25 )
+      {
+        return s;
+      }
+      continue;
+    }
+    
+    // multiple points.
     for( int j = 0; j < s->points.size() - 1; j++)
     {
       QPoint p1 = s->points.at(j).position;
@@ -664,7 +690,7 @@ Stroke *Drawing::getStrokeAtPoint( QPoint point )
       
       float height = ( 2 * area ) / b;
 
-      if ( height <= penHalfSize )
+      if ( height <= penHalfSize * 1.25 )
       {
         // got one
         return s;
