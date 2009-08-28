@@ -561,15 +561,26 @@ IsfError TagsParser::parseTransformation( DataSource &source, Drawing &drawing, 
   // Unlike the other transformations, scale is expressed in HiMetric units,
   // so we must convert it to pixels for rendering
 
+  // WARNING: The order in which parameters are evaluated is *platform-dependent*. thus, you cannot read data like so:
+  //
+  // transform->setMatrix ( Compress::decodeFloat( source ), Compress::decodeFloat( source ), ... )
+  //
+  // and expect it to work since you have no guarantee as to which of those decodeFloat() methods will be called first.
+  //
+  // you have to read each transform value the long way - assign to variable, then set the variable as the parameter.
   switch( transformType )
   {
     case TAG_TRANSFORM:
-      transform->setMatrix( Compress::decodeFloat( source ) / HiMetricToPixel
-                          , Compress::decodeFloat( source )
-                          , Compress::decodeFloat( source )
-                          , Compress::decodeFloat( source ) / HiMetricToPixel
-                          , Compress::decodeFloat( source )
-                          , Compress::decodeFloat( source ) );
+    {
+      float scaleX = Compress::decodeFloat( source ) / HiMetricToPixel;
+      float scaleY = Compress::decodeFloat( source ) / HiMetricToPixel;
+      float shearX = Compress::decodeFloat( source );
+      float shearY = Compress::decodeFloat( source );
+      float dx     = Compress::decodeFloat( source );
+      float dy     = Compress::decodeFloat( source );
+
+      transform->setMatrix( scaleX, scaleY, shearX, shearY, dx, dy );
+
 #ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "- Transformation details - "
                << "Scale X:" << transform->m11()
@@ -580,7 +591,8 @@ IsfError TagsParser::parseTransformation( DataSource &source, Drawing &drawing, 
                << "Translate Y:" << transform->dy();
 #endif
       break;
-
+    }
+    
     case TAG_TRANSFORM_ISOTROPIC_SCALE:
     {
       float scaleAmount = Compress::decodeFloat( source ) / HiMetricToPixel;
@@ -593,15 +605,18 @@ IsfError TagsParser::parseTransformation( DataSource &source, Drawing &drawing, 
     }
 
     case TAG_TRANSFORM_ANISOTROPIC_SCALE:
-      transform->scale( Compress::decodeFloat( source ) / HiMetricToPixel
-                      , Compress::decodeFloat( source ) / HiMetricToPixel );
+    {
+      float scaleX = Compress::decodeFloat( source ) / HiMetricToPixel;
+      float scaleY = Compress::decodeFloat( source ) / HiMetricToPixel;
+      transform->scale( scaleX, scaleY );
 #ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "- Transformation details - "
                << "Scale X:" << transform->m11()
                << "Scale Y:" << transform->m22();
 #endif
       break;
-
+    }
+    
     case TAG_TRANSFORM_ROTATE:
     {
       float rotateAmount = Compress::decodeFloat( source ) / 100.0f;
@@ -614,21 +629,28 @@ IsfError TagsParser::parseTransformation( DataSource &source, Drawing &drawing, 
     }
 
     case TAG_TRANSFORM_TRANSLATE:
-      transform->translate( Compress::decodeFloat( source )
-                          , Compress::decodeFloat( source ) );
+    {
+      float dx = Compress::decodeFloat( source );
+      float dy = Compress::decodeFloat( source );
+      transform->translate( dx, dy );
+
 #ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "- Transformation details - "
               << "Translate X:" << transform->dx()
               << "Translate Y:" << transform->dy();
 #endif
       break;
-
+    }
+    
     case TAG_TRANSFORM_SCALE_AND_TRANSLATE:
     {
-      transform->scale    ( Compress::decodeFloat( source ) / HiMetricToPixel
-                          , Compress::decodeFloat( source ) / HiMetricToPixel );
-      transform->translate( Compress::decodeFloat( source )
-                          , Compress::decodeFloat( source ) );
+      float scaleX = Compress::decodeFloat( source ) / HiMetricToPixel;
+      float scaleY = Compress::decodeFloat( source ) / HiMetricToPixel;
+      float dx = Compress::decodeFloat( source );
+      float dy = Compress::decodeFloat( source );
+
+      transform->scale    ( scaleX, scaleY );
+      transform->translate( dx, dy );
 
 #ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "- Transformation details - "
@@ -756,18 +778,21 @@ IsfError TagsParser::parseStroke( DataSource &source, Drawing &drawing )
     }
   }
 
+  if ( drawing.currentTransform_ != 0 )
+  {
+    polygon = drawing.currentTransform_->map( polygon );
+  }
+  
+  stroke->boundingRect = polygon.boundingRect();
+
   // set the bounding rectangle.
-  if ( polygon.boundingRect().size() == QSize(1, 1) )
+  if ( stroke->boundingRect.size() == QSize(1, 1) )
   {
     // can't have a 1px by 1px bounding rect - the eraser will never hit it.
     // make the bounding rectange completely cover the drawn stroke.
     float penSize = drawing.currentAttributeSet_->penSize.width();
-    QPoint point = stroke->points.at( 0 ).position;
-    stroke->boundingRect = QRect( point.x() - penSize / 2, point.y() - penSize / 2, penSize, penSize );
-  }
-  else
-  {
-    stroke->boundingRect = polygon.boundingRect();
+    stroke->boundingRect.setSize( QSize( penSize, penSize ) );
+    stroke->boundingRect.translate( -( penSize / 2 ), -( penSize / 2 ) );
   }
   
   stroke->attributes   = drawing.currentAttributeSet_;

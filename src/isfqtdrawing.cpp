@@ -220,12 +220,9 @@ void Drawing::clear()
   maxPenSize_   = QSizeF();
   size_         = QSize();
   
-  // add a default transform.
-  QMatrix *transform = new QMatrix();
-  transform->scale( 1.f, 1.f );
-  transform->translate( .0f, .0f );
-
-  transforms_.append( transform );
+  // set the default transform
+  defaultTransform_.scale( 1.f, 1.f );
+  defaultTransform_.translate( .0f, .0f );
 }
 
 
@@ -381,7 +378,14 @@ QRect Drawing::getBoundingRect()
   {
     foreach( Stroke *stroke, strokes_ )
     {
-      boundingRect_ = boundingRect_.united( stroke->boundingRect );
+      if ( stroke->transform != 0 )
+      {
+        boundingRect_ = boundingRect_.united( stroke->transform->mapRect( stroke->boundingRect ) );
+      }
+      else
+      {
+        boundingRect_ = boundingRect_.united( stroke->boundingRect );
+      }
     }
 
     QSize penSize( maxPenSize_.toSize() );
@@ -435,7 +439,7 @@ QPixmap Drawing::getPixmap( const QColor backgroundColor )
     return pixmap;
   }
 
-  painter.setWindow( boundingRect_ );
+  painter.setWindow( getBoundingRect() );
   painter.setWorldMatrixEnabled( true );
   painter.setRenderHints(   QPainter::Antialiasing
                           | QPainter::SmoothPixmapTransform
@@ -477,7 +481,13 @@ QPixmap Drawing::getPixmap( const QColor backgroundColor )
     if( currentTransform_ != stroke->transform && stroke->transform != 0 )
     {
       currentTransform_ = stroke->transform;
-      painter.setWorldTransform( QTransform( *currentTransform_ ), true );
+      painter.setWorldTransform( QTransform( *currentTransform_ ), false );
+
+      // the problem with setting the world transform is that it will scale the pen size too.
+      // we don't want that. so we have to artificially beef up the pen size.
+      QPen pen = painter.pen();
+      pen.setWidthF( currentAttributeSet_->penSize.width() / currentTransform_->m22() );
+      painter.setPen( pen );
     }
 
 #ifdef ISFQT_DEBUG_VERBOSE

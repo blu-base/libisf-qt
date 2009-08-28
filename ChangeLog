@@ -1,3 +1,9 @@
+2009-08-25 (Adam)
+ * Properly apply scaling when calculating the bounding rectangle.
+ * Do not use Compress.decode(*) calls as function parameters. The order of parameter
+   evaluation is platform-dependent and hence cannot be relied on.
+ * Properly apply stroke transforms when drawing; scale pen size appropriately.
+
 2009-08-24 (Adam)
  * Fix Drawing::getStrokeAtPoint to properly return point strokes.
  * Prevent strokes from having a bounding rectangle of size 1x1 (otherwise the eraser never hit them)
