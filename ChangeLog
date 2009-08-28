@@ -1,4 +1,7 @@
-2009-08-25 (Adam)
+2009-08-28 (Adam)
+ * Fix writing of transformation data: write in the correct order and scale the transform values
+   appropriately before writing.
+ * Write TIDX properly when transformations change between strokes.
  * Properly apply scaling when calculating the bounding rectangle.
  * Do not use Compress.decode(*) calls as function parameters. The order of parameter
    evaluation is platform-dependent and hence cannot be relied on.

@@ -319,10 +319,10 @@ IsfError TagsWriter::addTransformationTable( DataSource &source, const Drawing &
                  << "Translate Y:" << trans->dy();
 #endif
         transformTag = TAG_TRANSFORM_SCALE_AND_TRANSLATE;
-        blockData.append( encodeFloat( trans->m22() * HiMetricToPixel ) );
         blockData.append( encodeFloat( trans->m11() * HiMetricToPixel ) );
-        blockData.append( encodeFloat( trans->dy() ) );
-        blockData.append( encodeFloat( trans->dx() ) );
+        blockData.append( encodeFloat( trans->m22() * HiMetricToPixel ) );
+        blockData.append( encodeFloat( trans->dx()  / trans->m11() ) );
+        blockData.append( encodeFloat( trans->dy()  / trans->m22() ) );
       }
       else
       {
@@ -333,8 +333,8 @@ IsfError TagsWriter::addTransformationTable( DataSource &source, const Drawing &
                 << "Translate Y:" << trans->dy();
 #endif
         transformTag = TAG_TRANSFORM_TRANSLATE;
-        blockData.append( encodeFloat( trans->dy() ) );
         blockData.append( encodeFloat( trans->dx() ) );
+        blockData.append( encodeFloat( trans->dy() ) );
       }
     }
     else
@@ -360,8 +360,8 @@ IsfError TagsWriter::addTransformationTable( DataSource &source, const Drawing &
                  << "Scale Y:" << trans->m22();
 #endif
         transformTag = TAG_TRANSFORM_ANISOTROPIC_SCALE;
-        blockData.append( encodeFloat( trans->m22() * HiMetricToPixel ) );
         blockData.append( encodeFloat( trans->m11() * HiMetricToPixel ) );
+        blockData.append( encodeFloat( trans->m22() * HiMetricToPixel ) );
       }
     }
     else
@@ -370,12 +370,12 @@ IsfError TagsWriter::addTransformationTable( DataSource &source, const Drawing &
       qDebug() << "  - Transform: TAG_TRANSFORM";
 #endif
       transformTag = TAG_TRANSFORM;
-      blockData.append( encodeFloat( trans->dy () ) );
-      blockData.append( encodeFloat( trans->dx () ) );
-      blockData.append( encodeFloat( trans->m22() * HiMetricToPixel ) );
-      blockData.append( encodeFloat( .0f ) );
-      blockData.append( encodeFloat( .0f ) );
       blockData.append( encodeFloat( trans->m11() * HiMetricToPixel ) );
+      blockData.append( encodeFloat( .0f ) );
+      blockData.append( encodeFloat( .0f ) );      
+      blockData.append( encodeFloat( trans->m22() * HiMetricToPixel ) );
+      blockData.append( encodeFloat( trans->dx () / trans->m11() ) );
+      blockData.append( encodeFloat( trans->dy () / trans->m22() ) );
 
 #ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "- Transformation details - "
@@ -440,13 +440,14 @@ IsfError TagsWriter::addStrokes( DataSource &source, const Drawing &drawing )
       }
 
       // Only write a MIDX if this stroke needs different metrics than the last stroke
-      if( currentMetrics != stroke->metrics )
+      if( currentMetrics != stroke->metrics && stroke->metrics != 0 )
       {
         currentMetrics = stroke->metrics;
         blockData.append( encodeUInt( TAG_MIDX ) );
         blockData.append( encodeUInt( drawing.metrics_.indexOf( stroke->metrics ) ) );
       }
     }
+
     // There is more than one set of attributes, assign each stroke to its own
     if( drawing.attributeSets_.count() > 1 )
     {
@@ -458,25 +459,25 @@ IsfError TagsWriter::addStrokes( DataSource &source, const Drawing &drawing )
       }
 
       // Only write a DIDX if this stroke needs a different attribute set than the last stroke
-      if( currentAttributeSet != stroke->attributes )
+      if( currentAttributeSet != stroke->attributes && stroke->attributes != 0 )
       {
         currentAttributeSet = stroke->attributes;
         blockData.append( encodeUInt( TAG_DIDX ) );
         blockData.append( encodeUInt( drawing.attributeSets_.indexOf( stroke->attributes ) ) );
       }
     }
-    // There is more than one set of attributes, assign each stroke to its own
-    if( drawing.metrics_.count() > 1 )
+
+    // Make sure that the first strokes use the first transform (write a TIDX only
+    // when needed)
+    if ( drawing.transforms_.count() > 0 )
     {
-      // Make sure that the first strokes use the first transform (write a TIDX only
-      // when needed)
       if( currentTransform == 0 )
       {
         currentTransform = drawing.transforms_.first();
       }
 
       // Only write a TIDX if this stroke needs a different transform than the last stroke
-      if( currentTransform != stroke->transform )
+      if( currentTransform != stroke->transform && stroke->transform != 0 )
       {
         currentTransform = stroke->transform;
         blockData.append( encodeUInt( TAG_TIDX ) );
