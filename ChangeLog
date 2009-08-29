@@ -1,6 +1,7 @@
 
 2009-08-29 (Valerio)
  * Fixed skipping unknown custom tags contents.
+ * Changed more method names to adhere to Qt's method naming style.
 
 2009-08-29 (Adam)
  * Start qt-ifying the function names ie, "penSize()" instead of "getPenSize()".

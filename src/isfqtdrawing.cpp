@@ -131,10 +131,10 @@ qint32 Drawing::addStroke( Stroke *newStroke )
   {
     polygon.setPoint( index, newStroke->points.at( index ).position );
   }
-  
+
   // assign the attributes to the stroke.
   newStroke->attributes = currentAttributeSet_;
-  
+
   // add FitToCurve (Windows will use Bezier smoothing to make the ink look nice)
   newStroke->attributes->flags |= FitToCurve;
 
@@ -157,7 +157,7 @@ qint32 Drawing::addStroke( Stroke *newStroke )
 
   // force a bounding rectangle update
   boundingRect_ = QRect();
-  
+
   return ( strokes_.count() - 1 );
 }
 
@@ -219,7 +219,7 @@ void Drawing::clear()
   maxGuid_      = 0;
   maxPenSize_   = QSizeF();
   size_         = QSize();
-  
+
   // set the default transform
   defaultTransform_.scale( 1.f, 1.f );
   defaultTransform_.translate( .0f, .0f );
@@ -241,7 +241,7 @@ bool Drawing::deleteAttributeSet( quint32 index )
   }
 
   delete attributeSets_.takeAt( index );
-  
+
   // re-calculate max pen size
   foreach( AttributeSet *set, attributeSets_ )
   {
@@ -295,7 +295,7 @@ bool Drawing::deleteStroke( Stroke *stroke )
   {
     return false;
   }
-  
+
   return deleteStroke( strokes_.indexOf( stroke ) );
 }
 
@@ -341,7 +341,7 @@ IsfError Drawing::error() const
  * @param index Index of the attribute set to get
  * @return AttributeSet or 0 if not found
  */
-AttributeSet *Drawing::getAttributeSet( quint32 index )
+AttributeSet *Drawing::attributeSet( quint32 index )
 {
   if( (qint64)index >= attributeSets_.count() )
   {
@@ -358,7 +358,7 @@ AttributeSet *Drawing::getAttributeSet( quint32 index )
  *
  * @return The list of existing attribute sets
  */
-const QList<AttributeSet*> Drawing::getAttributeSets()
+const QList<AttributeSet*> Drawing::attributeSets()
 {
   return attributeSets_;
 }
@@ -370,7 +370,7 @@ const QList<AttributeSet*> Drawing::getAttributeSets()
  * Return a QRect that will hold all of the strokes in this Drawing instance.
  * @return A QRect object that is just large enough to hold all strokes.
  */
-QRect Drawing::getBoundingRect()
+QRect Drawing::boundingRect()
 {
   // if the boundingRect_ is invalid, update it.
   // it becomes invalid after a stroke is added or deleted.
@@ -404,22 +404,22 @@ QRect Drawing::getBoundingRect()
  * Return the size of this drawing, in pixels.
  * @return Size of the drawing, in pixels.
  */
-QSize Drawing::getSize()
+QSize Drawing::size()
 {
-  return getBoundingRect().size();
+  return boundingRect().size();
 }
 
 
 
-QPixmap Drawing::getPixmap( const QColor backgroundColor )
+QPixmap Drawing::pixmap( const QColor backgroundColor )
 {
   if ( isNull() )
   {
     return QPixmap();
   }
 
-  QSize size_ = getSize();
-  
+  QSize size_ = size();
+
   QPixmap pixmap( size_ );
   pixmap.fill( backgroundColor );
   QPainter painter( &pixmap );
@@ -439,7 +439,7 @@ QPixmap Drawing::getPixmap( const QColor backgroundColor )
     return pixmap;
   }
 
-  painter.setWindow( getBoundingRect() );
+  painter.setWindow( boundingRect() );
   painter.setWorldMatrixEnabled( true );
   painter.setRenderHints(   QPainter::Antialiasing
                           | QPainter::SmoothPixmapTransform
@@ -450,7 +450,7 @@ QPixmap Drawing::getPixmap( const QColor backgroundColor )
   pen.setStyle    ( Qt::SolidLine );
   pen.setCapStyle ( Qt::RoundCap  );
   pen.setJoinStyle( Qt::RoundJoin );
-  
+
   // Keep record of the currently used properties, to avoid re-setting them for each stroke
   currentMetrics_       = 0;
   currentAttributeSet_  = 0;
@@ -574,7 +574,7 @@ QPixmap Drawing::getPixmap( const QColor backgroundColor )
  * @param index Index of the stroke to get
  * @return Stroke or 0 if not found
  */
-Stroke *Drawing::getStroke( quint32 index )
+Stroke *Drawing::stroke( quint32 index )
 {
   if( (qint64)index >= strokes_.count() )
   {
@@ -597,11 +597,11 @@ Stroke *Drawing::getStroke( quint32 index )
  * @param point Point to check
  * @return A Stroke instance or NULL if no Stroke passes through that point.
  */
-Stroke *Drawing::getStrokeAtPoint( QPoint point )
+Stroke *Drawing::strokeAtPoint( QPoint point )
 {
   /*
   Here's how this algorithm works:
-  
+
   1) Iterate through strokes in reverse order.
   2) For each stroke, check if the bounding rectangle contains the point where the cursor is.
      If not, continue to the next stroke. Prevents us checking all the strokes.
@@ -610,11 +610,11 @@ Stroke *Drawing::getStrokeAtPoint( QPoint point )
      only a few will do.
   4) a) For each pair of strokes, form a triangle whose points are defined by the two points for the
         line segment, plus the cursor position.
-     b) Calculate the height of this triangle. To do so, use Heron's Formula plus the formula for the 
+     b) Calculate the height of this triangle. To do so, use Heron's Formula plus the formula for the
         area of any triangle.
-     c) If the cursor is touching the drawn stroke, the height should be less than or equal to the 
+     c) If the cursor is touching the drawn stroke, the height should be less than or equal to the
         half-width of the pen that drew the stroke.
-        
+
     For reference (triangle sides a, b, c, height h)
     Heron's Formula: area = sqrt(s * (s - a) * (s - b) * (s - c) ), where s = semiperimeter = 0.5*(a+b+c)
                      area = 0.5*base*height;
@@ -627,7 +627,7 @@ Stroke *Drawing::getStrokeAtPoint( QPoint point )
   while( i.hasPrevious() )
   {
     Stroke *s = i.previous();;
-    
+
     // skip strokes where we're not near.
     if ( ! s->boundingRect.contains( point ) )
     {
@@ -641,7 +641,7 @@ Stroke *Drawing::getStrokeAtPoint( QPoint point )
 
     // only want points that fall near the cursor. prevents searching unnecessary points.
     QRect searchRect;
-    
+
     // search rect must accommodate pen size.
     // the large the pen size, the bigger our search area has to be.
     //
@@ -667,13 +667,13 @@ Stroke *Drawing::getStrokeAtPoint( QPoint point )
       }
       continue;
     }
-    
+
     // multiple points.
     for( int j = 0; j < s->points.size() - 1; j++)
     {
       QPoint p1 = s->points.at(j).position;
       QPoint p2 = s->points.at(j+1).position;
-      
+
       if ( ! searchRect.contains( p1 ) && ! searchRect.contains( p2 ) )
       {
         continue;
@@ -684,7 +684,7 @@ Stroke *Drawing::getStrokeAtPoint( QPoint point )
       QLineF lineA = QLineF( QPointF( p1 ), cursorPos );
       QLineF lineC = QLineF( QPointF( p2 ), cursorPos );
 
-      // picture a triangle made up of the two points for the line segment, plus the 
+      // picture a triangle made up of the two points for the line segment, plus the
       // cursor position. The height of the triangle is the distance from the cursor point
       // to the line segment. If the cursor lies on the line, then the height should be less than
       // or equal to the half-width of the pen that drew the line.
@@ -697,7 +697,7 @@ Stroke *Drawing::getStrokeAtPoint( QPoint point )
       float b = base.length();
       float c = lineC.length();
       float area = sqrt( sp * (sp - a) * (sp - b) * (sp - c) );
-      
+
       float height = ( 2 * area ) / b;
 
       if ( height <= penHalfSize * 1.25 )
@@ -707,7 +707,7 @@ Stroke *Drawing::getStrokeAtPoint( QPoint point )
       }
     }
   }
-  
+
   return 0;
 }
 
@@ -718,7 +718,7 @@ Stroke *Drawing::getStrokeAtPoint( QPoint point )
  *
  * @return The list of existing strokes
  */
-const QList<Stroke*> Drawing::getStrokes()
+const QList<Stroke*> Drawing::strokes()
 {
   return strokes_;
 }
@@ -731,7 +731,7 @@ const QList<Stroke*> Drawing::getStrokes()
  * @param index Index of the transform to get
  * @return QMatrix or 0 if not found
  */
-QMatrix *Drawing::getTransform( quint32 index )
+QMatrix *Drawing::transform( quint32 index )
 {
   if( (qint64)index >= transforms_.count() )
   {
@@ -748,7 +748,7 @@ QMatrix *Drawing::getTransform( quint32 index )
  *
  * @return The list of existing transformations
  */
-const QList<QMatrix*> Drawing::getTransforms()
+const QList<QMatrix*> Drawing::transforms()
 {
   return transforms_;
 }

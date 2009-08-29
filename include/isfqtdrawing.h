@@ -61,7 +61,7 @@ namespace Isf
       /// Return the last error
       IsfError                  error() const;
       /// Convert the ISF drawing into a pixmap
-      QPixmap                   getPixmap( const QColor backgroundColor = Qt::white );
+      QPixmap                   pixmap( const QColor backgroundColor = Qt::white );
       /// Return whether this is a null Drawing
       bool                      isNull() const;
 
@@ -74,6 +74,12 @@ namespace Isf
       qint32                    addStroke( Stroke *newStroke );
       /// Add a new transformation to the drawing
       qint32                    addTransform( QMatrix *newTransform );
+      /// Retrieve an attribute set to manipulate it
+      AttributeSet             *attributeSet( quint32 index );
+      /// Retrieve the attribute sets
+      const QList<AttributeSet*>attributeSets();
+      /// Return the QRect bounding rectangle
+      QRect                     boundingRect();
       /// Remove an attribute set from the drawing
       bool                      deleteAttributeSet( quint32 index );
       /// Remove a stroke from the drawing
@@ -81,28 +87,22 @@ namespace Isf
       bool                      deleteStroke( Stroke *stroke ) ;
       /// Remove a transformation from the drawing
       bool                      deleteTransform( quint32 index );
-      /// Retrieve an attribute set to manipulate it
-      AttributeSet             *getAttributeSet( quint32 index );
-      /// Retrieve the attribute sets
-      const QList<AttributeSet*>getAttributeSets();
-      /// Return the QRect bounding rectangle
-      QRect                     getBoundingRect();
-      /// Return the pixel size of the drawing
-      QSize                     getSize();
-      /// Return the stroke that passes through a given point.
-      Stroke                   *getStrokeAtPoint( QPoint point );
-      /// Retrieve a stroke to manipulate it
-      Stroke                   *getStroke( quint32 index );
-      /// Retrieve the strokes
-      const QList<Stroke*>      getStrokes();
-      /// Retrieve a transformation to manipulate it
-      QMatrix                  *getTransform( quint32 index );
-      /// Retrieve the transformations
-      const QList<QMatrix*>     getTransforms();
       /// Change the current attribute set
       bool                      setCurrentAttributeSet( AttributeSet *attributeSet );
       /// Change the new current attribute set
       bool                      setCurrentTransform( QMatrix *transform );
+      /// Return the pixel size of the drawing
+      QSize                     size();
+      /// Retrieve a stroke to manipulate it
+      Stroke                   *stroke( quint32 index );
+      /// Return the stroke that passes through a given point.
+      Stroke                   *strokeAtPoint( QPoint point );
+      /// Retrieve the strokes
+      const QList<Stroke*>      strokes();
+      /// Retrieve a transformation to manipulate it
+      QMatrix                  *transform( quint32 index );
+      /// Retrieve the transformations
+      const QList<QMatrix*>     transforms();
 
     public: // Public static methods
 

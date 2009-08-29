@@ -29,7 +29,7 @@
 
 namespace Isf
 {
-  
+
 /**
  * Create a new InkCanvas widget that allows you to draw Ink on a canvas.
  *
@@ -51,7 +51,7 @@ InkCanvas::InkCanvas( QWidget *parent )
   setCanvasColor( Qt::white );
   setPenColor( Qt::black );
   setPenSize( 4 );
-  
+
   clear();
 
   // prepare the buffer
@@ -59,7 +59,7 @@ InkCanvas::InkCanvas( QWidget *parent )
 
   // create a custom cursor
   updateCursor();
-  
+
   // start with a drawing pen by default.
   setPenType( DrawingPen );
 
@@ -94,20 +94,20 @@ void InkCanvas::updateCursor()
   {
     cursorPixmap_ = QPixmap( QSize( 32, 32 ) );
   }
-  
+
   cursorPixmap_.fill( Qt::transparent );
-  
+
   QPainter painter( &cursorPixmap_ );
-  
+
   painter.setRenderHints( QPainter::Antialiasing | QPainter::SmoothPixmapTransform, true );
   painter.setPen( QPen( color_, penSize_, Qt::SolidLine, Qt::RoundCap,
                         Qt::RoundJoin ) );
 
   // now draw a point.
   painter.drawPoint( QPoint( cursorPixmap_.size().width() / 2, cursorPixmap_.size().height() / 2 ) );
-  
+
   cursor_ = QCursor( cursorPixmap_ );
-  
+
   // create our cursor.
   setCursor( cursor_ );
 }
@@ -125,7 +125,7 @@ QSize InkCanvas::sizeHint() const
   }
   else
   {
-    QRect boundingRect = drawing_->getBoundingRect();
+    QRect boundingRect = drawing_->boundingRect();
     boundingRect.setTopLeft( QPoint( 0, 0 ) );
     return boundingRect.size();
   }
@@ -146,7 +146,7 @@ void InkCanvas::clear()
 
   drawing_->clear();
   drawingDirty_ = true;
-  
+
   update();
 
   emit inkChanged();
@@ -160,13 +160,13 @@ void InkCanvas::clear()
  * @param newColor A QColor object for the new color.
  */
 void InkCanvas::setPenColor( QColor newColor )
-{  
+{
 #ifdef ISFQT_DEBUG
   qDebug() << "Setting new pen color:" << newColor.name();
 #endif
 
   color_ = newColor;
-  
+
   updateCursor();
 }
 
@@ -184,7 +184,7 @@ void InkCanvas::setPenSize( int pixels )
   qDebug() << "Setting new pen size:" << pixels;
 #endif
   penSize_ = pixels;
-  
+
   updateCursor();
 }
 
@@ -203,7 +203,7 @@ void InkCanvas::setPenType( PenType type )
 #endif
 
   penType_ = type;
-  
+
   updateCursor();
 }
 
@@ -228,7 +228,7 @@ void InkCanvas::drawLineTo( const QPoint &endPoint )
   {
     color = QColor( "white" );
   }
-  
+
   painter.setPen( QPen( color, penSize_, Qt::SolidLine, Qt::RoundCap,
                   Qt::RoundJoin ) );
 
@@ -287,22 +287,22 @@ void InkCanvas::mousePressEvent( QMouseEvent *event )
   {
     // is there a stroke here?
     QPoint point = event->pos();
-    Stroke *s = drawing_->getStrokeAtPoint( point );
+    Stroke *s = drawing_->strokeAtPoint( point );
     if ( s != 0 )
     {
       drawing_->deleteStroke( s );
       drawingDirty_ = true;
       update();
     }
-    
+
     return;
   }
-    
+
   lastPoint_ = event->pos();
 
   // Search if there already is an attributes set compatible with the current one
   Isf::AttributeSet *reusableAttributeSet = 0;
-  foreach( Isf::AttributeSet *set, drawing_->getAttributeSets() )
+  foreach( Isf::AttributeSet *set, drawing_->attributeSets() )
   {
     if( abs( (qreal)penSize_ - set->penSize.width() ) < 1.0f
     && color_ == set->color )
@@ -338,7 +338,7 @@ void InkCanvas::mousePressEvent( QMouseEvent *event )
     drawing_->addStroke( currentStroke_ );
     currentStroke_ = 0;
   }
-  
+
   currentStroke_ = new Isf::Stroke;
   currentStroke_->points.append( Isf::Point( lastPoint_ ) );
 }
@@ -358,14 +358,14 @@ void InkCanvas::mouseMoveEvent(QMouseEvent *event)
   {
     // is there a stroke here?
     QPoint point = event->pos();
-    Stroke *s = drawing_->getStrokeAtPoint( point );
+    Stroke *s = drawing_->strokeAtPoint( point );
     if ( s != 0 )
     {
       drawing_->deleteStroke( s );
       drawingDirty_ = true;
       update();
     }
-    
+
     return;
   }
 
@@ -413,7 +413,7 @@ void InkCanvas::mouseReleaseEvent(QMouseEvent *event)
   {
     return;
   }
-  
+
   QPoint position = event->pos();
   drawLineTo( position );
 
@@ -435,7 +435,7 @@ void InkCanvas::mouseReleaseEvent(QMouseEvent *event)
   currentStroke_->points.append( Isf::Point( lastPoint_ ) );
   drawing_->addStroke( currentStroke_ );
   currentStroke_ = 0;
-  
+
   drawingDirty_ = true;
 
   // clear the buffer.
@@ -458,24 +458,26 @@ void InkCanvas::clearBuffer()
 void InkCanvas::paintEvent(QPaintEvent *event)
 {
   Q_UNUSED( event );
-  
-  
+
+
   QPainter painter( this );
-  
+
   painter.save();
-  painter.setBrush( QBrush( canvasColor_ ) );  
+  painter.setBrush( QBrush( canvasColor_ ) );
   painter.drawRect( QRect(-1, -1, width() + 1 , height() + 1 ) );
   painter.restore();
-  
+
   if( drawing_ == 0 )
   {
     qWarning() << "Uninitialized usage of InkCanvas!";
     return;
   }
-  
+
   // draw the ISF first, then the buffer over the top.
   // buffer has a transparent background.
-  QPixmap isfPixmap = drawingDirty_ ? drawing_->getPixmap( Qt::transparent ) : isfCachePixmap_;
+  QPixmap isfPixmap( drawingDirty_
+                       ? drawing_->pixmap( Qt::transparent )
+                       : isfCachePixmap_ );
 
   if ( drawingDirty_ )
   {
@@ -486,14 +488,14 @@ void InkCanvas::paintEvent(QPaintEvent *event)
     drawingDirty_ = false;
   }
 
-  QRect boundingRect = drawing_->getBoundingRect();
-  
+  QRect boundingRect = drawing_->boundingRect();
+
   // draw the pixmap starting at the boundingRect_ top left corner.
   painter.drawPixmap( boundingRect.topLeft(), isfPixmap );
-  
+
   // draw the buffer from 0,0.
   painter.drawPixmap( QPoint(0, 0), bufferPixmap_ );
-  
+
   QWidget::paintEvent( event );
 }
 
@@ -501,7 +503,7 @@ void InkCanvas::paintEvent(QPaintEvent *event)
 
 // when resized, re-draw everything.
 void InkCanvas::resizeEvent( QResizeEvent *event )
-{ 
+{
   // need to resize the buffer pixmap.
   clearBuffer();
 
@@ -520,7 +522,7 @@ void InkCanvas::resizeEvent( QResizeEvent *event )
  */
 QImage InkCanvas::image()
 {
-  return drawing_->getPixmap().toImage();
+  return drawing_->pixmap().toImage();
 }
 
 
@@ -649,11 +651,11 @@ void InkCanvas::setDrawing( Isf::Drawing *drawing )
 
   // try to resize of the widget to accommodate the
   // drawing.
-  QRect boundingRect = drawing_->getBoundingRect();
+  QRect boundingRect = drawing_->boundingRect();
   boundingRect.setTopLeft( QPoint( 0, 0 ) );
-  
+
   resize( boundingRect.width(), boundingRect.height() );
-  
+
   drawingDirty_ = true;
 
   update();
