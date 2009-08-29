@@ -23,6 +23,7 @@
 #include <QWidget>
 
 #include "isfqt.h"
+#include "isfqtdrawing.h"
 
 namespace Isf
 {
@@ -112,8 +113,9 @@ class InkCanvas : public QWidget
     QCursor             cursor_;
     // It's true if the erase brush was selected.
     bool                erasingImage_;
-    // Current image data
-    Isf::Drawing        *drawing_;
+    // Current drawing being manipulated.
+    Isf::Drawing       *drawing_;
+    Isf::Drawing        initialDrawing_;
     // Last point where the mouse pointer was released
     QPoint              lastPoint_;
     // True if the user is painting

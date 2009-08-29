@@ -1,4 +1,7 @@
 2009-08-29 (Adam)
+ * No longer take ownership of Isf::Drawing instances set with setDrawing().
+ * By default InkCanvas' initial Isf::Drawing instance that is created is no longer allocated
+   with new. This frees us from the concern of "when do we delete this initial reference?".
  * Rename Isf::InkEdit to Isf::InkCanvas. A better suited name.
  * When building bundled isf-qt, link statically and do not install any library components.
    Non-bundled builds a shared library and installs all components.

@@ -71,11 +71,6 @@ InkCanvas::InkCanvas( QWidget *parent )
 
 InkCanvas::~InkCanvas()
 {
-  if ( drawing_ != 0 )
-  {
-    delete drawing_;
-    drawing_ = 0;
-  }
 }
 
 
@@ -146,8 +141,9 @@ void InkCanvas::clear()
 {
   if ( drawing_ == 0 )
   {
-    drawing_ = new Isf::Drawing();
+    drawing_ = &initialDrawing_;
   }
+
   drawing_->clear();
   drawingDirty_ = true;
   
@@ -531,6 +527,14 @@ QImage InkCanvas::getImage()
 
 /**
  * Return the Isf::Drawing instance that the InkCanvas is currently manipulating.
+ *
+ * Warning: if you call this method without having called setDrawing() previously, the
+ *          Isf::Drawing pointer returned references an Isf::Drawing object *internal* to
+ *          InkCanvas. Do not delete this initial reference or undefined behaviour (read: bad behaviour)
+ *          will result.
+ *
+ * However, you can delete any references you get from here AFTER you call setDrawing() for the first time.
+ *
  * @return The current Isf::Drawing instance.
  */
 Isf::Drawing *InkCanvas::getDrawing()
@@ -599,20 +603,13 @@ void InkCanvas::setCanvasColor( QColor newColor )
 /**
  * Changes the currently displayed ink with the Isf::Drawing supplied.
  *
- * Note: InkCanvas will take ownership of this Isf::Drawing instance. That means when
- * InkCanvas is deleted, or setDrawing is called again, this Isf::Drawing instance will be
- * deleted.
+ * Note: InkCanvas does not take ownership of this Isf::Drawing instance. It is the
+ * caller's responsibility to delete the instance.
  *
  * @param drawing The new Ink drawing to display.
  */
 void InkCanvas::setDrawing( Isf::Drawing *drawing )
 {
-  if ( drawing_ != 0 )
-  {
-    delete drawing_;
-    drawing_ = 0;
-  }
-  
   drawing_ = drawing;
 
   // try to resize of the widget to accommodate the
