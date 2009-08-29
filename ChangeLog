@@ -1,3 +1,7 @@
+2009-08-29 (Adam)
+ * When building bundled isf-qt, link statically and do not install any library components.
+   Non-bundled builds a shared library and installs all components.
+
 2009-08-28 (Adam)
  * Fix writing of transformation data: write in the correct order and scale the transform values
    appropriately before writing.
