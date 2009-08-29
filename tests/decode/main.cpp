@@ -80,7 +80,7 @@ class TestDecode : public QMainWindow, private Ui::TestDecode
       }
       else
       {
-        label_->setPixmap( drawing.getPixmap( Qt::transparent ) );
+        label_->setPixmap( drawing.pixmap( Qt::transparent ) );
       }
     }
 
