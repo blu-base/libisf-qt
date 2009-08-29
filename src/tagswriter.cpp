@@ -411,7 +411,7 @@ IsfError TagsWriter::addTransformationTable( DataSource &source, const Drawing &
     qDebug() << transform->m11() * HiMetricToPixel;
     tagContents.append( encodeFloat( transform->m11() * HiMetricToPixel ) );
   }
-  else if ( drawing.transforms_.size() > 0 )
+  else if ( drawing.transforms_.size() > 1 )
   {
     tagContents.prepend( encodeUInt( tagContents.size() ) );
     tagContents.prepend( encodeUInt( TAG_TRANSFORM_TABLE ) );
