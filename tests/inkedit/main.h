@@ -34,7 +34,7 @@
 #include <QVBoxLayout>
 #include <QAbstractButton>
 
-#include <IsfInkEdit>
+#include <IsfInkCanvas>
 
 
 class TestInkEdit : public QWidget, public Ui::TestInkEdit

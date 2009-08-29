@@ -1,4 +1,5 @@
 2009-08-29 (Adam)
+ * Rename Isf::InkEdit to Isf::InkCanvas. A better suited name.
  * When building bundled isf-qt, link statically and do not install any library components.
    Non-bundled builds a shared library and installs all components.
 

@@ -34,7 +34,7 @@
 #include <QTextStream>
 #include <QFile>
 
-#include <IsfInkEdit>
+#include <IsfInkCanvas>
 
 #include "main.h"
 
@@ -122,11 +122,11 @@ void TestInkEdit::penTypeChanged( QAbstractButton *button )
 {
   if( button == rbDrawing_ )
   {
-    editor_->setPenType( InkEdit::DrawingPen );
+    editor_->setPenType( InkCanvas::DrawingPen );
   }
   else
   {
-    editor_->setPenType( InkEdit::EraserPen );
+    editor_->setPenType( InkCanvas::EraserPen );
   }
 }
 

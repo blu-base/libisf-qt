@@ -17,8 +17,8 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef INKEDIT_H
-#define INKEDIT_H
+#ifndef INKCANVAS_H
+#define INKCANVAS_H
 
 #include <QWidget>
 
@@ -34,13 +34,13 @@ namespace Isf
  *
  * @author Adam Goossens (adam@kmess.org)
  */
-class InkEdit : public QWidget
+class InkCanvas : public QWidget
 {
   Q_OBJECT
 
   public:
     /**
-     * The various types of pens supported by InkEdit.
+     * The various types of pens supported by InkCanvas.
      *
      * Currently only two are supported; DrawingPen (for drawing Ink)
      * and EraserPen, for erasing ink stroke-by-stroke.
@@ -53,9 +53,9 @@ class InkEdit : public QWidget
     
   public:
     // Constructor
-                        InkEdit( QWidget *parent = 0 );
+                        InkCanvas( QWidget *parent = 0 );
     // Destructor
-                        ~InkEdit();
+                        ~InkCanvas();
     // Get a QByteArray representing the Drawing instance.
     QByteArray          getBytes();
     // Return the drawn ISF image

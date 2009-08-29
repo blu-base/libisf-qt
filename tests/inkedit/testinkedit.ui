@@ -30,7 +30,7 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
-      <widget class="Isf::InkEdit" name="editor_" native="true">
+      <widget class="Isf::InkCanvas" name="editor_" native="true">
        <property name="sizePolicy">
         <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
          <horstretch>0</horstretch>
@@ -204,9 +204,9 @@ p, li { white-space: pre-wrap; }
  </widget>
  <customwidgets>
   <customwidget>
-   <class>Isf::InkEdit</class>
+   <class>Isf::InkCanvas</class>
    <extends>QWidget</extends>
-   <header location="global">IsfInkEdit</header>
+   <header location="global">IsfInkCanvas</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

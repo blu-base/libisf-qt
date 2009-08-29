@@ -11,22 +11,22 @@ SET( ISFQT_SOURCES
      tagsparser.cpp
      tagswriter.cpp
      isfqt.cpp
-     isfinkedit.cpp
+     isfinkcanvas.cpp
    )
 
 SET( ISFQT_PUBLIC_HEADERS
      ../include/isfqt.h
      ../include/isfqtdrawing.h
-     ../include/isfinkedit.h
+     ../include/isfinkcanvas.h
      ../include/IsfQt
      ../include/IsfQtDrawing
-     ../include/IsfInkEdit
+     ../include/IsfInkCanvas
    )
 
 
 #### Compilation ####
 
-QT4_WRAP_CPP( MOC_SRCS ../include/isfinkedit.h )
+QT4_WRAP_CPP( MOC_SRCS ../include/isfinkcanvas.h )
 
 INCLUDE_DIRECTORIES( ${QT_INCLUDES} ${CMAKE_CURRENT_BINARY_DIR} )
 

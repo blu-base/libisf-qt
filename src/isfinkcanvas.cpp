@@ -19,7 +19,7 @@
 
 #include "isfqt-internal.h"
 
-#include "isfinkedit.h"
+#include "isfinkcanvas.h"
 #include "isfqtdrawing.h"
 
 #include <QMouseEvent>
@@ -31,7 +31,7 @@ namespace Isf
 {
   
 /**
- * Create a new InkEdit widget that allows you to draw Ink on a canvas.
+ * Create a new InkCanvas widget that allows you to draw Ink on a canvas.
  *
  * To retrieve a QImage that contains the image drawn, use the function
  * getImage().
@@ -40,7 +40,7 @@ namespace Isf
  *
  * @param parent The parent widget.
  */
-InkEdit::InkEdit( QWidget *parent )
+InkCanvas::InkCanvas( QWidget *parent )
 : QWidget( parent )
 , erasingImage_( false )
 , drawing_( 0 )
@@ -69,7 +69,7 @@ InkEdit::InkEdit( QWidget *parent )
 
 
 
-InkEdit::~InkEdit()
+InkCanvas::~InkCanvas()
 {
   if ( drawing_ != 0 )
   {
@@ -86,7 +86,7 @@ InkEdit::~InkEdit()
  *
  * The cursor becomes a point, drawn with the current stroke colour and pen size.
  */
-void InkEdit::updateCursor()
+void InkCanvas::updateCursor()
 {
   if ( penType_ == EraserPen )
   {
@@ -122,7 +122,7 @@ void InkEdit::updateCursor()
 /**
  * By default the size should be around 300x300 - of course, this is flexible.
  */
-QSize InkEdit::sizeHint() const
+QSize InkCanvas::sizeHint() const
 {
   if ( drawing_->isNull() )
   {
@@ -142,7 +142,7 @@ QSize InkEdit::sizeHint() const
 /**
  * Clears the current image. All Ink data is discarded.
  */
-void InkEdit::clear()
+void InkCanvas::clear()
 {
   if ( drawing_ == 0 )
   {
@@ -163,7 +163,7 @@ void InkEdit::clear()
  *
  * @param newColor A QColor object for the new color.
  */
-void InkEdit::setPenColor( QColor newColor )
+void InkCanvas::setPenColor( QColor newColor )
 {  
 #ifdef ISFQT_DEBUG
   qDebug() << "Setting new pen color:" << newColor.name();
@@ -182,7 +182,7 @@ void InkEdit::setPenColor( QColor newColor )
  *
  * @param pixels The size of the pen, in pixels.
  */
-void InkEdit::setPenSize( int pixels )
+void InkCanvas::setPenSize( int pixels )
 {
 #ifdef ISFQT_DEBUG
   qDebug() << "Setting new pen size:" << pixels;
@@ -200,7 +200,7 @@ void InkEdit::setPenSize( int pixels )
  *
  * @param type The new pen type.
  */
-void InkEdit::setPenType( PenType type )
+void InkCanvas::setPenType( PenType type )
 {
 #ifdef ISFQT_DEBUG
   qDebug() << "Setting new pen type:" << type;
@@ -215,11 +215,11 @@ void InkEdit::setPenType( PenType type )
 
 
 // Draw a line from start point to last point
-void InkEdit::drawLineTo( const QPoint &endPoint )
+void InkCanvas::drawLineTo( const QPoint &endPoint )
 {
   if( drawing_ == 0 )
   {
-    qWarning() << "Uninitialized usage of InkEdit!";
+    qWarning() << "Uninitialized usage of InkCanvas!";
     return;
   }
 
@@ -262,7 +262,7 @@ void InkEdit::drawLineTo( const QPoint &endPoint )
 /**
  * Returns true if the Ink image is empty (i.e., no strokes). False otherwise.
  */
-bool InkEdit::isEmpty()
+bool InkCanvas::isEmpty()
 {
   return drawing_->isNull();
 }
@@ -272,11 +272,11 @@ bool InkEdit::isEmpty()
 /**
  * Start drawing the stroke; save any attribute data if necessary.
  */
-void InkEdit::mousePressEvent( QMouseEvent *event )
+void InkCanvas::mousePressEvent( QMouseEvent *event )
 {
   if( drawing_ == 0 )
   {
-    qWarning() << "Uninitialized usage of InkEdit!";
+    qWarning() << "Uninitialized usage of InkCanvas!";
     return;
   }
 
@@ -351,7 +351,7 @@ void InkEdit::mousePressEvent( QMouseEvent *event )
 /**
  * The mouse is moving; continue drawing the stroke.
  */
-void InkEdit::mouseMoveEvent(QMouseEvent *event)
+void InkCanvas::mouseMoveEvent(QMouseEvent *event)
 {
   if( ! ( event->buttons() & Qt::LeftButton ) || ! scribbling_ )
   {
@@ -375,7 +375,7 @@ void InkEdit::mouseMoveEvent(QMouseEvent *event)
 
   if( drawing_ == 0 )
   {
-    qWarning() << "Uninitialized usage of InkEdit!";
+    qWarning() << "Uninitialized usage of InkCanvas!";
     return;
   }
 
@@ -400,11 +400,11 @@ void InkEdit::mouseMoveEvent(QMouseEvent *event)
 /**
  * Handle drawing and saving of a stroke.
  */
-void InkEdit::mouseReleaseEvent(QMouseEvent *event)
+void InkCanvas::mouseReleaseEvent(QMouseEvent *event)
 {
   if( drawing_ == 0 )
   {
-    qWarning() << "Uninitialized usage of InkEdit!";
+    qWarning() << "Uninitialized usage of InkCanvas!";
     return;
   }
 
@@ -450,7 +450,7 @@ void InkEdit::mouseReleaseEvent(QMouseEvent *event)
 /**
  * Clear the pixmap buffer.
  */
-void InkEdit::clearBuffer()
+void InkCanvas::clearBuffer()
 {
   bufferPixmap_ = QPixmap( size() );
   bufferPixmap_.fill( Qt::transparent );
@@ -459,7 +459,7 @@ void InkEdit::clearBuffer()
 
 
 // Repaint the widget.
-void InkEdit::paintEvent(QPaintEvent *event)
+void InkCanvas::paintEvent(QPaintEvent *event)
 {
   Q_UNUSED( event );
   
@@ -473,7 +473,7 @@ void InkEdit::paintEvent(QPaintEvent *event)
   
   if( drawing_ == 0 )
   {
-    qWarning() << "Uninitialized usage of InkEdit!";
+    qWarning() << "Uninitialized usage of InkCanvas!";
     return;
   }
   
@@ -503,7 +503,7 @@ void InkEdit::paintEvent(QPaintEvent *event)
 
 
 // when resized, re-draw everything.
-void InkEdit::resizeEvent( QResizeEvent *event )
+void InkCanvas::resizeEvent( QResizeEvent *event )
 { 
   // need to resize the buffer pixmap.
   clearBuffer();
@@ -521,7 +521,7 @@ void InkEdit::resizeEvent( QResizeEvent *event )
  *
  * @return A QImage instance containing the rendered Ink.
  */
-QImage InkEdit::getImage()
+QImage InkCanvas::getImage()
 {
   return drawing_->getPixmap().toImage();
 }
@@ -530,10 +530,10 @@ QImage InkEdit::getImage()
 
 
 /**
- * Return the Isf::Drawing instance that the InkEdit is currently manipulating.
+ * Return the Isf::Drawing instance that the InkCanvas is currently manipulating.
  * @return The current Isf::Drawing instance.
  */
-Isf::Drawing *InkEdit::getDrawing()
+Isf::Drawing *InkCanvas::getDrawing()
 {
   return drawing_;
 }
@@ -551,7 +551,7 @@ Isf::Drawing *InkEdit::getDrawing()
  * @param base64 If true, the drawing is written encoded with base64.
  */
 
-void InkEdit::save( QIODevice &dev, bool base64 )
+void InkCanvas::save( QIODevice &dev, bool base64 )
 {
   if ( base64 )
   {
@@ -570,7 +570,7 @@ void InkEdit::save( QIODevice &dev, bool base64 )
  * Returns a QByteArray filled with appropriate ISF data.
  * @return A QByteArra filled with ISF data.
  */
-QByteArray InkEdit::getBytes()
+QByteArray InkCanvas::getBytes()
 {
   return Isf::Stream::writer( *drawing_ );
 }
@@ -579,13 +579,13 @@ QByteArray InkEdit::getBytes()
 
 
 /**
- * Set the canvas colour (i.e., the background colour of the InkEdit control)
+ * Set the canvas colour (i.e., the background colour of the InkCanvas control)
  *
  * Note that this is not saved with the Ink drawing.
  *
  * @param newColor The new canvas color.
  */
-void InkEdit::setCanvasColor( QColor newColor )
+void InkCanvas::setCanvasColor( QColor newColor )
 {
 #ifdef ISFQT_DEBUG
   qDebug() << "Setting new canvas color:" << newColor.name();
@@ -599,13 +599,13 @@ void InkEdit::setCanvasColor( QColor newColor )
 /**
  * Changes the currently displayed ink with the Isf::Drawing supplied.
  *
- * Note: InkEdit will take ownership of this Isf::Drawing instance. That means when
- * InkEdit is deleted, or setDrawing is called again, this Isf::Drawing instance will be
+ * Note: InkCanvas will take ownership of this Isf::Drawing instance. That means when
+ * InkCanvas is deleted, or setDrawing is called again, this Isf::Drawing instance will be
  * deleted.
  *
  * @param drawing The new Ink drawing to display.
  */
-void InkEdit::setDrawing( Isf::Drawing *drawing )
+void InkCanvas::setDrawing( Isf::Drawing *drawing )
 {
   if ( drawing_ != 0 )
   {
