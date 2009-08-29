@@ -3,7 +3,8 @@
 
 SET( ISFQT_SOURCES
      data/compression.cpp
-     data/gorilla.cpp
+     data/deltatransform.cpp
+     data/bitpacking.cpp
      data/huffman.cpp
      data/datasource.cpp
      data/multibytecoding.cpp

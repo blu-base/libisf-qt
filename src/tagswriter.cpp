@@ -372,7 +372,7 @@ IsfError TagsWriter::addTransformationTable( DataSource &source, const Drawing &
       transformTag = TAG_TRANSFORM;
       blockData.append( encodeFloat( trans->m11() * HiMetricToPixel ) );
       blockData.append( encodeFloat( .0f ) );
-      blockData.append( encodeFloat( .0f ) );      
+      blockData.append( encodeFloat( .0f ) );
       blockData.append( encodeFloat( trans->m22() * HiMetricToPixel ) );
       blockData.append( encodeFloat( trans->dx () / trans->m11() ) );
       blockData.append( encodeFloat( trans->dy () / trans->m22() ) );
@@ -514,8 +514,8 @@ IsfError TagsWriter::addStrokes( DataSource &source, const Drawing &drawing )
       yPoints.append( point.position.y() );
     }
 
-    deflate( blockData, xPoints, Points );
-    deflate( blockData, yPoints, Points );
+    deflatePacketData( blockData, xPoints );
+    deflatePacketData( blockData, yPoints );
 
     // The stroke is made by tag, then payload size, then number of points, then
     // the compressed points data

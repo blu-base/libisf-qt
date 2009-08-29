@@ -1,4 +1,10 @@
 
+2009-08-30 (Valerio)
+ * Rewritten the algorithm detection methods.
+ * Changed the names of some internal data classes, and improved their namespaces.
+ * Added a maximum drawing size check, to avoid errors from resulting in 80k by 70k pixel wide
+   drawings.
+
 2009-08-29 (Valerio)
  * Fixed skipping unknown custom tags contents.
  * Changed more method names to adhere to Qt's method naming style.

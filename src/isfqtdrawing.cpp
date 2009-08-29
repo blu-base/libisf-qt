@@ -420,6 +420,14 @@ QPixmap Drawing::pixmap( const QColor backgroundColor )
 
   QSize size_ = size();
 
+  if( size_.width() > 2000 || size_.height() > 2000 )
+  {
+    qWarning() << "Cannot render a drawing so big!";
+    qDebug()   << "[Information - Size:" << size_ << "pixels]";
+
+    return QPixmap();
+  }
+
   QPixmap pixmap( size_ );
   pixmap.fill( backgroundColor );
   QPainter painter( &pixmap );

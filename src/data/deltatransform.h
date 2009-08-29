@@ -18,31 +18,23 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef ISFCOMPRESSION_HUFFMAN_H
-#define ISFCOMPRESSION_HUFFMAN_H
+#ifndef ISF_COMPRESS_DELTATRANSFORM_H
+#define ISF_COMPRESS_DELTATRANSFORM_H
 
-#include "datasource.h"
-
+#include <QList>
 
 
 namespace Isf
 {
   namespace Compress
   {
-    namespace HuffmanAlgorithm
+    namespace Delta
     {
 
-      /// Compress data
-      bool deflate( QByteArray &encodedData, quint8 index, const QList<qint64> &source );
-      /// Decompress data
-      bool inflate( DataSource &source, quint64 length, quint8 index, QList<qint64> &decodedData );
-      /// Get the most appropriate index for the given data
-      quint8 index( const QList<qint64> &data );
-
-      // Internal use methods
-
-      // Compress a single value using the Adaptive-Huffman algorithm
-      bool deflateValue( DataSource &output, quint8 index, qint64 value );
+      /// Perform delta-delta transformation on data to deflate
+      bool transform( QList<qint64> &data );
+      /// Perform delta-delta inverse transformation on inflated data
+      bool inverseTransform( QList<qint64> &data );
 
     }
   }

@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef ISFCOMPRESSION_GORILLA_H
-#define ISFCOMPRESSION_GORILLA_H
+#ifndef ISFCOMPRESSION_BITPACKING_H
+#define ISFCOMPRESSION_BITPACKING_H
 
 #include "datasource.h"
 
@@ -29,12 +29,17 @@ namespace Isf
 {
   namespace Compress
   {
-    /// Analyze the data to find the correct block size
-    quint8 getBlockSizeGorilla( const QList<qint64> &data );
-    /// Compress data using the Gorilla algorithm
-    bool deflateGorilla( QByteArray &encodedData, quint8 blockSize, const QList<qint64> &source );
-    /// Decompress data using the Gorilla algorithm
-    bool inflateGorilla( DataSource &source, quint64 length, quint8 blockSize, QList<qint64> &decodedData );
+    namespace BitPackingAlgorithm
+    {
+
+      /// Get the most appropriate block size for the given data
+      quint8 blockSize( const QList<qint64> &data );
+      /// Compress data
+      bool deflate( QByteArray &encodedData, quint8 blockSize, const QList<qint64> &source );
+      /// Decompress data
+      bool inflate( DataSource &source, quint64 length, quint8 blockSize, QList<qint64> &decodedData );
+
+    }
   }
 }
 

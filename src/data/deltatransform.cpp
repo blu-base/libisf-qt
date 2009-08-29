@@ -18,36 +18,51 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef ISFCOMPRESSION_HUFFMAN_H
-#define ISFCOMPRESSION_HUFFMAN_H
-
-#include "datasource.h"
+#include "deltatransform.h"
 
 
+using namespace Isf::Compress;
 
-namespace Isf
+
+
+// Perform delta-delta transformation on data to deflate
+bool Delta::transform( QList<qint64> &data )
 {
-  namespace Compress
+  qint64 currentDelta  = 0;
+  qint64 previousDelta = 0;
+
+  for( qint64 index = 0; index < data.size(); ++index )
   {
-    namespace HuffmanAlgorithm
-    {
+    qint64 delta = data[ index ] - previousDelta;
 
-      /// Compress data
-      bool deflate( QByteArray &encodedData, quint8 index, const QList<qint64> &source );
-      /// Decompress data
-      bool inflate( DataSource &source, quint64 length, quint8 index, QList<qint64> &decodedData );
-      /// Get the most appropriate index for the given data
-      quint8 index( const QList<qint64> &data );
+    previousDelta = currentDelta;
+    currentDelta = previousDelta;
 
-      // Internal use methods
-
-      // Compress a single value using the Adaptive-Huffman algorithm
-      bool deflateValue( DataSource &output, quint8 index, qint64 value );
-
-    }
+    data[ index ] = delta;
   }
+
+  return true;
 }
 
 
 
-#endif
+// Perform delta-delta inverse transformation on inflated data
+bool Delta::inverseTransform( QList<qint64> &data )
+{
+  qint64 currentDelta  = 0;
+  qint64 previousDelta = 0;
+
+  for( qint64 index = 0; index < data.size(); ++index )
+  {
+    qint64 delta = ( currentDelta * 2 ) - previousDelta + data[ index ];
+
+    previousDelta = currentDelta;
+    currentDelta = delta;
+
+    data[ index ] = delta;
+  }
+
+  return true;
+}
+
+
