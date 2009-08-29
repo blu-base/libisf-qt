@@ -47,6 +47,24 @@ IsfError TagsParser::parseUnsupported( DataSource &source, const QString &tagNam
 
 
 
+/// Read away an unsupported custom tag
+IsfError TagsParser::parseCustomTag( DataSource &source, const QString &tagName )
+{
+  // Unsupported custom tag. The payload size does not include the algorithm byte,
+  // so we need to analyze it too
+
+  quint64 payloadSize = decodeUInt( source ) + 1;
+
+  analyzePayload( source,
+                  payloadSize,
+                  "Got unsupported custom tag: " + tagName +
+                  " with " + QString::number( payloadSize ) + " bytes of payload" );
+
+  return ISF_ERROR_NONE;
+}
+
+
+
 /// Read the table of GUIDs from the data
 IsfError TagsParser::parseGuidTable( DataSource &source, Drawing &drawing )
 {
@@ -592,7 +610,7 @@ IsfError TagsParser::parseTransformation( DataSource &source, Drawing &drawing, 
 #endif
       break;
     }
-    
+
     case TAG_TRANSFORM_ISOTROPIC_SCALE:
     {
       float scaleAmount = Compress::decodeFloat( source ) / HiMetricToPixel;
@@ -616,7 +634,7 @@ IsfError TagsParser::parseTransformation( DataSource &source, Drawing &drawing, 
 #endif
       break;
     }
-    
+
     case TAG_TRANSFORM_ROTATE:
     {
       float rotateAmount = Compress::decodeFloat( source ) / 100.0f;
@@ -641,7 +659,7 @@ IsfError TagsParser::parseTransformation( DataSource &source, Drawing &drawing, 
 #endif
       break;
     }
-    
+
     case TAG_TRANSFORM_SCALE_AND_TRANSLATE:
     {
       float scaleX = Compress::decodeFloat( source ) / HiMetricToPixel;
@@ -782,7 +800,7 @@ IsfError TagsParser::parseStroke( DataSource &source, Drawing &drawing )
   {
     polygon = drawing.currentTransform_->map( polygon );
   }
-  
+
   stroke->boundingRect = polygon.boundingRect();
 
   // set the bounding rectangle.
@@ -794,7 +812,7 @@ IsfError TagsParser::parseStroke( DataSource &source, Drawing &drawing )
     stroke->boundingRect.setSize( QSize( penSize, penSize ) );
     stroke->boundingRect.translate( -( penSize / 2 ), -( penSize / 2 ) );
   }
-  
+
   stroke->attributes   = drawing.currentAttributeSet_;
   stroke->info         = drawing.currentStrokeInfo_;
   stroke->metrics      = drawing.currentMetrics_;

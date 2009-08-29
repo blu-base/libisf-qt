@@ -84,6 +84,8 @@ namespace Isf
 
       /// Read away an unsupported tag
       static IsfError parseUnsupported( DataSource &source, const QString &tagName );
+      /// Read away an unsupported custom tag
+      static IsfError parseCustomTag( DataSource &source, const QString &tagName );
 
 
     private: // Static private debugging methods

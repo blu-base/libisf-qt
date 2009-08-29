@@ -439,7 +439,7 @@ Drawing &Stream::reader( const QByteArray &rawData )
             if( drawing->maxGuid_ > 0
             &&  tagIndex >= DEFAULT_TAGS_NUMBER && tagIndex <= drawing->maxGuid_ )
             {
-              TagsParser::parseUnsupported( isfData, "TAG_GUID_" + QString::number( tagIndex ) );
+              TagsParser::parseCustomTag( isfData, "TAG_GUID_" + QString::number( tagIndex ) );
             }
             else
             {
@@ -508,7 +508,7 @@ QByteArray Stream::writer( const Drawing &drawing )
 #endif
     return QByteArray();
   }
- 
+
   DataSource isfData;
 
   // Write the persistent format tag

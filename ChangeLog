@@ -1,3 +1,7 @@
+
+2009-08-29 (Valerio)
+ * Fixed skipping unknown custom tags contents.
+
 2009-08-29 (Adam)
  * Start qt-ifying the function names ie, "penSize()" instead of "getPenSize()".
  * Add methods to return pen size, colour and brush type from InkCanvas.
@@ -30,7 +34,7 @@
  * InkEdit now shows a custom cursor - a point drawn with the current stroke colour and width.
  * Drawing now calculates its bounding rectangle as necessary. Calls to finalizeChanges are not
    necessary anymore.
- * Remove cropping. Found a better method whereby InkEdit will draw the rendered ISF using the 
+ * Remove cropping. Found a better method whereby InkEdit will draw the rendered ISF using the
    offset provided by the bounding rectangle of Isf::Drawing.
  * Supply the FitToCurve flag for all strokes. Windows will render them using Bezier smoothing, making
    them appear nicer.
