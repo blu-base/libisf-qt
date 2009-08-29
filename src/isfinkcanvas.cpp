@@ -34,9 +34,9 @@ namespace Isf
  * Create a new InkCanvas widget that allows you to draw Ink on a canvas.
  *
  * To retrieve a QImage that contains the image drawn, use the function
- * getImage().
+ * image().
  *
- * To get the Isf::Drawing instance for your ink, use getDrawing().
+ * To get the Isf::Drawing instance for your ink, use drawing().
  *
  * @param parent The parent widget.
  */
@@ -494,6 +494,7 @@ void InkCanvas::paintEvent(QPaintEvent *event)
   // draw the buffer from 0,0.
   painter.drawPixmap( QPoint(0, 0), bufferPixmap_ );
   
+  QWidget::paintEvent( event );
 }
 
 
@@ -517,11 +518,45 @@ void InkCanvas::resizeEvent( QResizeEvent *event )
  *
  * @return A QImage instance containing the rendered Ink.
  */
-QImage InkCanvas::getImage()
+QImage InkCanvas::image()
 {
   return drawing_->getPixmap().toImage();
 }
 
+
+/**
+ * Get the current pen color.
+ *
+ * @return The current pen color.
+ */
+QColor InkCanvas::penColor()
+{
+  return color_;
+}
+
+
+
+/**
+ * Get the current pen type.
+ *
+ * @return The current pen type.
+ */
+int InkCanvas::penSize()
+{
+  return penSize_;
+}
+
+
+
+/**
+ * Get the current pen type.
+ *
+ * @return The current pen type.
+ */
+InkCanvas::PenType InkCanvas::penType()
+{
+  return penType_;
+}
 
 
 
@@ -537,7 +572,7 @@ QImage InkCanvas::getImage()
  *
  * @return The current Isf::Drawing instance.
  */
-Isf::Drawing *InkCanvas::getDrawing()
+Isf::Drawing *InkCanvas::drawing()
 {
   return drawing_;
 }
@@ -574,7 +609,7 @@ void InkCanvas::save( QIODevice &dev, bool base64 )
  * Returns a QByteArray filled with appropriate ISF data.
  * @return A QByteArra filled with ISF data.
  */
-QByteArray InkCanvas::getBytes()
+QByteArray InkCanvas::bytes()
 {
   return Isf::Stream::writer( *drawing_ );
 }

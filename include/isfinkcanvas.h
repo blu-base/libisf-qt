@@ -58,15 +58,21 @@ class InkCanvas : public QWidget
     // Destructor
                         ~InkCanvas();
     // Get a QByteArray representing the Drawing instance.
-    QByteArray          getBytes();
+    QByteArray          bytes();
     // Return the drawn ISF image
-    Isf::Drawing       *getDrawing();
+    Isf::Drawing       *drawing();
     // Return the Ink image as a QImage
-    QImage              getImage();
+    QImage              image();
     // Erase the stroke at a given point.
     void                eraseStroke( QPoint &strokePoint );
     // Returns true if the image is empty
     bool                isEmpty();
+    // Get current pen color
+    QColor              penColor();
+    // Get current pen size
+    int                 penSize();
+    // Get the current pen type
+    PenType             penType();
     // Save the drawing to a QIODevice, optionally base64 encoded.
     void                save( QIODevice &device, bool base64 = false );
     // Change the current ink drawing.

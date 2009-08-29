@@ -1,4 +1,6 @@
 2009-08-29 (Adam)
+ * Start qt-ifying the function names ie, "penSize()" instead of "getPenSize()".
+ * Add methods to return pen size, colour and brush type from InkCanvas.
  * Always write at least one transformation to the stream: if no custom transforms, write the default one.
  * No longer take ownership of Isf::Drawing instances set with setDrawing().
  * By default InkCanvas' initial Isf::Drawing instance that is created is no longer allocated
