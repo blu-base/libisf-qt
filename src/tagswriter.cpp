@@ -398,7 +398,20 @@ IsfError TagsWriter::addTransformationTable( DataSource &source, const Drawing &
 #endif
   }
 
-  if( drawing.transforms_.count() > 1 )
+
+  if ( drawing.transforms_.size() == 0 )
+  {
+#ifdef ISFQT_DEBUG_VERBOSE
+    qDebug() << "- Added default transformation";
+#endif
+
+    // write the default transform.
+    const QMatrix *transform = &drawing.defaultTransform_;
+    tagContents.append( TAG_TRANSFORM_ISOTROPIC_SCALE );
+    qDebug() << transform->m11() * HiMetricToPixel;
+    tagContents.append( encodeFloat( transform->m11() * HiMetricToPixel ) );
+  }
+  else if ( drawing.transforms_.size() > 0 )
   {
     tagContents.prepend( encodeUInt( tagContents.size() ) );
     tagContents.prepend( encodeUInt( TAG_TRANSFORM_TABLE ) );
