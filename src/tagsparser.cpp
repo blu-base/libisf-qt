@@ -29,10 +29,10 @@
 #include <IsfQtDrawing>
 
 #include <QPolygon>
+#include <QUuid>
 
 
 using namespace Isf;
-using namespace Isf::Compress;
 
 
 
@@ -47,18 +47,54 @@ IsfError TagsParser::parseUnsupported( DataSource &source, const QString &tagNam
 
 
 
-/// Read away an unsupported custom tag
-IsfError TagsParser::parseCustomTag( DataSource &source, const QString &tagName )
+/// Read a custom tag
+IsfError TagsParser::parseCustomTag( DataSource &source, Drawing &drawing, quint64 tagIndex )
 {
-  // Unsupported custom tag. The payload size does not include the algorithm byte,
-  // so we need to analyze it too
+  quint64 tag = tagIndex - FIRST_CUSTOM_TAG_ID;
 
-  quint64 payloadSize = decodeUInt( source ) + 1;
+  // Find if we have this tag registered in the GUID table
+  if( tag >= (quint64)drawing.guids_.count() )
+  {
+#ifdef ISFQT_DEBUG
+    qDebug() << "Custom tag" << QString::number( tagIndex ) << "was not registered!";
+#endif
+    return ISF_ERROR_INVALID_STREAM;
+  }
 
-  analyzePayload( source,
-                  payloadSize,
-                  "Got unsupported custom tag: " + tagName +
-                  " with " + QString::number( payloadSize ) + " bytes of payload" );
+  QList<qint64> data;
+  QUuid         guid        = drawing.guids_.at( tag );
+  quint64       payloadSize = decodeUInt( source ) + 1;
+
+  // Decompress the property data
+  DataSource payload( source.getBytes( payloadSize ) );
+  Compress::inflatePropertyData( payload, payloadSize-1, data );
+
+  // String values
+  if(
+      guid == "{96E9B229-B657-DA4F-BFFD-F54DBA4C35F9}" // Unknown meaning, name?
+  ||  guid == "{7C8E448A-390F-D94C-BB52-71FDA3221674}" // Unknown meaning, surname?
+     )
+  {
+    // TODO: WTF is the first char for? Its value is always "0x08"
+    data.takeAt( 0 );
+
+    QString string;
+
+    foreach( quint64 item, data )
+    {
+      string.append( (quint8)item );
+    }
+
+#ifdef ISFQT_DEBUG
+    qDebug() << "- String value:" << string;
+#endif
+  }
+  else
+  {
+#ifdef ISFQT_DEBUG
+    qDebug() << "- Unknown property data:" << data;
+#endif
+  }
 
   return ISF_ERROR_NONE;
 }
@@ -68,6 +104,14 @@ IsfError TagsParser::parseCustomTag( DataSource &source, const QString &tagName 
 /// Read the table of GUIDs from the data
 IsfError TagsParser::parseGuidTable( DataSource &source, Drawing &drawing )
 {
+  if( ! drawing.guids_.isEmpty() )
+  {
+#ifdef ISFQT_DEBUG
+    qDebug() << "Duplicated TAG_GUID_TABLE!";
+#endif
+    return ISF_ERROR_INVALID_STREAM;
+  }
+
   quint64 guidTableSize = decodeUInt( source );
 
   // GUIDs are 16 bytes long
@@ -80,21 +124,71 @@ IsfError TagsParser::parseGuidTable( DataSource &source, Drawing &drawing )
   qDebug() << "- GUID table has" << numGuids << "entries for total" << guidTableSize << "bytes:";
 #endif
 
+  bool ok = true;
   quint8 index = 0;
 
   while( ! source.atEnd() && index < numGuids )
   {
-    // 100 is the first index available for custom GUIDs
-    quint8 guidIndex = index + 100;
+    int block1;
+    short block2;
+    short block3;
+    char  block4[ 8 ];
+
+    block1 = source.getBytes( 4, &ok ).toHex().toUInt( &ok, 16 );
+    if( ! ok )
+    {
+      break;
+    }
+
+    block2 = source.getBytes( 2, &ok ).toHex().toUShort( &ok, 16 );
+    if( ! ok )
+    {
+      break;
+    }
+
+     block3 = source.getBytes( 2, &ok ).toHex().toUShort( &ok, 16 );
+    if( ! ok )
+    {
+      break;
+    }
+
+    for( int i = 0; ok && i < 8; ++i )
+    {
+      block4[ i ] = source.getBytes( 1, &ok ).at( 0 );
+    }
+    if( ! ok )
+    {
+      break;
+    }
+
+    QUuid guid( block1, block2, block3,
+                block4[0], block4[1], block4[2], block4[3],
+                block4[4], block4[5], block4[6], block4[7] );
+
+    drawing.guids_.append( guid );
+
+    if( index != ( drawing.guids_.count() - 1 ) )
+    {
+#ifdef ISFQT_DEBUG_VERBOSE
+      qDebug() << "  - Tag/index mismatch!";
+#endif
+      return ISF_ERROR_INTERNAL;
+    }
 
 #ifdef ISFQT_DEBUG_VERBOSE
-    qDebug() << "  - Index" << QString::number( guidIndex ).rightJustified( 5 , ' ' )
-            << "->" << source.getBytes( 16 ).toHex();
-#else
-    Q_UNUSED( guidIndex )
+    qDebug() << "  - Index" << ( index + FIRST_CUSTOM_TAG_ID )
+             << "->"        << QString( guid ).toUpper();
 #endif
 
     ++index;
+  }
+
+  if( ! ok )
+  {
+#ifdef ISFQT_DEBUG
+    qDebug() << "Invalid GUID table!";
+#endif
+    return ISF_ERROR_INVALID_PAYLOAD;
   }
 
   return ISF_ERROR_NONE;
@@ -950,28 +1044,35 @@ IsfError TagsParser::parseStrokeDescTable( DataSource &source, Drawing &drawing 
 
 
 // Print the payload of an unknown tag
-void TagsParser::analyzePayload( DataSource &source, const QString &tagName )
+QByteArray TagsParser::analyzePayload( DataSource &source, const QString &tagName )
 {
   quint64 payloadSize = decodeUInt( source );
 
-  analyzePayload( source,
-                  payloadSize,
-                  "Got tag: " + tagName + " with " + QString::number( payloadSize ) + " bytes of payload" );
+  return analyzePayload( source,
+                         payloadSize,
+                         "Got tag: " + tagName + " with " + QString::number( payloadSize ) + " bytes of payload" );
 }
 
 
 
 // Print the payload of an unknown tag
-void TagsParser::analyzePayload( DataSource &source, const quint64 payloadSize, const QString &message )
+QByteArray TagsParser::analyzePayload( DataSource &source, const quint64 payloadSize, const QString &message )
 {
+  QByteArray result;
+  QByteArray output;
+
   if( payloadSize == 0 )
   {
-    return;
+    return output;
   }
 
-#ifdef ISFQT_DEBUG_VERBOSE
+#ifndef ISFQT_DEBUG_VERBOSE
+  Q_UNUSED( message )
+  source.seekRelative( +payloadSize );
+  return output;
+#endif
+
   quint64 pos = 0;
-  QByteArray output;
 
   if( ! message.isEmpty() )
   {
@@ -981,6 +1082,7 @@ void TagsParser::analyzePayload( DataSource &source, const quint64 payloadSize, 
   while( ! source.atEnd() && pos < payloadSize )
   {
     quint8 byte = source.getByte();
+    result.append( byte );
     output.append( QByteArray::number( byte, 16 ).rightJustified( 2, '0').toUpper() + " " );
 
     if( ( ( pos + 1 ) % 24 ) == 0 )
@@ -998,10 +1100,8 @@ void TagsParser::analyzePayload( DataSource &source, const quint64 payloadSize, 
   }
 
   qDebug() << "--------------------------------------------------------------------";
-#else
-  Q_UNUSED( message )
-  source.seekRelative( +payloadSize );
-#endif
+
+  return result;
 }
 
 

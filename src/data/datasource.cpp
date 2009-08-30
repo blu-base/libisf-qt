@@ -92,7 +92,7 @@ void DataSource::append( const QBitArray &constBits )
 {
   if( constBits.size() == 0 )
   {
-#ifdef ISFDATA_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
     qDebug() << "Not writing an empty bit array, skipping.";
 #endif
     return;
@@ -208,7 +208,7 @@ bool DataSource::atEnd( bool considerBits ) const
   {
     // There's no more data only when both the buffer AND all the bits
     // have been read
-    return buffer_.atEnd() && ( currentBitIndex_ >= 7 );
+    return buffer_.atEnd() && ( currentBitIndex_ >= 8 );
   }
 
   return buffer_.atEnd();
@@ -279,7 +279,7 @@ bool DataSource::getBit( bool *ok )
   {
     // Also check the index again, in case somehow moveByteToBitArray()
     // fails to move the bit index
-    if( ! moveByteToBitArray() || currentBitIndex_ >= 8 )
+    if( ( ! moveByteToBitArray() ) || currentBitIndex_ >= 8 )
     {
       if( ok != 0 )
       {
@@ -287,6 +287,8 @@ bool DataSource::getBit( bool *ok )
       }
       return false;
     }
+
+    Q_ASSERT( currentBitIndex_ == 0 );
   }
 
   Q_ASSERT( currentByte_.size() == 8 );
@@ -296,7 +298,9 @@ bool DataSource::getBit( bool *ok )
     *ok = true;
   }
 
-  return currentByte_.at( currentBitIndex_++ );
+  ++currentBitIndex_;
+
+  return currentByte_.at( currentBitIndex_ - 1 );
 }
 
 
@@ -316,7 +320,7 @@ quint64 DataSource::getBits( quint8 amount, bool *ok )
     return 0LL;
   }
 
-  bool gotBitOk;
+  bool gotBitOk = false;
   quint8 bitIndex = 0;
   quint64 value = 0;
 
@@ -345,6 +349,14 @@ quint64 DataSource::getBits( quint8 amount, bool *ok )
 
     ++bitIndex;
   }
+
+  // If more bits must be read, but are not available, abort
+#ifdef ISFQT_DEBUG_VERBOSE
+  if( ( bitIndex < amount ) && atEnd( true ) )
+  {
+    qDebug() << "Unable to read all bits: only" << bitIndex << "of" << amount << "were available.";
+  }
+#endif
 
   // Done!
   if( ok != 0 )
@@ -434,7 +446,7 @@ QByteArray DataSource::getBytes( quint8 amount, bool *ok )
 // Move a byte from the buffer into the bit array
 bool DataSource::moveByteToBitArray()
 {
-  uchar byte = 0;
+  quint8 byte = 0;
 
   if( buffer_.size() == 0 )
   {
@@ -452,12 +464,11 @@ bool DataSource::moveByteToBitArray()
     return false;
   }
 
-  if( buffer_.read( (char*)&byte, 1 ) != 1 )
+  if( buffer_.getChar( (char*)&byte ) != 1 )
   {
     qWarning() << "DataSource::moveByteToBitArray() - Read failed at buffer position" << buffer_.pos();
     return false;
   }
-
 
   for( qint8 i = 0; i < 8; i++ )
   {
@@ -521,6 +532,7 @@ void DataSource::prepend( const QByteArray &bytes )
 void DataSource::reset()
 {
   buffer_.reset();
+  currentBitIndex_ = 8;
 }
 
 
@@ -530,14 +542,14 @@ void DataSource::seekRelative( int pos )
 {
   if( pos < 0 && buffer_.pos() <= 0 )
   {
-#ifdef ISFDATA_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
     qWarning() << "Cannot seek back!";
 #endif
     return;
   }
   if( pos > 0 && ( buffer_.size() - buffer_.pos() ) < pos )
   {
-#ifdef ISFDATA_DEBUG_VERBOSE
+#ifdef ISFQT_DEBUG_VERBOSE
     qWarning() << "Cannot seek forward!";
 #endif
     return;

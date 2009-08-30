@@ -80,6 +80,7 @@ namespace Isf
   , TAG_HIMETRIC_SIZE
   , TAG_STROKE_IDS                       // =  30
   , DEFAULT_TAGS_NUMBER                     = 100
+  , FIRST_CUSTOM_TAG_ID                     = 100
   };
   Q_DECLARE_FLAGS( DataTags, DataTag )
   Q_DECLARE_OPERATORS_FOR_FLAGS( DataTags )
@@ -105,6 +106,7 @@ namespace Isf
    * See TagsParser::parsePersistentFormat() for more info.
    */
   const uint ISF_PERSISTENT_FORMAT_VERSION = 65536;
+
 
 
 }

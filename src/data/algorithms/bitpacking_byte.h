@@ -18,10 +18,10 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef ISFCOMPRESSION_BITPACKING_H
-#define ISFCOMPRESSION_BITPACKING_H
+#ifndef ISFCOMPRESSION_BITPACKING_BYTE_H
+#define ISFCOMPRESSION_BITPACKING_BYTE_H
 
-#include "datasource.h"
+#include "../datasource.h"
 
 
 
@@ -29,15 +29,15 @@ namespace Isf
 {
   namespace Compress
   {
-    namespace BitPackingAlgorithm
+    namespace BitPackingByteAlgorithm
     {
 
-      /// Get the most appropriate block size for the given data
-      quint8 blockSize( const QList<qint64> &data );
+      /// Get the most appropriate index for the given data
+      quint8 index( const QList<qint64> &data );
       /// Compress data
-      bool deflate( QByteArray &encodedData, quint8 blockSize, const QList<qint64> &source );
+      bool deflate( QByteArray &encodedData, quint8 index, const QList<qint64> &source );
       /// Decompress data
-      bool inflate( DataSource &source, quint64 length, quint8 blockSize, QList<qint64> &decodedData );
+      bool inflate( DataSource &source, quint64 length, quint8 index, QList<qint64> &decodedData );
 
     }
   }

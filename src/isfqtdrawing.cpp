@@ -53,7 +53,7 @@ Drawing::Drawing()
 , maxGuid_( 0 )
 {
 #ifdef ISFQT_DEBUG_VERBOSE
-  qDebug() << "** Created new ISF drawing **";
+  qDebug() << "** Created new ISF drawing:" << this << "**";
 #endif
   clear();
 }
@@ -72,7 +72,7 @@ Drawing::~Drawing()
   qDeleteAll( attributeSets_ );
 
 #ifdef ISFQT_DEBUG_VERBOSE
-  qDebug() << "** Destroyed ISF drawing object **";
+  qDebug() << "** Destroyed ISF drawing:" << this << "**";
 #endif
 }
 

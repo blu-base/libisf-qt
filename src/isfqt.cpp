@@ -138,7 +138,7 @@ Drawing &Stream::reader( const QByteArray &rawData )
           break;
         }
 
-        QString place( QString::number( isfData.pos(), 16 ) );
+        QString place( "0x" + QString::number( isfData.pos(), 16 ).toUpper() );
         quint64 tagIndex = decodeUInt( isfData );
 
         switch( tagIndex )
@@ -439,7 +439,10 @@ Drawing &Stream::reader( const QByteArray &rawData )
             if( drawing->maxGuid_ > 0
             &&  tagIndex >= DEFAULT_TAGS_NUMBER && tagIndex <= drawing->maxGuid_ )
             {
-              TagsParser::parseCustomTag( isfData, "TAG_GUID_" + QString::number( tagIndex ) );
+#ifdef ISFQT_DEBUG_VERBOSE
+              qDebug() << "Got tag (@" << place << "): TAG_CUSTOM:" << tagIndex;
+#endif
+              TagsParser::parseCustomTag( isfData, *drawing, tagIndex );
             }
             else
             {

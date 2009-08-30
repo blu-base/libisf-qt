@@ -52,6 +52,8 @@ namespace Isf
   {
     public: // Static public methods
 
+      /// Read away an unsupported custom tag
+      static IsfError parseCustomTag( DataSource &source, Drawing &drawing, quint64 tagIndex );
       /// Read the table of GUIDs from the data
       static IsfError parseGuidTable( DataSource &source, Drawing &drawing );
       /// Read the drawing dimensions
@@ -84,16 +86,14 @@ namespace Isf
 
       /// Read away an unsupported tag
       static IsfError parseUnsupported( DataSource &source, const QString &tagName );
-      /// Read away an unsupported custom tag
-      static IsfError parseCustomTag( DataSource &source, const QString &tagName );
 
 
     private: // Static private debugging methods
 
       // Print the payload of an unknown tag
-      static void     analyzePayload( DataSource &source, const QString &tagName );
+      static QByteArray  analyzePayload( DataSource &source, const QString &tagName );
       // Print the payload of an unknown tag
-      static void     analyzePayload( DataSource &source, const quint64 payloadSize, const QString &message = QString() );
+      static QByteArray  analyzePayload( DataSource &source, const quint64 payloadSize, const QString &message = QString() );
 
   };
 }

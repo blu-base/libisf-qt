@@ -21,7 +21,7 @@
 #ifndef ISFCOMPRESSION_HUFFMAN_H
 #define ISFCOMPRESSION_HUFFMAN_H
 
-#include "datasource.h"
+#include "../datasource.h"
 
 
 

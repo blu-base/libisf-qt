@@ -21,9 +21,10 @@
 #include "compression.h"
 
 #include "isfqt-internal.h"
-#include "bitpacking.h"
-#include "huffman.h"
-#include "deltatransform.h"
+#include "algorithms/bitpacking.h"
+#include "algorithms/bitpacking_byte.h"
+#include "algorithms/huffman.h"
+#include "algorithms/deltatransform.h"
 
 
 using namespace Isf;
@@ -222,7 +223,7 @@ bool Compress::inflatePropertyData( DataSource &source, quint64 length, QList<qi
   }
 
   bool    result;
-  uchar   byte          = source.getByte();
+  quint8  byte          = source.getByte();
   qint16  algorithm     = ( byte & AlgorithmMask );
   quint8  algorithmData = 0;
 
@@ -279,34 +280,37 @@ bool Compress::inflatePropertyData( DataSource &source, quint64 length, QList<qi
     case BitPackingByte:
     {
 #ifdef ISFQT_DEBUG_VERBOSE
-      qDebug() << "- Inflating" << length << "items using the Bit Packing Byte algorithm and a block size of" << algorithmData;
+      qDebug() << "- Inflating" << length << "bytes using the Bit Packing Byte algorithm and an index of" << algorithmData;
 #endif
 
-      qWarning() << "Stream data is compressed with non implemented algorithm!";
-      qDebug()   << "[Information - algorithm: Bit Packing Byte]";
-      return false;
+      result = BitPackingByteAlgorithm::inflate( source, length, algorithmData, decodedData );
+      break;
     }
 
     case BitPackingWord:
     {
 #ifdef ISFQT_DEBUG_VERBOSE
-      qDebug() << "- Inflating" << length << "items using the Bit Packing Word algorithm and a block size of" << algorithmData;
+      qDebug() << "- Inflating" << length << "bytes using the Bit Packing Word algorithm and an index of" << algorithmData;
 #endif
 
       qWarning() << "Stream data is compressed with non implemented algorithm!";
       qDebug()   << "[Information - algorithm: Bit Packing Word]";
       return false;
+
+      break;
     }
 
     case BitPackingLong:
     {
 #ifdef ISFQT_DEBUG_VERBOSE
-      qDebug() << "- Inflating" << length << "items using the Bit Packing Long algorithm and a block size of" << algorithmData;
+      qDebug() << "- Inflating" << length << "bytes using the Bit Packing Long algorithm and an index of" << algorithmData;
 #endif
 
       qWarning() << "Stream data is compressed with non implemented algorithm!";
       qDebug()   << "[Information - algorithm: Bit Packing Long]";
       return false;
+
+      break;
     }
 
     case LimpelZiv:
@@ -318,6 +322,8 @@ bool Compress::inflatePropertyData( DataSource &source, quint64 length, QList<qi
       qWarning() << "Stream data is compressed with non implemented algorithm!";
       qDebug()   << "[Information - algorithm: Limpel-Ziv]";
       return false;
+
+      break;
     }
 
     case Huffman:
@@ -332,6 +338,7 @@ bool Compress::inflatePropertyData( DataSource &source, quint64 length, QList<qi
       {
         result = Delta::inverseTransform( decodedData );
       }
+
       break;
     }
 

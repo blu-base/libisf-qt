@@ -26,11 +26,11 @@
 #include <QMap>
 #include <QMatrix>
 #include <QPaintDevice>
+#include <QUuid>
 
 
 // Forward declarations
 class QByteArray;
-
 
 
 namespace Isf
@@ -144,6 +144,8 @@ namespace Isf
       QMatrix                   defaultTransform_;
       // Last parsing error (if there is one)
       IsfError                  error_;
+      // List of registered GUIDs
+      QList<QUuid>              guids_;
       // Whether the drawing contains X coordinates or not
       bool                      hasXData_;
       // Whether the drawing contains Y coordinates or not

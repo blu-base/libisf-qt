@@ -2,10 +2,11 @@
 #### Source files definitions ####
 
 SET( ISFQT_SOURCES
+     data/algorithms/bitpacking.cpp
+     data/algorithms/bitpacking_byte.cpp
+     data/algorithms/huffman.cpp
+     data/algorithms/deltatransform.cpp
      data/compression.cpp
-     data/deltatransform.cpp
-     data/bitpacking.cpp
-     data/huffman.cpp
      data/datasource.cpp
      data/multibytecoding.cpp
      isfqtdrawing.cpp

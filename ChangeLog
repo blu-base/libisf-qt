@@ -4,6 +4,13 @@
  * Changed the names of some internal data classes, and improved their namespaces.
  * Added a maximum drawing size check, to avoid errors from resulting in 80k by 70k pixel wide
    drawings.
+ * Moved all algorithms into src/data/algorithms.
+ * Renamed the Gorilla algorithm to "Bit Packing".
+ * Separated the delta-delta transformation methods into their own files.
+ * Added an algorithm to do bit-packing of bytes.
+ * Fixed bug in DataSource, the last bit of data was never read.
+ * Added parsing the GUID table tag and saving the GUIDs into Drawing.
+ * Added parsing of custom tags and decoding their contents.
 
 2009-08-29 (Valerio)
  * Fixed skipping unknown custom tags contents.

@@ -53,6 +53,9 @@ namespace Isf
   , ISF_ERROR_INVALID_STREAM     /// The stream contains wrong or duplicated tags
   , ISF_ERROR_INVALID_PAYLOAD    /// A tag's payload was empty
   , ISF_ERROR_INVALID_BLOCK      /// A block had invalid contents
+
+    /// Other errors
+  , ISF_ERROR_INTERNAL           /// An error within the code has occurred
   };
 
 
