@@ -728,7 +728,7 @@ IsfError TagsParser::parseStroke( DataSource &source, Drawing &drawing )
 #endif
 
   QList<qint64> xPointsData, yPointsData, pressureData;
-  if( ! inflate( source, numPoints, xPointsData ) )
+  if( ! Compress::inflatePacketData( source, numPoints, xPointsData ) )
   {
 #ifdef ISFQT_DEBUG
     qWarning() << "Decompression failure while extracting X points data!";
@@ -736,7 +736,7 @@ IsfError TagsParser::parseStroke( DataSource &source, Drawing &drawing )
 #endif
   }
 
-  if( ! inflate( source, numPoints, yPointsData ) )
+  if( ! Compress::inflatePacketData( source, numPoints, yPointsData ) )
   {
 #ifdef ISFQT_DEBUG
     qWarning() << "Decompression failure while extracting Y points data!";
@@ -745,7 +745,7 @@ IsfError TagsParser::parseStroke( DataSource &source, Drawing &drawing )
   }
 
   if(   drawing.currentStrokeInfo_->hasPressureData
-  &&  ! inflate( source, numPoints, pressureData ) )
+  &&  ! Compress::inflatePacketData( source, numPoints, pressureData ) )
   {
 #ifdef ISFQT_DEBUG
     qWarning() << "Decompression failure while extracting pressure data!";
