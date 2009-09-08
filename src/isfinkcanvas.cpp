@@ -82,31 +82,32 @@ InkCanvas::~InkCanvas()
  * The cursor becomes a point, drawn with the current stroke colour and pen size.
  */
 void InkCanvas::updateCursor()
-{
-  if ( penType_ == EraserPen )
-  {
-    cursor_ = QCursor( Qt::CrossCursor );
-    setCursor( cursor_ );
-    return;
-  }
-
+{ 
   if ( cursorPixmap_.isNull() )
   {
     cursorPixmap_ = QPixmap( QSize( 32, 32 ) );
   }
 
-  cursorPixmap_.fill( Qt::transparent );
+  if ( penType_ == EraserPen )
+  {
+    cursorPixmap_ = QPixmap( ":data/draw-eraser.png" );
+    cursor_ = QCursor( cursorPixmap_, 0, cursorPixmap_.height() );
+  }
+  else
+  {
+    cursorPixmap_.fill( Qt::transparent );
 
-  QPainter painter( &cursorPixmap_ );
+    QPainter painter( &cursorPixmap_ );
 
-  painter.setRenderHints( QPainter::Antialiasing | QPainter::SmoothPixmapTransform, true );
-  painter.setPen( QPen( color_, penSize_, Qt::SolidLine, Qt::RoundCap,
-                        Qt::RoundJoin ) );
+    painter.setRenderHints( QPainter::Antialiasing | QPainter::SmoothPixmapTransform, true );
+    painter.setPen( QPen( color_, penSize_, Qt::SolidLine, Qt::RoundCap,
+                          Qt::RoundJoin ) );
 
-  // now draw a point.
-  painter.drawPoint( QPoint( cursorPixmap_.size().width() / 2, cursorPixmap_.size().height() / 2 ) );
-
-  cursor_ = QCursor( cursorPixmap_ );
+    // now draw a point.
+    painter.drawPoint( QPoint( cursorPixmap_.size().width() / 2, cursorPixmap_.size().height() / 2 ) );
+    
+    cursor_ = QCursor( cursorPixmap_ );
+  }
 
   // create our cursor.
   setCursor( cursor_ );
