@@ -1,3 +1,6 @@
+2009-09-09 (Adam)
+ * Add draw-eraser.svgz to comply with Oxygen licensing requirements.
+
 2009-09-08 (Adam)
  * Make copyright headers standard across all files.
  * Replace the eraser cursor with draw-eraser.png take from Oxygen 16x16 icon set.
