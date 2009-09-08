@@ -26,7 +26,7 @@ SET( ISFQT_PUBLIC_HEADERS
    )
 
 SET( ISFQT_RCCS 
-    resources.qrc
+    isfqtresources.qrc
    )
 
 #### Compilation ####
