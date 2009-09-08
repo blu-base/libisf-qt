@@ -1,7 +1,12 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Valerio Pilo                                    *
+ *   Copyright (C) 2009 by Valerio Pilo                                    *
  *   valerio@kmess.org                                                     *
  *                                                                         *
+ *   Copyright (C) 2009 by Adam Goossens                                   *
+ *   adam@kmess.org                                                        *
+ ***************************************************************************/
+ 
+/***************************************************************************
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Lesser General Public License as        *
  *   published by the Free Software Foundation; either version 2.1 of the  *

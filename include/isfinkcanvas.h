@@ -1,20 +1,26 @@
 /***************************************************************************
-                          inkedit.cpp -  description
-                             -------------------
-    begin                : Wed May 14 2008
-    copyright            : (C) 2008 by Antonio Nastasi
-                         : (c) 2009 by Adam Goossens
-    email                : sifcenter@gmail.com
-                         : adam@kmess.org
+ *   Copyright (C) 2009 by Valerio Pilo                                    *
+ *   valerio@kmess.org                                                     *
+ *                                                                         *
+ *   Copyright (C) 2009 by Adam Goossens                                   *
+ *   adam@kmess.org                                                        *
  ***************************************************************************/
-
+ 
 /***************************************************************************
- *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
+ *   it under the terms of the GNU Lesser General Public License as        *
+ *   published by the Free Software Foundation; either version 2.1 of the  *
+ *   License, or (at your option) any later version.                       *
  *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU Lesser General Public      *
+ *   License along with this program; if not, write to the                 *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
 #ifndef INKCANVAS_H
@@ -63,8 +69,6 @@ class InkCanvas : public QWidget
     Isf::Drawing       *drawing();
     // Return the Ink image as a QImage
     QImage              image();
-    // Erase the stroke at a given point.
-    void                eraseStroke( QPoint &strokePoint );
     // Returns true if the image is empty
     bool                isEmpty();
     // Get current pen color

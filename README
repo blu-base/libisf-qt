@@ -63,6 +63,14 @@ The ISF format is (albeit poorly*) documented: here's the sources we used.
 
 
 
+Licensing
+=========
+
+Only the Oxygen icon, draw-eraser, is released under LGPL 3.0 (see http://www.oxygen-icons.org/). See COPYING_ICONS for full license text.
+
+The remainder of ISF-qt is released under LGPL2.1. See COPYING for full license text.
+
+
 More Information
 ================
 

@@ -5,7 +5,6 @@ OUTSTANDING
 -----------
 - Export IsfDrawing to raw-isf, isf-base64 and fortified-gif
 - Modify strokes
-- Delete strokes
 
 DONE
 ----
@@ -26,3 +25,4 @@ DONE
 - Parse ISF data from WLM
 - Add new strokes to an IsfDrawing
 - Stroke attributes: width, colour, pressure
+- Delete strokes
