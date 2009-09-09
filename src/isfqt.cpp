@@ -35,6 +35,10 @@
 #include <QPainter>
 #include <QPixmap>
 
+#if ISFQT_GIF_ENABLED == 1
+  #include "gif-support.h"
+#endif
+
 
 using namespace Isf;
 using namespace Compress;
@@ -45,20 +49,23 @@ using namespace Compress;
 
 
 
-/**
- * Creates and returns a new Drawing object from some raw ISF input data.
- *
- * If the ISF data is invalid, a NULL Drawing is returned.
- *
- * @param isfData Raw ISF data to interpret.
- * @return A new Drawing object representing the data.
- */
-Drawing &Stream::reader( const QByteArray &rawData )
+// Return whether the library was built with Fortified GIF support
+bool Stream::supportsGif()
+{
+  return ( ISFQT_GIF_ENABLED == true );
+}
+
+
+
+// Convert a raw ISF data stream into a drawing
+Drawing &Stream::reader( const QByteArray &rawData, bool decodeFromBase64 )
 {
   // Create a new drawing on the heap to ensure it will keep
   // living after this method returns
   Drawing *drawing = new Drawing;
-  DataSource isfData( rawData );
+  DataSource isfData( decodeFromBase64
+                        ? QByteArray::fromBase64( rawData )
+                        : rawData );
   int size = isfData.size();
 
   if( size == 0 )
@@ -504,10 +511,103 @@ Drawing &Stream::reader( const QByteArray &rawData )
 
 
 
+// Convert a Fortified-GIF image into a drawing
+Drawing &Stream::readerGif( const QByteArray &gifRawBytes, bool decodeFromBase64 )
+{
+  QByteArray isfData;
+
+  QByteArray gifBytes( decodeFromBase64
+                        ? QByteArray::fromBase64( gifRawBytes )
+                        : gifRawBytes );
+
+#if ISFQT_GIF_ENABLED == 1
+
 /**
-  * Convert a drawing into raw data in ISF format
-  */
-QByteArray Stream::writer( const Drawing &drawing )
+ * With the commented code below, it would all have been so easy, but no!
+ * DGifGetComment is NOT PRESENT IN THE LIBRARY despite being in the giflib
+ * header file. And EGifPutComment is present!
+ * It doesn't work, but hey, at least it's there. (see below)
+ */
+/*
+  QBuffer gifData( &gifBytes );
+  gifData.open( QIODevice::ReadOnly );
+
+  // Open the gif file
+  GifFileType *gifImage = DGifOpen( (void*)&gifData, GifReadFromByteArray );
+  if( gifImage != 0 )
+  {
+    DGifGetComment( gifImage, data?? );
+  }
+  else
+  {
+    qWarning() << "Couldn't initialize GIF library!";
+  }
+
+  DGifCloseFile( gifImage );
+  gifData.close();
+*/
+
+  // Find the last 'comment' type tag: it should be the last thing in the file...
+  qint32 size = 0;
+  qint32 position = 0;
+  qint32 maxDataPosition = gifBytes.size() - 2; // comment and gif stream ending bytes
+
+#ifdef ISFQT_DEBUG_VERBOSE
+  qDebug() << "Searching for a stream. Last valid position:" << maxDataPosition;
+#endif
+
+  while( size == 0 && ( position = gifBytes.lastIndexOf( COMMENT_EXT_FUNC_CODE, position - 1 ) ) >= 0 )
+  {
+    // Skip the comment tag, to have the size byte as current char
+    qint32 lastPosition = position + 1;
+
+    // The next character after the tag can't be an ISF stream start, skip
+    if( gifBytes[ position + 2 ] != '\0' )
+    {
+      continue;
+    }
+
+    // Try to read the stream
+    quint8 sizeByte;
+    do
+    {
+      sizeByte = gifBytes[ lastPosition ];
+
+      // Skip the size byte
+      lastPosition++;
+
+      isfData.append( gifBytes.mid( lastPosition, sizeByte ) );
+      lastPosition += sizeByte;
+    }
+    while( sizeByte == MAX_GIF_BYTE && ( lastPosition <= maxDataPosition ) );
+
+    // We found the ISF stream!
+    if( lastPosition == maxDataPosition )
+    {
+#ifdef ISFQT_DEBUG_VERBOSE
+      qDebug() << "Found an ISF stream of size" << isfData.size();
+#endif
+      break;
+    }
+    else
+    {
+#ifdef ISFQT_DEBUG_VERBOSE
+      qDebug() << "Stream not found at position:" << position
+               << "size:" << ( lastPosition - position );
+#endif
+      isfData.clear();
+    }
+  }
+
+#endif // ISFQT_GIF_ENABLED == 1
+
+  return reader( isfData );
+}
+
+
+
+// Convert a drawing into a raw ISF data stream
+QByteArray Stream::writer( const Drawing &drawing, bool encodeToBase64 )
 {
   if( &drawing == 0 || drawing.isNull() || drawing.error() != ISF_ERROR_NONE )
   {
@@ -544,7 +644,216 @@ QByteArray Stream::writer( const Drawing &drawing )
   encodeUInt( isfData, SUPPORTED_ISF_VERSION, true/*prepend*/ );
 
 
-  return isfData.data();
+  // Convert to Base64 if needed
+  if( encodeToBase64 )
+  {
+    return isfData.data().toBase64();
+  }
+  else
+  {
+    return isfData.data();
+  }
+}
+
+
+
+// Convert a drawing into a Fortified-GIF image
+QByteArray Stream::writerGif( const Drawing &drawing, bool encodeToBase64 )
+{
+  QByteArray imageBytes;
+
+#if ISFQT_GIF_ENABLED == 1
+  Drawing source( drawing );
+
+  // Get the ISF data stream
+  QByteArray isfData( writer( source ) );
+
+#ifdef ISFQT_DEBUG_VERBOSE
+  qDebug() << "GIF-Fortifying an ISF stream of size" << isfData.size();
+#endif
+
+  // Get the ISF pixmap and copy the pixels to an 8bpp image
+  QImage isfImage( source.pixmap().toImage()
+                                  .convertToFormat( QImage::Format_Indexed8,
+                                                    Qt::ThresholdDither ) );
+
+  // Initialise the gif variables
+  QBuffer         gifData;
+  GifFileType    *gifImage  = NULL;
+  ColorMapObject *cmap      = NULL;
+  int             height    = isfImage.height();
+  int             width     = isfImage.width();
+  int             numColors = 0;
+  bool            gifError  = true;
+
+  // Convert the image to GIF using libgif
+
+  // Open the gif file
+  gifData.open( QIODevice::WriteOnly );
+  gifImage = EGifOpen( (void*)&gifData, GifWriteToByteArray );
+  if( gifImage == 0 )
+  {
+    qWarning() << "Couldn't initialize gif library!";
+    goto writeError;
+  }
+
+  // Create the color map
+  numColors = ( isfImage.numColors() << 2 );
+  if( numColors > 256 )
+  {
+    numColors = 256;
+  }
+
+  cmap = MakeMapObject( numColors, NULL );
+  if( cmap == 0 && isfImage.numColors() > 1 )
+  {
+    qWarning() << "Couldn't create map object for gif conversion (colors:" << isfImage.numColors() << ")!";
+    goto writeError;
+  }
+
+  // Fill in the color map with the colors in the image color table
+  for( int i = 0; i < isfImage.numColors(); ++i )
+  {
+    const QRgb &color( isfImage.color( i ) );
+    cmap->Colors[i].Red   = qRed  ( color );
+    cmap->Colors[i].Green = qGreen( color );
+    cmap->Colors[i].Blue  = qBlue ( color );
+  }
+
+  // Save the file properties
+  if( EGifPutScreenDesc( gifImage, width, height, 8, 0, cmap ) == GIF_ERROR )
+  {
+    qWarning() << "EGifPutScreenDesc() failed!";
+    goto writeError;
+  }
+
+  // Save the image format
+  if( EGifPutImageDesc( gifImage, 0, 0, width, height, 0, NULL ) == GIF_ERROR )
+  {
+    qWarning() << "EGifPutImageDesc() failed!";
+    goto writeError;
+  }
+
+
+  /**
+   * FIXME: If to write the scanlines you use
+   *   EGifPutLine( gifImage, isfImage.bits(), isfImage.width() * isfImage.height() )
+   * i.e. convert the complete image in one call, then the resulting image is mangled.
+   * Something is wrong with the width or so, it seems to be off by about two pixels.
+   */
+  // Write every scanline
+  for( int line = 0; line < height; ++line )
+  {
+    if( EGifPutLine( gifImage, isfImage.scanLine( line ), width ) == GIF_ERROR )
+    {
+      qWarning() << "EGifPutLine failed at scanline" << line
+                 << "(height:" << isfImage.height()
+                 << ", width:" << isfImage.width()
+                 << ", bytesperline:" << isfImage.bytesPerLine() << ")";
+      goto writeError;
+    }
+  }
+
+
+/**
+ * Completing the funny theater that is giflib, EGifPutComment() doesn't
+ * work, or I've overlooked something Extremely Obvious(tm).
+ * Googling didn't help: I rewrote it (from the giflib source) with
+ * Qt.
+ */
+/*
+  if( EGifPutComment( gifImage, isfData.constData() ) == GIF_ERROR )
+  {
+    qWarning() << "EGifPutComment has failed!";
+    goto writeError;
+  }
+*/
+
+  // Write the ISF stream into the Comment Extension field
+  if( isfData.size() < MAX_GIF_BYTE )
+  {
+    EGifPutExtension( gifImage, COMMENT_EXT_FUNC_CODE, isfData.size(), isfData.constData() );
+  }
+  else
+  {
+    // Write the extension
+    if( EGifPutExtensionFirst( gifImage, COMMENT_EXT_FUNC_CODE, MAX_GIF_BYTE, isfData.left( MAX_GIF_BYTE ).data() ) == GIF_ERROR )
+    {
+      qWarning() << "EGifPutExtensionFirst failed!";
+      goto writeError;
+    }
+
+    // The first MAX_GIF_BYTE bytes have been written already
+    quint32 pos = MAX_GIF_BYTE;
+
+    quint32 length = ( isfData.size() - pos );
+
+    // Write all the full data blocks
+    while( length >= MAX_GIF_BYTE )
+    {
+      if( EGifPutExtensionNext( gifImage, 0, MAX_GIF_BYTE, isfData.mid( pos, MAX_GIF_BYTE ).data() ) == GIF_ERROR )
+      {
+        qWarning() << "EGifPutExtensionNext failed!";
+        goto writeError;
+      }
+
+      pos += MAX_GIF_BYTE;
+      length -= MAX_GIF_BYTE;
+    }
+
+    // Write the last block
+    if( length > 0 )
+    {
+      if( EGifPutExtensionLast( gifImage, 0, length, isfData.mid( pos, MAX_GIF_BYTE ).data() ) == GIF_ERROR )
+      {
+        qWarning() << "EGifPutExtensionLast (n) failed!";
+        goto writeError;
+      }
+    }
+    else
+    {
+      if( EGifPutExtensionLast( gifImage, 0, 0, 0 ) == GIF_ERROR )
+      {
+        qWarning() << "EGifPutExtensionLast (0) failed!";
+        goto writeError;
+      }
+    }
+  }
+
+  gifError = false;
+
+writeError:
+  // Clean up the GIF converter etc
+  EGifCloseFile( gifImage );
+  FreeMapObject( cmap );
+  gifData.close();
+
+  if( gifError )
+  {
+    qWarning() << "GIF error code:" << GifLastError();
+  }
+  else
+  {
+    // Return the GIF data
+    imageBytes = gifData.data();
+
+#ifdef ISFQT_DEBUG_VERBOSE
+    qDebug() << "Converted a" << isfData.size() << "bytes Ink to GIF:" << isfImage.height() << "x" << isfImage.width() << "->" << imageBytes.size() << "bytes";
+#endif
+  }
+
+#endif // ISFQT_GIF_ENABLED == 1
+
+
+  // Convert to Base64 if needed
+  if( encodeToBase64 )
+  {
+    return imageBytes.toBase64();
+  }
+  else
+  {
+    return imageBytes;
+  }
 }
 
 

@@ -3,7 +3,17 @@ libISF-Qt (Ink Serialized Format) TODO
 
 OUTSTANDING
 -----------
-- Export IsfDrawing to raw-isf, isf-base64 and fortified-gif
+- Bit Packing Byte codec:
+    - Encoding
+- Bit Packing Word codec:
+    - Encoding
+    - Decoding
+- Bit Packing Long codec:
+    - Encoding
+    - Decoding
+- Read and write user-defined custom tags
+- Interpret, use and write pressure information
+- Associating text recognized by OCR to the drawn strokes
 - Modify strokes
 
 DONE
@@ -17,12 +27,15 @@ DONE
 - Huffman codec:
     - Encoding
     - Decoding
-- Gorilla codec:
+- Bit Packing codec:
     - Encoding
+    - Decoding
+- Bit Packing Byte codec:
     - Decoding
 - Properly parse generated ISF test data
 - Generate new ISF data
 - Parse ISF data from WLM
 - Add new strokes to an IsfDrawing
 - Stroke attributes: width, colour, pressure
+- Export IsfDrawing to raw-isf, isf-base64 and fortified-gif
 - Delete strokes

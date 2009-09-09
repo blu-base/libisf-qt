@@ -18,6 +18,6 @@ ADD_MULTIPLE_TESTS(
 )
 
 
-# Compile the ISF decoder test
+# Compile the other testing applications
 ADD_SUBDIRECTORY( decode )
 ADD_SUBDIRECTORY( inkedit )

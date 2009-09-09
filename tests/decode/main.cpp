@@ -59,10 +59,29 @@ class TestDecode : public QMainWindow, private Ui::TestDecode
       if( ! rewrite )
       {
         QByteArray data( readTestIsfData( arguments.at( 0 ) ) );
-        drawing = Isf::Stream::reader( data );
+        drawing = Isf::Stream::readerGif( data );
       }
       else
       {
+        qDebug() << "------------------------- Creating drawing from ISF -------------------------";
+        QByteArray data1( readTestIsfData( arguments.at( 0 ) ) );
+        drawing = Isf::Stream::reader( data1 );
+
+        // Test Fortified-GIF r/w
+        qDebug() << "------------------------- Writing drawing to GIF file -------------------------";
+        QByteArray data2( Isf::Stream::writerGif( drawing ) );
+/*
+        QFile file( "test.gif" );
+        file.open( QIODevice::WriteOnly );
+        file.write( data2 );
+        file.close();
+*/
+        qDebug() << "------------------------- Reading it back -------------------------";
+        drawing = Isf::Stream::readerGif( data2 );
+        qDebug() << "------------------------- showing it -------------------------";
+
+        /*
+        // Test regular stream r/w
         qDebug() << "------------------------- Creating drawing from ISF -------------------------";
         QByteArray data1( readTestIsfData( arguments.at( 0 ) ) );
         drawing = Isf::Stream::reader( data1 );
@@ -72,6 +91,8 @@ class TestDecode : public QMainWindow, private Ui::TestDecode
 
         qDebug() << "------------------------- Reading it back -------------------------";
         drawing = Isf::Stream::reader( data2 );
+        qDebug() << "------------------------- showing it -------------------------";
+        */
       }
 
       if( drawing.isNull() )

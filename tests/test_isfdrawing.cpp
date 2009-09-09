@@ -95,20 +95,21 @@ void TestIsfDrawing::createDrawing()
 {
   qDebug() << "------------------------- Creating drawing from ISF -------------------------";
   QByteArray data1;
-  readTestIsfData( "tests/test3.isf", data1 );
+  readTestIsfData( "tests/test4.isf", data1 );
   Isf::Drawing drawing1 = Isf::Stream::reader( data1 );
+
+  QCOMPARE( drawing1.isNull(), false );
 
   qDebug() << "------------------------- Writing drawing to ISF file -------------------------";
   QByteArray data2( Isf::Stream::writer( drawing1 ) );
 
-  // Write the ISF data on a file too
-  QFile file( "tests/created.isf" );
-  QVERIFY( file.open( QIODevice::WriteOnly ) );
-  file.write( data2 );
-  file.close();
-
   qDebug() << "------------------------- Reading it back -------------------------";
   Isf::Drawing drawing2 = Isf::Stream::reader( data2 );
+
+  QCOMPARE( drawing2.isNull(), false );
+
+  qDebug() << "Streams size - data1:" << data1.size() << "data2:" << data2.size();
+  QVERIFY( data1.size() == data2.size() );
 }
 
 

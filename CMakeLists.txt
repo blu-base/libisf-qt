@@ -16,7 +16,7 @@ CMAKE_MINIMUM_REQUIRED( VERSION 2.6 )
 SET( CMAKE_BUILD_TYPE debugfull )
 
 # Define the library version number
-SET( ISFQT_VERSION "0.1" )
+SET( ISFQT_VERSION "0.9" )
 
 
 #### Inclusions ####
@@ -24,6 +24,39 @@ SET( ISFQT_VERSION "0.1" )
 FIND_PACKAGE( Qt4 REQUIRED )
 
 ENABLE_TESTING()
+
+OPTION( WANT_GIF "Enable support for reading and writing Fortified-GIF images" ON )
+IF( WANT_GIF )
+  MESSAGE( "-- Looking for GifLib" )
+  FIND_PACKAGE( GIF QUIET )
+
+  # GifLib can be difficult to find...
+  IF( NOT GIF_FOUND )
+    INCLUDE( "cmake/giflib_hack.cmake" )
+  ENDIF( NOT GIF_FOUND )
+
+  # At this point, we can be relatively sure that if it's there, it has been found
+  IF( NOT GIF_FOUND )
+    MESSAGE( FATAL_ERROR
+             "Support to read and write Fortified-GIF images is missing.\n"
+             "  * You will need to install both the library and development packages of the GIF Library, giflib.\n"
+             "  * Usually the package names for this library are:\n"
+             "      on Ubuntu:   'libgif4' and 'libgif-dev'\n"
+             "      on openSUSE: 'giflib'  and 'giflib-devel'\n"
+             "  * The project homepage is http://sourceforge.net/projects/giflib/\n" )
+  ELSE()
+    MESSAGE( "-- Looking for GifLib - found" )
+  ENDIF()
+ELSE( WANT_GIF )
+  MESSAGE( "-- GifLib support disabled" )
+ENDIF( WANT_GIF )
+
+# Set the variable for isfqtconfig.h.in
+IF( WANT_GIF )
+  SET( GIF_ENABLED 1 )
+ELSE()
+  SET( GIF_ENABLED 0 )
+ENDIF()
 
 
 #### Compilation ####

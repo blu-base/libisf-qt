@@ -39,6 +39,8 @@
 
 namespace Isf
 {
+  // Forward declarations
+  class Drawing;
 
 
 
@@ -343,11 +345,6 @@ namespace Isf
 
 
 
-  // Forward declarations
-  class Drawing;
-
-
-
   /**
    * Main library class.
    *
@@ -360,14 +357,51 @@ namespace Isf
     public: // Public static methods
 
       /**
-       * Convert a raw ISF data stream into a drawing
+       * Convert a raw ISF data stream into a drawing.
+       *
+       * If the ISF data is invalid, a null Drawing is returned.
+       *
+       * @param gifBytes Source byte array with an ISF stream
+       * @param decodeFromBase64 Whether the bytes are in the Base64 format and
+       *                         need to be decoded first
        */
-      static Drawing    &reader( const QByteArray &isfData );
+      static Drawing    &reader( const QByteArray &isfData, bool decodeFromBase64 = false );
 
       /**
-       * Convert a drawing into a raw ISF data stream
+       * Convert a Fortified-GIF image into a drawing.
+       *
+       * If the GIF image or the ISF data are invalid, a null Drawing is returned.
+       *
+       * @param gifBytes Source byte array with a Fortified GIF image
+       * @param decodeFromBase64 True if the bytes are in the Base64 format and
+       *                         need to be decoded first
        */
-      static QByteArray  writer( const Drawing &drawing );
+      static Drawing    &readerGif( const QByteArray &gifRawBytes, bool decodeFromBase64 = false );
+
+      /**
+       * Return whether the library was built with Fortified GIF support.
+       *
+       * @return bool
+       */
+      static bool        supportsGif();
+
+      /**
+       * Convert a drawing into a raw ISF data stream.
+       *
+       * @param drawing Source drawing
+       * @param encodeToBase64 Whether the converted ISF stream should be
+       *                       encoded with Base64 or not
+       */
+      static QByteArray  writer( const Drawing &drawing, bool encodeToBase64 = false );
+
+      /**
+       * Convert a drawing into a Fortified-GIF image.
+       *
+       * @param drawing Source drawing
+       * @param encodeToBase64 Whether the converted ISF stream should be
+       *                       encoded with Base64 or not
+       */
+      static QByteArray  writerGif( const Drawing &drawing, bool encodeToBase64 = false );
 
   };
 

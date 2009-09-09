@@ -10,17 +10,17 @@ A. It's a library, written in C++/Qt4, to read and write ISF
    image files.
 
 Q. How does this library differ from aMSN's or Emesene's?
-A. It's being written with Qt, which makes it easily portable on
+A. It's written with Qt, which makes it easily portable on
    a lot of different architectures; also Qt's new licensing
-   terms (LGPL) will make it possible for everyone to use it
+   terms (LGPL) make it possible for everyone to use it
    easily.
-   The library will support more ISF features than those two,
-   since we are writing it using the official specification.
+   The library supports more ISF features than those two,
+   since we've written it using the official specification.
    Moreover, aMSN's and Emesene's are not distributed by
    theirselves, ours is.
 
 Q. What's the status of completion of the library, and which
-   ISF features does it support?
+   ISF features does/will support?
 A. Please see the TODO file to have an overview.
 
 
@@ -47,19 +47,23 @@ Aaand now you're set. :)
 Documentation:
 =================
 
-The ISF format is (albeit poorly*) documented: here's the sources we used.
+The ISF format is (albeit poorly*) documented: here's the
+sources we used.
 
-- Original Microsoft ISF specification, made open with their Open Specification Promise:
+- Original Microsoft ISF specification, made open with their
+  Open Specification Promise:
   http://download.microsoft.com/download/0/B/E/0BE8BDD7-E5E8-422A-ABFD-4342ED7AD886/InkSerializedFormat(ISF)Specification.pdf
-- Quick explanation of the algorithms and other very useful details:
+- Quick explanation of the algorithms and other very useful
+  details:
   http://synce.org/moin/FormatDocumentation/InkSerializedFormat
 - Original code from aMSN:
   https://amsn.svn.sourceforge.net/svnroot/amsn/trunk/amsn/utils/tclISF/src
 - Original code from emesene:
   https://emesene.svn.sourceforge.net/svnroot/emesene/trunk/emesene/pyisf
 
-* = The specification was probably not meant for use by developers wanting to write
-    an alternative implementation; there's a lot of guesswork to be done.
+* = The specification was probably not meant for use by
+    developers wanting to write an alternative implementation;
+    there's a lot of guesswork to be done.
 
 
 
@@ -74,6 +78,7 @@ The remainder of ISF-qt is released under LGPL2.1. See COPYING for full license 
 More Information
 ================
 
-For more information about LibISF-Qt, ask us at the KMess board:
-http://www.kmess.org/board/
-or contact us via e-mail at project@kmess.org
+For more information about LibISF-Qt, ask us:
+- forum board at http://www.kmess.org/board/
+- e-mail at project@kmess.org
+- IRC at #kmess on irc.freenode.net
