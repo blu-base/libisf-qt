@@ -67,6 +67,118 @@ Drawing::Drawing()
 
 
 /**
+ * Construct a copy of an existing Drawing instance.
+ *
+ * @param other The instance to duplicate.
+ */
+Drawing::Drawing( const Drawing &other )
+: boundingRect_( other.boundingRect_ )
+, canvas_( other.canvas_ )
+, currentMetrics_( 0 )
+, currentAttributeSet_( 0 )
+, currentStrokeInfo_( 0 )
+, currentTransform_( 0 )
+, defaultMetrics_( other.defaultMetrics_ )
+, defaultAttributeSet_( other.defaultAttributeSet_ )
+, defaultStrokeInfo_( other.defaultStrokeInfo_ )
+, defaultTransform_( other.defaultTransform_ )
+, error_( other.error_ )
+, guids_( other.guids_ )
+, hasXData_( other.hasXData_ )
+, hasYData_( other.hasYData_ )
+, isNull_( other.isNull_ )
+, maxGuid_( other.maxGuid_ )
+, maxPenSize_( other.maxPenSize_ )
+, size_( other.size_ )
+{
+#ifdef ISFQT_DEBUG_VERBOSE
+  qDebug() << "** Copying ISF drawing:" << (void*)&other << "into new:" << this << "**";
+#endif
+
+  // First: create copies of all the local lists
+
+  foreach( Metrics *metrics, other.metrics_ )
+  {
+    Metrics *newMetrics = new Metrics( *metrics );
+    metrics_.append( newMetrics );
+
+    if( metrics == other.currentMetrics_ )
+    {
+      currentMetrics_ = newMetrics;
+    }
+  }
+
+  foreach( StrokeInfo *strokeInfo, other.strokeInfo_ )
+  {
+    StrokeInfo *newStrokeInfo = new StrokeInfo( *strokeInfo );
+    strokeInfo_.append( newStrokeInfo );
+
+    if( strokeInfo == other.currentStrokeInfo_ )
+    {
+      currentStrokeInfo_ = newStrokeInfo;
+    }
+  }
+
+  foreach( QMatrix *transform, other.transforms_ )
+  {
+    QMatrix *newTransform = new QMatrix( *transform );
+    transforms_.append( newTransform );
+
+    if( transform == other.currentTransform_ )
+    {
+      currentTransform_ = newTransform;
+    }
+  }
+
+  foreach( AttributeSet *attributeSet, other.attributeSets_ )
+  {
+    AttributeSet *newAttributeSet = new AttributeSet( *attributeSet );
+    attributeSets_.append( newAttributeSet );
+
+    if( attributeSet == other.currentAttributeSet_ )
+    {
+      currentAttributeSet_ = newAttributeSet;
+    }
+  }
+
+  // Then: clone the strokes. Each stroke is linked to a certain
+  // attribute set, metrics set, etc, so we need to associate the
+  // original stroke's properties to the current one's
+  foreach( Stroke *stroke, other.strokes_ )
+  {
+    Stroke *newStroke = new Stroke( *stroke );
+    strokes_.append( newStroke );
+
+    // Get the indices of the various stroke properties; and
+    // for the new stroke, use the same indices
+
+    // It is probably safe to simply use the pointer at the same index..
+    if( stroke->attributes )
+    {
+      int otherAttributeSet = other.attributeSets_.indexOf( stroke->attributes );
+      newStroke->attributes = attributeSets_.at( otherAttributeSet );
+    }
+    if( stroke->info )
+    {
+      int otherStrokeInfo = other.strokeInfo_.indexOf( stroke->info );
+      newStroke->info = strokeInfo_.at( otherStrokeInfo );
+    }
+    if( stroke->metrics )
+    {
+      int otherMetrics = other.metrics_.indexOf( stroke->metrics );
+      newStroke->metrics = metrics_.at( otherMetrics );
+    }
+    if( stroke->transform )
+    {
+      int otherTransforms = other.transforms_.indexOf( stroke->transform );
+      newStroke->transform = transforms_.at( otherTransforms );
+    }
+  }
+}
+
+
+
+/**
  * Destructor
  */
 Drawing::~Drawing()

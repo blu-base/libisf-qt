@@ -64,6 +64,7 @@ namespace Isf
 
     public: // public constructors
                                  Drawing();
+                                 Drawing( const Drawing &other );
                                 ~Drawing();
 
     public: // public state retrieval methods
@@ -122,51 +123,51 @@ namespace Isf
 
     private: // Private properties
       /// List of attributes of the points in the drawing
-      QList<AttributeSet*>      attributeSets_;
+      QList<AttributeSet*>       attributeSets_;
       /// Bounding rectangle of the drawing
-      QRect                     boundingRect_;
+      QRect                      boundingRect_;
       /// Virtual drawing canvas dimensions
-      QRect                     canvas_;
+      QRect                      canvas_;
       /// Link to the currently used metric data
-      Metrics                  *currentMetrics_;
+      Metrics                   *currentMetrics_;
       /// Link to the currently used point info data
-      AttributeSet             *currentAttributeSet_;
+      AttributeSet              *currentAttributeSet_;
       /// Link to the currently used stroke info data
-      StrokeInfo               *currentStrokeInfo_;
+      StrokeInfo                *currentStrokeInfo_;
       /// Link to the currently used transformation
-      QMatrix                  *currentTransform_;
+      QMatrix                   *currentTransform_;
       /// Link to the default metric data
-      Metrics                   defaultMetrics_;
+      Metrics                    defaultMetrics_;
       /// Link to the default point info data
-      AttributeSet              defaultAttributeSet_;
+      AttributeSet               defaultAttributeSet_;
       /// Link to the default stroke info data
-      StrokeInfo                defaultStrokeInfo_;
+      StrokeInfo                 defaultStrokeInfo_;
       /// Link to the default transformation
-      QMatrix                   defaultTransform_;
+      QMatrix                    defaultTransform_;
       /// Last parsing error (if there is one)
-      IsfError                  error_;
+      IsfError                   error_;
       /// List of registered GUIDs
-      QList<QUuid>              guids_;
+      QList<QUuid>               guids_;
       /// Whether the drawing contains X coordinates or not
-      bool                      hasXData_;
+      bool                       hasXData_;
       /// Whether the drawing contains Y coordinates or not
-      bool                      hasYData_;
+      bool                       hasYData_;
       /// Whether the drawing is invalid or valid
-      bool                      isNull_;
+      bool                       isNull_;
       /// Maximum GUID available in the drawing
-      quint64                   maxGuid_;
+      quint64                    maxGuid_;
       /// Maximum thickness of the strokes
-      QSizeF                    maxPenSize_;
+      QSizeF                     maxPenSize_;
       /// List of metrics used in the drawing
-      QList<Metrics*>           metrics_;
+      QList<Metrics*>            metrics_;
       /// Pixel size of the drawing
-      QSize                     size_;
+      QSize                      size_;
       /// List of information about the drawing's strokes
-      QList<StrokeInfo*>        strokeInfo_;
+      QList<StrokeInfo*>         strokeInfo_;
       /// List of strokes composing this drawing
-      QList<Stroke*>            strokes_;
+      QList<Stroke*>             strokes_;
       /// Transformation matrices
-      QList<QMatrix*>           transforms_;
+      QList<QMatrix*>            transforms_;
 
   };
 
