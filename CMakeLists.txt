@@ -28,15 +28,17 @@ ENABLE_TESTING()
 OPTION( WANT_GIF "Enable support for reading and writing Fortified-GIF images" ON )
 IF( WANT_GIF )
   MESSAGE( "-- Looking for GifLib" )
-  FIND_PACKAGE( GIF QUIET )
 
-  # GifLib can be difficult to find...
-  IF( NOT GIF_FOUND )
+  # Apparently, the KDE CMake macros unset a check which is required by giflib.
+  IF( KDE4_FOUND )
     INCLUDE( "cmake/giflib_hack.cmake" )
-  ENDIF( NOT GIF_FOUND )
+  ENDIF( KDE4_FOUND )
+
+  FIND_PACKAGE( GIF QUIET )
 
   # At this point, we can be relatively sure that if it's there, it has been found
   IF( NOT GIF_FOUND )
+    MESSAGE( "-- Looking for GifLib - not found!" )
     MESSAGE( FATAL_ERROR
              "Support to read and write Fortified-GIF images is missing.\n"
              "  * You will need to install both the library and development packages of the GIF Library, giflib.\n"

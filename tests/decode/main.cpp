@@ -38,7 +38,6 @@ class TestDecode : public QMainWindow, private Ui::TestDecode
     void test()
     {
       bool rewrite = false;
-      QString fileName;
       QStringList arguments( qApp->arguments() );
       arguments.removeAt( 0 );
 
@@ -48,51 +47,53 @@ class TestDecode : public QMainWindow, private Ui::TestDecode
         return;
       }
 
-      if( arguments.contains( "--rewrite" ) )
+      int rewriteIndex = arguments.indexOf( "--rewrite" );
+      if( rewriteIndex < 0 )
       {
         rewrite = true;
-        arguments.removeAt( arguments.indexOf( "--rewrite" ) );
+        arguments.removeAt( rewriteIndex );
       }
 
+      const QString fileName( arguments.at( 0 ) );
+      const QByteArray rawData( readTestIsfData( fileName ) );
       Isf::Drawing drawing;
 
-      if( ! rewrite )
+      // Extract the ISF data from the GIF image
+      if( fileName.contains( ".gif" ) )
       {
-        QByteArray data( readTestIsfData( arguments.at( 0 ) ) );
-        drawing = Isf::Stream::readerGif( data );
+        qDebug() << "------------------------- Creating drawing from GIF -------------------------";
+        drawing = Isf::Stream::readerGif( rawData );
       }
+      // Extract the ISF data from the ISF file
       else
       {
         qDebug() << "------------------------- Creating drawing from ISF -------------------------";
-        QByteArray data1( readTestIsfData( arguments.at( 0 ) ) );
-        drawing = Isf::Stream::reader( data1 );
+        drawing = Isf::Stream::reader( rawData );
+      }
 
-        // Test Fortified-GIF r/w
-        qDebug() << "------------------------- Writing drawing to GIF file -------------------------";
-        QByteArray data2( Isf::Stream::writerGif( drawing ) );
-/*
-        QFile file( "test.gif" );
-        file.open( QIODevice::WriteOnly );
-        file.write( data2 );
-        file.close();
-*/
-        qDebug() << "------------------------- Reading it back -------------------------";
-        drawing = Isf::Stream::readerGif( data2 );
-        qDebug() << "------------------------- showing it -------------------------";
+      if( rewrite )
+      {
+        // change to test GIF or regular streams
+        bool testGif = false;
 
-        /*
-        // Test regular stream r/w
-        qDebug() << "------------------------- Creating drawing from ISF -------------------------";
-        QByteArray data1( readTestIsfData( arguments.at( 0 ) ) );
-        drawing = Isf::Stream::reader( data1 );
+        if( testGif )
+        {
+          // Test Fortified-GIF r/w
+          qDebug() << "------------------------- Writing drawing to GIF file -------------------------";
+          QByteArray data( Isf::Stream::writerGif( drawing ) );
 
-        qDebug() << "------------------------- Writing drawing to ISF file -------------------------";
-        QByteArray data2( Isf::Stream::writer( drawing ) );
+          qDebug() << "------------------------- Reading GIF back -------------------------";
+          drawing = Isf::Stream::readerGif( data );
+        }
+        else
+        {
+          // Test regular streams r/w
+          qDebug() << "------------------------- Writing drawing to ISF file -------------------------";
+          QByteArray data2( Isf::Stream::writer( drawing ) );
 
-        qDebug() << "------------------------- Reading it back -------------------------";
-        drawing = Isf::Stream::reader( data2 );
-        qDebug() << "------------------------- showing it -------------------------";
-        */
+          qDebug() << "------------------------- Reading ISF back -------------------------";
+          drawing = Isf::Stream::reader( data2 );
+        }
       }
 
       if( drawing.isNull() )
@@ -101,6 +102,7 @@ class TestDecode : public QMainWindow, private Ui::TestDecode
       }
       else
       {
+        qDebug() << "------------------------- Showing it -------------------------";
         label_->setPixmap( drawing.pixmap( Qt::transparent ) );
       }
     }
@@ -146,6 +148,31 @@ class TestDecode : public QMainWindow, private Ui::TestDecode
 
       QByteArray data = file.readAll();
       return data;
+    }
+
+
+
+    // read some test raw ISF data from a file on the filesystem and
+    // return it as a QByteArray.
+    void saveTestIsfData( const QByteArray &data )
+    {
+      static int number = 1;
+      QString fileName( "test" + QString::number( number ) + "." );
+
+      // autodetect if it's a gif or an isf
+      if( data[0] == '\0' )
+      {
+        fileName.append( "isf" );
+      }
+      else
+      {
+        fileName.append( "gif" );
+      }
+
+      QFile file( fileName );
+      file.open( QIODevice::WriteOnly );
+      file.write( data );
+      file.close();
     }
 
 };
