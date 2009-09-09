@@ -1,0 +1,32 @@
+// Define contents of the main page
+
+/**
+ * @mainpage ISF-Qt - Ink Serialized Format library
+ *
+ * @section about About ISF-Qt
+ *
+ * ISF-Qt is a library, written in C++ with the Qt 4 toolkit, capable of reading
+ * and writing the ISF format. ISF stands for "Ink Serialized Format", and is
+ * the disk serialization format used by the Windows.Ink C# library and by the
+ * TabletPC platform, but also by applications like Windows Live Messenger - which
+ * uses ISF to transfer handwriting messages.
+ *
+ * We had the need to interpret these handwriting messages in the best possible
+ * way, and started to reverse-engineer the format, with the help of existing
+ * (but incomplete) libraries and specifications. What we ended up with is ISF-Qt,
+ * a library which can be used to decode an ISF file or data stream, manage it
+ * and the the strokes which comprise the drawing, and write ISF files/streams.
+ * You can also create new drawings from scratch.
+ *
+ *
+ * @section intro About this documentation
+ * This documentation is written towards developers, to be used
+ * as reference manual when writing code which uses ISF-Qt, or when developing
+ * the library itself.
+ * Please take your time to understand the structure of the library, its classes
+ * and methods.
+ *
+ * Since ISF-Qt is built on top of the Qt 4 library, you will also need to
+ * be familiar with it; more information can be found online at:
+ * - http://doc.trolltech.com/4.3/index.html
+ */

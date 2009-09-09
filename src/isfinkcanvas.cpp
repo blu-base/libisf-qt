@@ -5,7 +5,7 @@
  *   Copyright (C) 2009 by Adam Goossens                                   *
  *   adam@kmess.org                                                        *
  ***************************************************************************/
- 
+
 /***************************************************************************
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Lesser General Public License as        *
@@ -33,20 +33,12 @@
 #include <QPen>
 #include <QDebug>
 
-namespace Isf
-{
+using namespace Isf;
 
-/**
- * Create a new InkCanvas widget that allows you to draw Ink on a canvas.
- *
- * To retrieve a QImage that contains the image drawn, use the function
- * image().
- *
- * To get the Isf::Drawing instance for your ink, use drawing().
- *
- * @param parent The parent widget.
- */
-InkCanvas::InkCanvas( QWidget *parent )
+
+
+// Create a new InkCanvas widget that allows you to draw Ink on a canvas
+InkCanvas:: InkCanvas( QWidget *parent )
 : QWidget( parent )
 , erasingImage_( false )
 , drawing_( 0 )
@@ -88,7 +80,7 @@ InkCanvas::~InkCanvas()
  * The cursor becomes a point, drawn with the current stroke colour and pen size.
  */
 void InkCanvas::updateCursor()
-{ 
+{
   if ( cursorPixmap_.isNull() )
   {
     cursorPixmap_ = QPixmap( QSize( 32, 32 ) );
@@ -111,7 +103,7 @@ void InkCanvas::updateCursor()
 
     // now draw a point.
     painter.drawPoint( QPoint( cursorPixmap_.size().width() / 2, cursorPixmap_.size().height() / 2 ) );
-    
+
     cursor_ = QCursor( cursorPixmap_ );
   }
 
@@ -668,4 +660,4 @@ void InkCanvas::setDrawing( Isf::Drawing *drawing )
   update();
 }
 
-}; // namespace Isf
+

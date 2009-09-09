@@ -3,6 +3,7 @@
  * Added Fortified GIF read-write support. New optional dependency, giflib.
  * Added Base64-encoded input/output data support.
  * Updated the documentation files.
+ * Added Doxygen documentation infrastructure. There still are a lot of errors.
 
 2009-09-09 (Adam)
  * Add draw-eraser.svgz to comply with Oxygen licensing requirements.

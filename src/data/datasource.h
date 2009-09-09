@@ -5,7 +5,7 @@
  *   Copyright (C) 2009 by Adam Goossens                                   *
  *   adam@kmess.org                                                        *
  ***************************************************************************/
- 
+
 /***************************************************************************
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Lesser General Public License as        *
@@ -78,13 +78,13 @@ namespace Isf
         void              flush();
         /// Retrieve the next bit from the data
         bool              getBit( bool *ok = 0 );
-        /// Retrieve the next <amount> bits from the data
+        /// Retrieve the next [amount] bits from the data
         quint64           getBits( quint8 amount, bool *ok = 0 );
         /// Retrieve the index of the current bit
         quint8            getBitIndex();
         /// Retrieve the next byte from the data
         char              getByte( bool *ok = 0 );
-        /// Retrieve the next <amount> bytes from the data
+        /// Retrieve the next [amount] bytes from the data
         QByteArray        getBytes( quint8 amount, bool *ok = 0 );
         /// Insert a byte at the beginning of the data
         void              prepend( char byte );

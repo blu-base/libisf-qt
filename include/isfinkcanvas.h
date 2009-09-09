@@ -5,7 +5,7 @@
  *   Copyright (C) 2009 by Adam Goossens                                   *
  *   adam@kmess.org                                                        *
  ***************************************************************************/
- 
+
 /***************************************************************************
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Lesser General Public License as        *
@@ -33,9 +33,11 @@
 
 namespace Isf
 {
-  
+
 /**
- * This is an Ink-editing control. It manipulates data in ISF format and is capable of 
+ * This is an Ink-editing control.
+ *
+ * It manipulates data in ISF format and is capable of
  * drawing strokes, erasing strokes and setting pen size and color. It can also return the
  * drawn image as a QImage.
  *
@@ -57,9 +59,18 @@ class InkCanvas : public QWidget
       DrawingPen,
       EraserPen
     };
-    
+
   public:
-    // Constructor
+     /**
+      * Create a new InkCanvas widget that allows you to draw Ink on a canvas.
+      *
+      * To retrieve a QImage that contains the image drawn, use the function
+      * image().
+      *
+      * To get the Isf::Drawing instance for your ink, use drawing().
+      *
+      * @param parent The parent widget.
+      */
                         InkCanvas( QWidget *parent = 0 );
     // Destructor
                         ~InkCanvas();
