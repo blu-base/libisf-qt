@@ -32,7 +32,7 @@ namespace Isf {
   namespace Compress {
     namespace BitPackingAlgorithm {
 
-      // Table used to compute the length of bit-packed values and their remainders
+      /// Table used to compute the length of bit-packed values and their remainders.
       quint8 bitLookUpTable_[ 48 ][ 2 ] =
       {
         // { cBits, cPads }

@@ -30,8 +30,8 @@ SET( ISFQT_LIBS
      ${QT_QTGUI_LIBRARY}
    )
 
-SET( ISFQT_RCCS 
-     isfqtresources.qrc
+SET( ISFQT_RCCS
+     ../data/isfqtresources.qrc
    )
 
 IF( GIF_FOUND )

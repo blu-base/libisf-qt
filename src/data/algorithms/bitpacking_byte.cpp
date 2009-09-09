@@ -27,7 +27,12 @@ using namespace Isf::Compress;
 
 
 
-// Get the most appropriate index for the given data
+/**
+ * Get the most appropriate index for the given data.
+ *
+ * @param data Data to analyze
+ * @return Index value
+ */
 quint8 BitPackingByteAlgorithm::index( const QList<qint64> &data )
 {
   quint8 index = 0;
@@ -63,9 +68,20 @@ quint8 BitPackingByteAlgorithm::index( const QList<qint64> &data )
 
 
 
-// Compress data
-bool BitPackingByteAlgorithm::deflate( QByteArray &encodedData, quint8 blockSize, const QList<qint64> &source )
+/**
+ * Compress data with the Bit Packing algorithm.
+ *
+ * @param encodedData Byte array where to store the compressed data
+ * @param index Index to use for compression
+ * @param source List of values to compress
+ * @return bool
+ */
+bool BitPackingByteAlgorithm::deflate( QByteArray &encodedData, quint8 index, const QList<qint64> &source )
 {
+  Q_UNUSED( encodedData );
+  Q_UNUSED( index );
+  Q_UNUSED( source );
+
 /*
   if( blockSize > 64 )
   {
@@ -136,7 +152,15 @@ bool BitPackingByteAlgorithm::deflate( QByteArray &encodedData, quint8 blockSize
 
 
 
-// Decompress data
+/**
+ * Decompress data with the Bit Packing Byte algorithm.
+ *
+ * @param source Data source where to read the compressed bytes
+ * @param length Number of items to read
+ * @param index Index to use for compression
+ * @param decodedData List where to place decompressed values
+ * @return bool
+ */
 bool BitPackingByteAlgorithm::inflate( DataSource &source, quint64 length, quint8 index, QList<qint64> &decodedData )
 {
   if( index > 24 )

@@ -29,6 +29,8 @@ namespace Isf
 {
   namespace Compress
   {
+
+
     /**
      * Algorithm extra data masks.
      *
@@ -38,16 +40,16 @@ namespace Isf
      */
     enum AlgorithmMasks
     {
-      AlgorithmMask            = 0xF0   /// Mask used to identify the algorithms
-    , BitPackingMask           = 0x3F   /// Mask for bit packing of arbitrary-sized integers
-    , BitPackingTransformMask  = 0x20   /// Mask for delta-delta transformed bit packed data
-    , HuffmanMask              = 0x3F   /// Mask for Huffman
-    , BitPackingLongMask       = 0x3F   /// Mask for bit packing of 32bit signed integers
-    , BitPackingWordMask       = 0x1F   /// Mask for bit packing of 16bit unsigned integers
-    , BitPackingByteMask       = 0x1F   /// Mask for bit packing of 8bit unsigned integers
-    , LimpelZivMask            = 0x00   /// Mask for Limpel-Ziv
-    , BestCompressionMask      = 0x00   /// Mask for the best compression algo
-    , DefaultCompressionMask   = 0x00   /// Mask for the default compression algo
+      AlgorithmMask            = 0xF0   ///< Mask used to identify the algorithms
+    , BitPackingMask           = 0x3F   ///< Mask for bit packing of arbitrary-sized integers
+    , BitPackingTransformMask  = 0x20   ///< Mask for delta-delta transformed bit packed data
+    , HuffmanMask              = 0x3F   ///< Mask for Huffman
+    , BitPackingLongMask       = 0x3F   ///< Mask for bit packing of 32bit signed integers
+    , BitPackingWordMask       = 0x1F   ///< Mask for bit packing of 16bit unsigned integers
+    , BitPackingByteMask       = 0x1F   ///< Mask for bit packing of 8bit unsigned integers
+    , LimpelZivMask            = 0x00   ///< Mask for Limpel-Ziv
+    , BestCompressionMask      = 0x00   ///< Mask for the best compression algo
+    , DefaultCompressionMask   = 0x00   ///< Mask for the default compression algo
     };
 
     /**
@@ -83,30 +85,37 @@ namespace Isf
      */
     enum CommonDataAlgorithms
     {
-      BestCompression          = 0xF0   /// Best compression algorithm
-    , DefaultCompression       = 0xC0   /// Default compression algorithm (Huffman)
-    , Huffman                  = 0x80   /// Huffman encoding
+      BestCompression          = 0xF0   ///< Best compression algorithm
+    , DefaultCompression       = 0xC0   ///< Default compression algorithm (Huffman)
+    , Huffman                  = 0x80   ///< Huffman encoding
     };
+    /**
+     * Compression and decompressions algorithms.
+     *
+     * @see CommonDataAlgorithms
+     */
     enum PacketDataAlgorithms
     {
-      BitPacking               = 0x00   /// Bit packing
+      BitPacking               = 0x00   ///< Bit packing
     };
+    /**
+     * Compression and decompressions algorithms.
+     *
+     * @see CommonDataAlgorithms
+     */
     enum PropertyDataAlgorithms
     {
-      LimpelZiv                = 0xA0   /// Limpel-Ziv compressionrs
-    , BitPackingLong           = 0x40   /// Bit packing of 32bit signed integers
-    , BitPackingWord           = 0x20   /// Bit packing of 16bit unsigned integers
-    , BitPackingByte           = 0x00   /// Bit packing of 8bit unsigned integers
+      LimpelZiv                = 0xA0   ///< Limpel-Ziv compressionrs
+    , BitPackingLong           = 0x40   ///< Bit packing of 32bit signed integers
+    , BitPackingWord           = 0x20   ///< Bit packing of 16bit unsigned integers
+    , BitPackingByte           = 0x00   ///< Bit packing of 8bit unsigned integers
     };
 
-    /// Decompress packet data autodetecting the algorithm to use
+
     bool inflatePacketData( DataSource &source, quint64 length, QList<qint64> &decodedData );
-    /// Compress packet data autodetecting the algorithm to use
     bool deflatePacketData( QByteArray &destination, const QList<qint64> &decodedData );
 
-    /// Decompress property data autodetecting the algorithm to use
     bool inflatePropertyData( DataSource &source, quint64 length, QList<qint64> &decodedData );
-    /// Compress property data autodetecting the algorithm to use
     bool deflatePropertyData( QByteArray &destination, const QList<qint64> &decodedData );
 
   }

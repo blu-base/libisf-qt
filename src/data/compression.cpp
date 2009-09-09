@@ -31,7 +31,17 @@ using namespace Isf;
 
 
 
-// Decompress packet data autodetecting the algorithm to use
+/**
+ * Decompress packet data.
+ *
+ * The algorithm to use for the decompression is autodetected using
+ * the so-called "algorithm byte" within the compressed data.
+ *
+ * @param source Data Source where to read compressed bytes from
+ * @param length Number of items to decompress
+ * @param decodedData List where to store the decoded values
+ * @return bool
+ */
 bool Compress::inflatePacketData( DataSource &source, quint64 length, QList<qint64> &decodedData )
 {
   if( source.atEnd() )
@@ -140,7 +150,16 @@ bool Compress::inflatePacketData( DataSource &source, quint64 length, QList<qint
 
 
 
-// Compress packet data autodetecting the algorithm to use
+/**
+ * Compress packet data.
+ *
+ * The algorithm to use for the decompression is autodetected
+ * by analyzing the data.
+ *
+ * @param encodedData Byte Array where to store the encoded data
+ * @param source List of values to compress
+ * @return bool
+ */
 bool Compress::deflatePacketData( QByteArray &encodedData, const QList<qint64> &source )
 {
   bool result;
@@ -211,7 +230,17 @@ bool Compress::deflatePacketData( QByteArray &encodedData, const QList<qint64> &
 
 
 
-// Decompress property data autodetecting the algorithm to use
+/**
+ * Decompress property data.
+ *
+ * The algorithm to use for the decompression is autodetected using
+ * the so-called "algorithm byte" within the compressed data.
+ *
+ * @param source Data Source where to read compressed bytes from
+ * @param length Number of items to decompress
+ * @param decodedData List where to store the decoded values
+ * @return bool
+ */
 bool Compress::inflatePropertyData( DataSource &source, quint64 length, QList<qint64> &decodedData )
 {
   if( source.atEnd() )
@@ -363,12 +392,20 @@ bool Compress::inflatePropertyData( DataSource &source, quint64 length, QList<qi
 
 
 
-// Compress property data autodetecting the algorithm to use
+/**
+ * Compress property data.
+ *
+ * The algorithm to use for the decompression is autodetected
+ * by analyzing the data.
+ *
+ * @todo Implement!
+ * @param encodedData Byte Array where to store the encoded data
+ * @param source List of values to compress
+ * @return bool
+ */
 bool Compress::deflatePropertyData( QByteArray &encodedData, const QList<qint64> &source )
 {
   bool result = false;
-
-  // TODO Everything here.
 
   qWarning() << "Property data saving is not implemented at the moment!";
 

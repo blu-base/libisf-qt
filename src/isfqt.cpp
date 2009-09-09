@@ -5,7 +5,7 @@
  *   Copyright (C) 2009 by Adam Goossens                                   *
  *   adam@kmess.org                                                        *
  ***************************************************************************/
- 
+
 /***************************************************************************
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Lesser General Public License as        *
@@ -49,15 +49,16 @@ using namespace Compress;
 
 
 
-// Return whether the library was built with Fortified GIF support
-bool Stream::supportsGif()
-{
-  return ( ISFQT_GIF_ENABLED == true );
-}
-
-
-
-// Convert a raw ISF data stream into a drawing
+/**
+ * Convert a raw ISF data stream into a drawing.
+ *
+ * If the ISF data is invalid, a null Drawing is returned.
+ *
+ * @param rawData Source byte array with an ISF stream
+ * @param decodeFromBase64 Whether the bytes are in the Base64 format and
+ *                         need to be decoded first
+ * @return an Isf::Drawing, with null contents on error
+ */
 Drawing &Stream::reader( const QByteArray &rawData, bool decodeFromBase64 )
 {
   // Create a new drawing on the heap to ensure it will keep
@@ -511,16 +512,31 @@ Drawing &Stream::reader( const QByteArray &rawData, bool decodeFromBase64 )
 
 
 
-// Convert a Fortified-GIF image into a drawing
+/**
+ * Convert a Fortified-GIF image into a drawing.
+ *
+ * If the GIF image or the ISF data within it are invalid, or if the GIF did not
+ * have any ISF stream within, then a null Drawing is returned.
+ *
+ * Please note that this method does nothing if Isf-Qt is compiled
+ * withous GIF support. Use Stream::supportsGif() to verify whether
+ * GIF was compiled in or not.
+ *
+ * @see supportsGif()
+ * @param gifRawBytes Source byte array with a Fortified GIF image
+ * @param decodeFromBase64 True if the bytes are in the Base64 format and
+ *                         need to be decoded first
+ * @return an Isf::Drawing, with null contents on error
+ */
 Drawing &Stream::readerGif( const QByteArray &gifRawBytes, bool decodeFromBase64 )
 {
   QByteArray isfData;
 
+#if ISFQT_GIF_ENABLED == 1
+
   QByteArray gifBytes( decodeFromBase64
                         ? QByteArray::fromBase64( gifRawBytes )
                         : gifRawBytes );
-
-#if ISFQT_GIF_ENABLED == 1
 
 /**
  * With the commented code below, it would all have been so easy, but no!
@@ -606,7 +622,28 @@ Drawing &Stream::readerGif( const QByteArray &gifRawBytes, bool decodeFromBase64
 
 
 
-// Convert a drawing into a raw ISF data stream
+/**
+ * Return whether the library was built with Fortified GIF support or not.
+ *
+ * @return bool
+ */
+bool Stream::supportsGif()
+{
+  return ( ISFQT_GIF_ENABLED == true );
+}
+
+
+
+/**
+ * Convert a drawing into a raw ISF data stream.
+ *
+ * The resulting byte array will be empty if the drawing is not valid.
+ *
+ * @param drawing Source drawing
+ * @param encodeToBase64 Whether the converted ISF stream should be
+ *                       encoded with Base64 or not
+ * @return Byte array with an ISF data stream
+ */
 QByteArray Stream::writer( const Drawing &drawing, bool encodeToBase64 )
 {
   if( &drawing == 0 || drawing.isNull() || drawing.error() != ISF_ERROR_NONE )
@@ -657,7 +694,21 @@ QByteArray Stream::writer( const Drawing &drawing, bool encodeToBase64 )
 
 
 
-// Convert a drawing into a Fortified-GIF image
+/**
+ * Convert a drawing into a Fortified-GIF image.
+ *
+ * The resulting byte array will be empty if the drawing is not valid.
+ *
+ * Please note that this method does nothing if Isf-Qt is compiled
+ * withous GIF support. Use Stream::supportsGif() to verify whether
+ * GIF was compiled in or not.
+ *
+ * @see supportsGif()
+ * @param drawing Source drawing
+ * @param encodeToBase64 Whether the converted ISF stream should be
+ *                       encoded with Base64 or not
+ * @return Byte array with an ISF data stream
+ */
 QByteArray Stream::writerGif( const Drawing &drawing, bool encodeToBase64 )
 {
   QByteArray imageBytes;

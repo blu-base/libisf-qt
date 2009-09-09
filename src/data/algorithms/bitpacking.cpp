@@ -30,7 +30,12 @@ using namespace Isf::Compress;
 
 
 
-// Get the most appropriate block size for the given data
+/**
+ * Get the most appropriate block size for the given data.
+ *
+ * @param data Data to analyze
+ * @return Block size
+ */
 quint8 BitPackingAlgorithm::blockSize( const QList<qint64> &data )
 {
   quint8 blockSize = 0;
@@ -65,7 +70,14 @@ quint8 BitPackingAlgorithm::blockSize( const QList<qint64> &data )
 
 
 
-// Compress data
+/**
+ * Compress data with the Bit Packing algorithm.
+ *
+ * @param encodedData Byte array where to store the compressed data
+ * @param blockSize Block size to use for compression
+ * @param source List of values to compress
+ * @return bool
+ */
 bool BitPackingAlgorithm::deflate( QByteArray &encodedData, quint8 blockSize, const QList<qint64> &source )
 {
   if( blockSize > 64 )
@@ -137,7 +149,15 @@ bool BitPackingAlgorithm::deflate( QByteArray &encodedData, quint8 blockSize, co
 
 
 
-// Decompress data
+/**
+ * Decompress data with the Bit Packing algorithm.
+ *
+ * @param source Data source where to read the compressed bytes
+ * @param length Number of items to read
+ * @param blockSize Block size to use for compression
+ * @param decodedData List where to place decompressed values
+ * @return bool
+ */
 bool BitPackingAlgorithm::inflate( DataSource &source, quint64 length, quint8 blockSize, QList<qint64> &decodedData )
 {
   if( blockSize > 64 )

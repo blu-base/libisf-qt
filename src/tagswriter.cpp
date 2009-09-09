@@ -5,7 +5,7 @@
  *   Copyright (C) 2009 by Adam Goossens                                   *
  *   adam@kmess.org                                                        *
  ***************************************************************************/
- 
+
 /***************************************************************************
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Lesser General Public License as        *
@@ -39,7 +39,13 @@ using namespace Isf::Compress;
 
 
 
-      /// Write the persistent format tag
+/**
+ * Write the persistent format tag.
+ *
+ * @param source Data Source where to write bytes to
+ * @param drawing Drawing from which to obtain the data to write
+ * @return IsfError
+ */
 IsfError TagsWriter::addPersistentFormat( DataSource &source, const Drawing &drawing )
 {
   Q_UNUSED( drawing );
@@ -62,7 +68,13 @@ IsfError TagsWriter::addPersistentFormat( DataSource &source, const Drawing &dra
 
 
 
-/// Write the drawing dimensions
+/**
+ * Write the drawing dimensions.
+ *
+ * @param source Data Source where to write bytes to
+ * @param drawing Drawing from which to obtain the data to write
+ * @return IsfError
+ */
 IsfError TagsWriter::addHiMetricSize( DataSource &source, const Drawing &drawing )
 {
   QByteArray tagContents;
@@ -83,7 +95,16 @@ IsfError TagsWriter::addHiMetricSize( DataSource &source, const Drawing &drawing
 
 
 
-/// Write a table of points attributes
+/**
+ * Write a table (or a block only) of points attributes.
+ *
+ * If there is only one block, no table is outputted into the stream, just
+ * that block.
+ *
+ * @param source Data Source where to write bytes to
+ * @param drawing Drawing from which to obtain the data to write
+ * @return IsfError
+ */
 IsfError TagsWriter::addAttributeTable( DataSource &source, const Drawing &drawing )
 {
   QByteArray   blockData;
@@ -203,7 +224,16 @@ IsfError TagsWriter::addAttributeTable( DataSource &source, const Drawing &drawi
 
 
 
-/// Write a table of metrics
+/**
+ * Write a table (or a block only) of metrics.
+ *
+ * If there is only one block, no table is outputted into the stream, just
+ * that block.
+ *
+ * @param source Data Source where to write bytes to
+ * @param drawing Drawing from which to obtain the data to write
+ * @return IsfError
+ */
 IsfError TagsWriter::addMetricsTable( DataSource &source, const Drawing &drawing )
 {
   QByteArray   metricData;
@@ -280,14 +310,23 @@ IsfError TagsWriter::addMetricsTable( DataSource &source, const Drawing &drawing
 
 
 
-/// Write a table of transformation matrices
+/**
+ * Write a table (or a block only) of transformation matrices.
+ *
+ * If there is only one block, no table is outputted into the stream, just
+ * that block.
+ *
+ * @param source Data Source where to write bytes to
+ * @param drawing Drawing from which to obtain the data to write
+ * @return IsfError
+ */
 IsfError TagsWriter::addTransformationTable( DataSource &source, const Drawing &drawing )
 {
   QByteArray blockData;
   QByteArray tagContents;
   quint64    transformTag;
 
-  /**
+  /*
    * QTransform is too complex for the 2D transformations we need to do;
    * but QMatrix is too simple: it doesn't 'remember' rotations. So we
    * save rotations as generic transformations.
@@ -304,7 +343,7 @@ IsfError TagsWriter::addTransformationTable( DataSource &source, const Drawing &
 
   foreach( const QMatrix *trans, drawing.transforms_ )
   {
-    /**
+    /*
      * All transforms are written backwards because they're stored my most
      * significant value first.
      */
@@ -429,7 +468,13 @@ IsfError TagsWriter::addTransformationTable( DataSource &source, const Drawing &
 
 
 
-/// Write the strokes
+/**
+ * Write the strokes.
+ *
+ * @param source Data Source where to write bytes to
+ * @param drawing Drawing from which to obtain the data to write
+ * @return IsfError
+ */
 IsfError TagsWriter::addStrokes( DataSource &source, const Drawing &drawing )
 {
   QByteArray blockData;

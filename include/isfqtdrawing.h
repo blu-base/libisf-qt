@@ -5,7 +5,7 @@
  *   Copyright (C) 2009 by Adam Goossens                                   *
  *   adam@kmess.org                                                        *
  ***************************************************************************/
- 
+
 /***************************************************************************
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Lesser General Public License as        *
@@ -38,14 +38,21 @@
 class QByteArray;
 
 
+
 namespace Isf
 {
 
 
 
   /**
-   * This class is a container for the data of ISF (Ink Serialized Format) drawings.
+   * @class Drawing
+   * @brief This is a manipulable representation of an ISF stream.
    *
+   * This class is a container for the data of ISF (Ink Serialized Format)
+   * drawings. You can manipulate its contents, or create a new one and
+   * fill it, then save it back to ISF format with the Isf::Stream methods.
+   *
+   * @see Isf::Stream
    * @author Adam Goossens (adam@kmess.org)
    * @author Valerio Pilo (valerio@kmess.org)
    */
@@ -55,128 +62,117 @@ namespace Isf
     friend class TagsParser;
     friend class TagsWriter;
 
-    public:
+    public: // public constructors
+                                 Drawing();
+                                ~Drawing();
 
-      /// Constructor
-                                Drawing();
-      /// Destructor
-                               ~Drawing();
-      /// Clean up the drawing
-      void                      clear();
-      /// Return the last error
-      IsfError                  error() const;
-      /// Convert the ISF drawing into a pixmap
-      QPixmap                   pixmap( const QColor backgroundColor = Qt::white );
-      /// Return whether this is a null Drawing
-      bool                      isNull() const;
+    public: // public state retrieval methods
+      AttributeSet              *attributeSet( quint32 index );
+      const QList<AttributeSet*> attributeSets();
+      QRect                      boundingRect();
+      void                       clear();
+      IsfError                   error() const;
+      bool                       isNull() const;
+      QPixmap                    pixmap( const QColor backgroundColor = Qt::white );
+      QSize                      size();
+      Stroke                    *stroke( quint32 index );
+      Stroke                    *strokeAtPoint( const QPoint &point );
+      const QList<Stroke*>       strokes();
+      QMatrix                   *transform( quint32 index );
+      const QList<QMatrix*>      transforms();
 
+    public: // public manipulation methods
+      qint32                     addAttributeSet( AttributeSet *newAttributeSet );
+      qint32                     addStroke( Stroke *newStroke );
+      qint32                     addTransform( QMatrix *newTransform );
+      bool                       deleteAttributeSet( quint32 index );
+      bool                       deleteStroke( quint32 index );
+      bool                       deleteStroke( Stroke *stroke ) ;
+      bool                       deleteTransform( quint32 index );
+      bool                       setCurrentAttributeSet( AttributeSet *attributeSet );
+      bool                       setCurrentTransform( QMatrix *transform );
 
-    public: // Manipulation methods
-
-      /// Add new attribute set to the drawing
-      qint32                    addAttributeSet( AttributeSet *newAttributeSet );
-      /// Add a new stroke to the drawing
-      qint32                    addStroke( Stroke *newStroke );
-      /// Add a new transformation to the drawing
-      qint32                    addTransform( QMatrix *newTransform );
-      /// Retrieve an attribute set to manipulate it
-      AttributeSet             *attributeSet( quint32 index );
-      /// Retrieve the attribute sets
-      const QList<AttributeSet*>attributeSets();
-      /// Return the QRect bounding rectangle
-      QRect                     boundingRect();
-      /// Remove an attribute set from the drawing
-      bool                      deleteAttributeSet( quint32 index );
-      /// Remove a stroke from the drawing
-      bool                      deleteStroke( quint32 index );
-      bool                      deleteStroke( Stroke *stroke ) ;
-      /// Remove a transformation from the drawing
-      bool                      deleteTransform( quint32 index );
-      /// Change the current attribute set
-      bool                      setCurrentAttributeSet( AttributeSet *attributeSet );
-      /// Change the new current attribute set
-      bool                      setCurrentTransform( QMatrix *transform );
-      /// Return the pixel size of the drawing
-      QSize                     size();
-      /// Retrieve a stroke to manipulate it
-      Stroke                   *stroke( quint32 index );
-      /// Return the stroke that passes through a given point.
-      Stroke                   *strokeAtPoint( QPoint point );
-      /// Retrieve the strokes
-      const QList<Stroke*>      strokes();
-      /// Retrieve a transformation to manipulate it
-      QMatrix                  *transform( quint32 index );
-      /// Retrieve the transformations
-      const QList<QMatrix*>     transforms();
-
-    public: // Public static methods
-
-      /// Convert a value in himetric units to pixels, given a paint device
-      inline static float       himetricToPixels( float himetric, QPaintDevice &device )
+    public: // Public static utility methods
+      /**
+       * Converts a value from himetric units to pixels.
+       *
+       * The paint device is required to retrieve the device size.
+       * Himetric is a device-dependent unit.
+       *
+       * @param himetric The value to convert
+       * @param device The device used to detect the size of the drawing context
+       */
+      inline static float        himetricToPixels( float himetric, QPaintDevice &device )
       {
         return ( ( (float)device.width() / (float)device.widthMM() ) * ( himetric * 0.01 ) );
       }
-      /// Convert a value in pixels to himetric units, given a paint device
-      inline static float       pixelsToHimetric( float pixels, QPaintDevice &device )
+      /**
+       * Converts a value from pixels to himetric units.
+       *
+       * The paint device is required to retrieve the device size.
+       * Himetric is a device-dependent unit.
+       *
+       * @param pixels The value to convert
+       * @param device The device used to detect the size of the drawing context
+       */
+      inline static float        pixelsToHimetric( float pixels, QPaintDevice &device )
       {
         return ( pixels / ( (float)device.width() / (float)device.widthMM() ) / 0.01 );
       }
 
-
     private: // Private properties
-
-      // List of attributes of the points in the drawing
+      /// List of attributes of the points in the drawing
       QList<AttributeSet*>      attributeSets_;
-      // Bounding rectangle of the drawing
+      /// Bounding rectangle of the drawing
       QRect                     boundingRect_;
-      // Virtual drawing canvas dimensions
+      /// Virtual drawing canvas dimensions
       QRect                     canvas_;
-      // Link to the currently used metric data
+      /// Link to the currently used metric data
       Metrics                  *currentMetrics_;
-      // Link to the currently used point info data
+      /// Link to the currently used point info data
       AttributeSet             *currentAttributeSet_;
-      // Link to the currently used stroke info data
+      /// Link to the currently used stroke info data
       StrokeInfo               *currentStrokeInfo_;
-      // Link to the currently used transformation
+      /// Link to the currently used transformation
       QMatrix                  *currentTransform_;
-      // Link to the default metric data
+      /// Link to the default metric data
       Metrics                   defaultMetrics_;
-      // Link to the default point info data
+      /// Link to the default point info data
       AttributeSet              defaultAttributeSet_;
-      // Link to the default stroke info data
+      /// Link to the default stroke info data
       StrokeInfo                defaultStrokeInfo_;
-      // Link to the default transformation
+      /// Link to the default transformation
       QMatrix                   defaultTransform_;
-      // Last parsing error (if there is one)
+      /// Last parsing error (if there is one)
       IsfError                  error_;
-      // List of registered GUIDs
+      /// List of registered GUIDs
       QList<QUuid>              guids_;
-      // Whether the drawing contains X coordinates or not
+      /// Whether the drawing contains X coordinates or not
       bool                      hasXData_;
-      // Whether the drawing contains Y coordinates or not
+      /// Whether the drawing contains Y coordinates or not
       bool                      hasYData_;
-      // Whether the drawing is invalid or valid
+      /// Whether the drawing is invalid or valid
       bool                      isNull_;
-      // Maximum GUID available in the drawing
+      /// Maximum GUID available in the drawing
       quint64                   maxGuid_;
-      // Maximum thickness of the strokes
+      /// Maximum thickness of the strokes
       QSizeF                    maxPenSize_;
-      // List of metrics used in the drawing
+      /// List of metrics used in the drawing
       QList<Metrics*>           metrics_;
-      // Pixel size of the drawing
+      /// Pixel size of the drawing
       QSize                     size_;
-      // List of information about the drawing's strokes
+      /// List of information about the drawing's strokes
       QList<StrokeInfo*>        strokeInfo_;
-      // List of strokes composing this drawing
+      /// List of strokes composing this drawing
       QList<Stroke*>            strokes_;
-      // Transformation matrices
+      /// Transformation matrices
       QList<QMatrix*>           transforms_;
 
   };
 
 
 
-}
+}; // namespace Isf
 
 
 

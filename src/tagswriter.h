@@ -5,7 +5,7 @@
  *   Copyright (C) 2009 by Adam Goossens                                   *
  *   adam@kmess.org                                                        *
  ***************************************************************************/
- 
+
 /***************************************************************************
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Lesser General Public License as        *
@@ -52,38 +52,12 @@ namespace Isf
   class TagsWriter
   {
     public: // Static public methods
-
-      /// Write the persistent format tag
       static IsfError addPersistentFormat( DataSource &source, const Drawing &drawing );
-      /// Write the drawing dimensions
       static IsfError addHiMetricSize( DataSource &source, const Drawing &drawing );
-      /// Write a table of points attributes
       static IsfError addAttributeTable( DataSource &source, const Drawing &drawing );
-      /// Write a table of metrics
       static IsfError addMetricsTable( DataSource &source, const Drawing &drawing );
-      /// Write a table of transformation matrices
       static IsfError addTransformationTable( DataSource &source, const Drawing &drawing );
-      /// Write the strokes
       static IsfError addStrokes( DataSource &source, const Drawing &drawing );
-
-/*
-      /// Write the table of GUIDs from the data
-      static IsfError addGuidTable( DataSource &source, const Drawing &drawing );
-      /// Write the drawing dimensions
-      static IsfError addHiMetricSize( DataSource &source, const Drawing &drawing );
-      /// Write the ink canvas dimensions
-      static IsfError addInkSpaceRectangle( DataSource &source, const Drawing &drawing );
-      /// Write payload: Persistent Format
-      static IsfError addPersistentFormat( DataSource &source, const Drawing &drawing );
-      /// Write payload: Metric Block
-      static IsfError addMetricBlock( DataSource &source, const Drawing &drawing );
-      /// Write payload: Metric Table
-      static IsfError addMetricTable( DataSource &source, const Drawing &drawing );
-      /// Write a stroke description block
-      static IsfError addStrokeDescBlock( DataSource &source, const Drawing &drawing );
-      /// Write a stroke description table
-      static IsfError addStrokeDescTable( DataSource &source, const Drawing &drawing );
-*/
 
   };
 }

@@ -5,7 +5,7 @@
  *   Copyright (C) 2009 by Adam Goossens                                   *
  *   adam@kmess.org                                                        *
  ***************************************************************************/
- 
+
 /***************************************************************************
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Lesser General Public License as        *
@@ -37,69 +37,21 @@ namespace Isf
   namespace Compress
   {
 
-
-
-    /**
-     * Decodes a multibyte unsigned integer into a quint64.
-     */
     quint64    decodeUInt( DataSource &source );
-
-
-
-    /**
-     * Decodes a multibyte signed integer into a qint64.
-     */
     qint64     decodeInt( DataSource &source );
-
-
-
-    /**
-     * Decodes a float.
-     */
     float      decodeFloat( DataSource &source );
 
-
-
-    /**
-     * Encodes a multibyte unsigned integer into a 64-bit value.
-     */
     QByteArray encodeUInt( quint64 value );
     void       encodeUInt( DataSource &source, quint64 value, bool prepend = false );
 
-
-
-    /**
-     * Encode a signed integer into a multibyte representation.
-     */
     QByteArray encodeInt( qint64 value );
     void       encodeInt( DataSource &source, qint64 value, bool prepend = false );
 
-
-
-    /**
-     * Encodes a float.
-     */
     QByteArray encodeFloat( float value );
     void       encodeFloat( DataSource &source, float value, bool prepend = false );
 
-
-    /**
-     * Return how much bytes a certain unsigned value takes up in multi-byte encoding.
-     *
-     * @param  value The unsigned value to check
-     * @return       Number of bytes required for multi-byte storage of that value
-     */
     quint8     getMultiByteSize( quint64 value );
-
-
-    /**
-     * Return how much bytes a certain signed value takes up in multi-byte encoding.
-     *
-     * @param  value The signed value to check
-     * @return       Number of bytes required for multi-byte storage of that value
-     */
     quint8     getMultiByteSize( qint64 value );
-
 
   }
 }

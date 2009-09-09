@@ -5,7 +5,7 @@
  *   Copyright (C) 2009 by Adam Goossens                                   *
  *   adam@kmess.org                                                        *
  ***************************************************************************/
- 
+
 /***************************************************************************
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Lesser General Public License as        *
@@ -97,10 +97,10 @@ namespace Isf
    */
   enum ParserState
   {
-    ISF_PARSER_START = 0,        /// The parser has not read anything from the data yet
-    ISF_PARSER_FINISH,           /// The parser is done
-    ISF_PARSER_STREAMSIZE,       /// The parser is reading the ISF stream size
-    ISF_PARSER_TAG               /// The parser is reading tags from the stream
+    ISF_PARSER_START = 0,        ///< The parser has not read anything from the data yet
+    ISF_PARSER_FINISH,           ///< The parser is done
+    ISF_PARSER_STREAMSIZE,       ///< The parser is reading the ISF stream size
+    ISF_PARSER_TAG               ///< The parser is reading tags from the stream
   };
 
 
@@ -108,7 +108,7 @@ namespace Isf
   /**
    * Persistent Format version
    *
-   * See TagsParser::parsePersistentFormat() for more info.
+   * @see TagsParser::parsePersistentFormat() for more info.
    */
   const uint ISF_PERSISTENT_FORMAT_VERSION = 65536;
 

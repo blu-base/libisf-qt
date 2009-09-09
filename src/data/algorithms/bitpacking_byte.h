@@ -32,11 +32,8 @@ namespace Isf
     namespace BitPackingByteAlgorithm
     {
 
-      /// Get the most appropriate index for the given data
       quint8 index( const QList<qint64> &data );
-      /// Compress data
       bool deflate( QByteArray &encodedData, quint8 index, const QList<qint64> &source );
-      /// Decompress data
       bool inflate( DataSource &source, quint64 length, quint8 index, QList<qint64> &decodedData );
 
     }

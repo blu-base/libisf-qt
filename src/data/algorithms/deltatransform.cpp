@@ -25,7 +25,12 @@ using namespace Isf::Compress;
 
 
 
-// Perform delta-delta transformation on data to deflate
+/**
+ * Perform a delta-delta transformation on data to be deflated.
+ *
+ * @param data Data to transform - the list will be modified.
+ * @return bool
+ */
 bool Delta::transform( QList<qint64> &data )
 {
   qint64 currentDelta  = 0;
@@ -46,7 +51,12 @@ bool Delta::transform( QList<qint64> &data )
 
 
 
-// Perform delta-delta inverse transformation on inflated data
+/**
+ * Perform a delta-delta inverse transformation on just-inflated data.
+ *
+ * @param data Data to transform - the list will be modified.
+ * @return bool
+ */
 bool Delta::inverseTransform( QList<qint64> &data )
 {
   qint64 currentDelta  = 0;

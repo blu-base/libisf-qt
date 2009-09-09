@@ -5,7 +5,7 @@
  *   Copyright (C) 2009 by Adam Goossens                                   *
  *   adam@kmess.org                                                        *
  ***************************************************************************/
- 
+
 /***************************************************************************
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Lesser General Public License as        *
@@ -36,15 +36,16 @@
 
 #include <cmath>
 
+
 using namespace Isf;
 using namespace Compress;
 
 
 
 /**
- * Construct a new NULL Drawing instance.
+ * Construct a new empty (null) Drawing instance.
  *
- * When you add a new stroke to the drawing the instance becomes non-NULL.
+ * As soon as you add data, the instance becomes non-NULL.
  */
 Drawing::Drawing()
 : currentMetrics_( 0 )
@@ -84,9 +85,9 @@ Drawing::~Drawing()
 
 
 /**
- * Add new a attribute set to the drawing
+ * Add new a attribute set to the drawing.
  *
- * @param attributes The attribute set to add
+ * @param newAttributeSet The attribute set to add
  * @return Index of the new attribute set or -1 on failure
  */
 qint32 Drawing::addAttributeSet( AttributeSet *newAttributeSet )
@@ -116,9 +117,9 @@ qint32 Drawing::addAttributeSet( AttributeSet *newAttributeSet )
 
 
 /**
- * Add a new stroke to the drawing
+ * Add a new stroke to the drawing.
  *
- * @param attributes The stroke to add
+ * @param newStroke The stroke to add
  * @return Index of the new stroke or -1 on failure
  */
 qint32 Drawing::addStroke( Stroke *newStroke )
@@ -169,9 +170,9 @@ qint32 Drawing::addStroke( Stroke *newStroke )
 
 
 /**
- * Add a new transformation to the drawing
+ * Add a new transformation to the drawing.
  *
- * @param attributes The transform to add
+ * @param newTransform The transform to add
  * @return Index of the new transform or -1 on failure
  */
 qint32 Drawing::addTransform( QMatrix *newTransform )
@@ -190,9 +191,9 @@ qint32 Drawing::addTransform( QMatrix *newTransform )
 
 
 /**
- * Clean up the drawing
+ * Clean up the drawing.
  *
- * This restores the drawing to its initial state, an empty drawing.
+ * This restores the drawing to its initial state: an empty (null) drawing.
  */
 void Drawing::clear()
 {
@@ -233,7 +234,7 @@ void Drawing::clear()
 
 
 /**
- * Remove some attribute set from the drawing
+ * Remove an attribute set from the drawing.
  *
  * @param index Index of the attribute set to delete
  * @return bool
@@ -268,9 +269,9 @@ bool Drawing::deleteAttributeSet( quint32 index )
 
 
 /**
- * Remove a stroke from the drawing
+ * Remove a stroke from the drawing.
  *
- * @param index Index of the stroke to delete
+ * Delete a stroke object from the drawing.
  * @return bool
  */
 bool Drawing::deleteStroke( quint32 index )
@@ -307,7 +308,7 @@ bool Drawing::deleteStroke( Stroke *stroke )
 
 
 /**
- * Remove a transformation from the drawing
+ * Remove a transformation from the drawing.
  *
  * @param index Index of the transform to delete
  * @return bool
@@ -326,7 +327,7 @@ bool Drawing::deleteTransform( quint32 index )
 
 
 /**
- * Return the last error that has occurred
+ * Return the last error that has occurred.
  *
  * If nothing went wrong, this returns ISF_ERROR_NONE.
  *
@@ -341,7 +342,7 @@ IsfError Drawing::error() const
 
 
 /**
- * Retrieve an attribute set to manipulate it
+ * Retrieve an attribute set to manipulate.
  *
  * @param index Index of the attribute set to get
  * @return AttributeSet or 0 if not found
@@ -359,7 +360,7 @@ AttributeSet *Drawing::attributeSet( quint32 index )
 
 
 /**
- * Retrieve the attribute sets
+ * Retrieve the attribute sets.
  *
  * @return The list of existing attribute sets
  */
@@ -372,8 +373,12 @@ const QList<AttributeSet*> Drawing::attributeSets()
 
 
 /**
- * Return a QRect that will hold all of the strokes in this Drawing instance.
- * @return A QRect object that is just large enough to hold all strokes.
+ * Return the current bounding rectangle of the drawing.
+ *
+ * The bounding rectangle (or bounding box) is a QRect large enough (and as
+ * small as) to hold all of the strokes in this Drawing instance.
+ *
+ * @return The current bounding box.
  */
 QRect Drawing::boundingRect()
 {
@@ -406,7 +411,8 @@ QRect Drawing::boundingRect()
 
 
 /**
- * Return the size of this drawing, in pixels.
+ * Return the size of this drawing.
+ *
  * @return Size of the drawing, in pixels.
  */
 QSize Drawing::size()
@@ -416,6 +422,19 @@ QSize Drawing::size()
 
 
 
+/**
+ * Render the drawing into an image.
+ *
+ * If the drawing is empty, the pixmap will be null.
+ * Also note that the maximum renderable size is 2000x2000 pixels: if the strokes
+ * exceed by even one dimension, the pixmap will not be rendered.
+ * This is a security measure, since the pixmaps are allocated by the graphics
+ * system (X on *nix, for example) and a machine could be DoSed with a very large
+ * drawing.
+ *
+ * @param backgroundColor The color used as background in the returned image.
+ * @return The rendered drawing, or a null one on error.
+ */
 QPixmap Drawing::pixmap( const QColor backgroundColor )
 {
   if ( isNull() )
@@ -582,7 +601,7 @@ QPixmap Drawing::pixmap( const QColor backgroundColor )
 
 
 /**
- * Retrieve a stroke to manipulate it
+ * Retrieve a stroke to manipulate.
  *
  * @param index Index of the stroke to get
  * @return Stroke or 0 if not found
@@ -600,9 +619,10 @@ Stroke *Drawing::stroke( quint32 index )
 
 
 /**
- * Given a QPoint, return the Stroke object that
- * passes through there. If no stroke passes through that point,
- * returns NULL.
+ * Return the Stroke under a certain point.
+ *
+ * Given a QPoint, return the Stroke object that passes through there.
+ * If no stroke passes through that point, returns NULL.
  *
  * If multiple Strokes pass through that point the most recently drawn stroke
  * will be returned.
@@ -610,7 +630,7 @@ Stroke *Drawing::stroke( quint32 index )
  * @param point Point to check
  * @return A Stroke instance or NULL if no Stroke passes through that point.
  */
-Stroke *Drawing::strokeAtPoint( QPoint point )
+Stroke *Drawing::strokeAtPoint( const QPoint &point )
 {
   /*
   Here's how this algorithm works:
@@ -727,7 +747,7 @@ Stroke *Drawing::strokeAtPoint( QPoint point )
 
 
 /**
- * Retrieve the strokes
+ * Retrieve the strokes.
  *
  * @return The list of existing strokes
  */
@@ -739,7 +759,7 @@ const QList<Stroke*> Drawing::strokes()
 
 
 /**
- * Retrieve a transformation to manipulate it
+ * Retrieve a transformation to manipulate.
  *
  * @param index Index of the transform to get
  * @return QMatrix or 0 if not found
@@ -757,7 +777,7 @@ QMatrix *Drawing::transform( quint32 index )
 
 
 /**
- * Retrieve the transformations
+ * Retrieve the transformations.
  *
  * @return The list of existing transformations
  */
@@ -769,9 +789,9 @@ const QList<QMatrix*> Drawing::transforms()
 
 
 /**
- * Return True if this instance of Drawing is invalid (NULL), False otherwise.
+ * Return whether this drawing is empty.
  *
- * @return True if this is a NULL Drawing, FALSE otherwise.
+ * @return True if this is an empty (null) Drawing, false otherwise.
  */
 bool Drawing::isNull() const
 {
@@ -782,9 +802,10 @@ bool Drawing::isNull() const
 
 
 /**
- * Change the current attribute set
+ * Change the current attribute set.
  *
- * This will change the attribute set which will be applied to the next strokes.
+ * This will change the attribute set which will be applied
+ * to the next strokes.
  *
  * @param attributeSet the new attribute set
  * @return bool
@@ -804,11 +825,12 @@ bool Drawing::setCurrentAttributeSet( AttributeSet *attributeSet )
 
 
 /**
- * Change the current transformation
+ * Change the current transformation.
  *
- * This will change the transformation which will be applied to the next strokes.
+ * This will change the transformation which will be applied
+ * to the next strokes.
  *
- * @param attributeSet the new transformation
+ * @param transform the new transformation
  * @return bool
  */
 bool Drawing::setCurrentTransform( QMatrix *transform )

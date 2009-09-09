@@ -34,7 +34,12 @@ using namespace Isf;
 
 
 
-// Decodes a multibyte unsigned integer into a quint64.
+/**
+ * Decodes an unsigned integer into a quint64 using multibyte decoding.
+ *
+ * @param source Data Source where to read bytes from
+ * @return quint64
+ */
 quint64 Compress::decodeUInt( DataSource &source )
 {
   quint8 byte;       // Current byte
@@ -56,7 +61,12 @@ quint64 Compress::decodeUInt( DataSource &source )
 
 
 
-// Decodes a multibyte signed integer into a qint64.
+/**
+ * Decodes a signed integer into a qint64 using multibyte decoding.
+ *
+ * @param source Data Source where to read bytes from
+ * @return qint64
+ */
 qint64 Compress::decodeInt( DataSource &source )
 {
   bool isNegative = false;
@@ -82,7 +92,12 @@ qint64 Compress::decodeInt( DataSource &source )
 
 
 
-// Decodes a float.
+/**
+ * Decodes a float using multibyte decoding.
+ *
+ * @param source Data Source where to read bytes from
+ * @return float
+ */
 float Compress::decodeFloat( DataSource &source )
 {
   qint8 index;
@@ -116,9 +131,10 @@ float Compress::decodeFloat( DataSource &source )
 
 
 /**
-  * Encodes an unsigned 64-bit integer into a byte array with multibyte encoding.
+  * Encodes an unsigned 64-bit integer into a byte array using multibyte encoding.
   *
-  * @param val The value to encode
+  * @param value The value to encode
+  * @return byte array
   */
 QByteArray Compress::encodeUInt( quint64 value )
 {
@@ -147,10 +163,10 @@ QByteArray Compress::encodeUInt( quint64 value )
 
 
 /**
-  * Encodes an unsigned 64-bit integer into the Data Source with multibyte encoding.
+  * Encodes an unsigned 64-bit integer into the Data Source using multibyte encoding.
   *
   * @param source   The data source
-  * @param val      The value to encode
+  * @param value    The value to encode
   * @param prepend  False (default value) to append the encoded value to the existing data
   *                 True to prepend the new value to the existing data
   */
@@ -171,9 +187,10 @@ void Compress::encodeUInt( DataSource &source, quint64 value, bool prepend )
 
 
 /**
-  * Encodes a signed 64-bit integer into a byte array with multibyte encoding.
+  * Encodes a signed 64-bit integer into a byte array using multibyte encoding.
   *
-  * @param val The value to encode
+  * @param value The value to encode
+  * @return byte array
   */
 QByteArray Compress::encodeInt( qint64 value )
 {
@@ -202,7 +219,7 @@ QByteArray Compress::encodeInt( qint64 value )
 
 
 /**
-  * Encodes a signed 64-bit integer into the Data Source with multibyte encoding.
+  * Encodes a signed 64-bit integer into the Data Source using multibyte encoding.
   *
   * @param source   The data source
   * @param value    The value to encode
@@ -226,9 +243,10 @@ void Compress::encodeInt( DataSource &source, qint64 value, bool prepend )
 
 
 /**
-  * Encodes a floating-point value into a byte array with multibyte encoding.
+  * Encodes a floating-point value into a byte array using multibyte encoding.
   *
-  * @param val      The value to encode
+  * @param value The value to encode
+  * @return byte array
   */
 QByteArray Compress::encodeFloat( float value )
 {
@@ -266,7 +284,7 @@ QByteArray Compress::encodeFloat( float value )
 
 
 /**
-  * Encodes a floating-point value into the Data Source with multibyte encoding.
+  * Encodes a floating-point value into the Data Source using multibyte encoding.
   *
   * @param source   The data source
   * @param value    The value to encode
@@ -288,7 +306,12 @@ void Compress::encodeFloat( DataSource &source, float value, bool prepend )
 }
 
 
-// Return how much bytes a certain unsigned value takes up in multi-byte encoding.
+    /**
+     * Return how much bytes a certain unsigned value takes up using multi-byte encoding.
+     *
+     * @param  value The unsigned value to check
+     * @return       Number of bytes required for multi-byte storage of that value
+     */
 quint8 Compress::getMultiByteSize( quint64 value )
 {
   quint8 bytes = 1;
@@ -308,7 +331,13 @@ quint8 Compress::getMultiByteSize( quint64 value )
 
 
 
-// Return how much bytes a certain signed value takes up in multi-byte encoding.
+
+    /**
+     * Return how much bytes a certain signed value takes up using multi-byte encoding.
+     *
+     * @param  value The signed value to check
+     * @return       Number of bytes required for multi-byte storage of that value
+     */
 quint8 Compress::getMultiByteSize( qint64 value )
 {
   quint8 bytes = 1;

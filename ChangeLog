@@ -4,6 +4,8 @@
  * Added Base64-encoded input/output data support.
  * Updated the documentation files.
  * Added Doxygen documentation infrastructure. There still are a lot of errors.
+ * Created proper Doxygen documentation for all classes.
+ * Moved the resource files into the /data/ directory.
 
 2009-09-09 (Adam)
  * Add draw-eraser.svgz to comply with Oxygen licensing requirements.

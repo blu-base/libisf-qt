@@ -32,6 +32,7 @@
 using namespace Isf::Compress;
 
 
+/// Bit amounts.
 const int bitAmounts_[HUFFMAN_BASES_NUM][HUFFMAN_BASE_SIZE] =
 {
     {0, 1, 2,  4,  6,  8, 12, 16, 24, 32, -1},
@@ -44,6 +45,8 @@ const int bitAmounts_[HUFFMAN_BASES_NUM][HUFFMAN_BASE_SIZE] =
     {0, 7, 8, 12, 16, 24, 32, -1, -1, -1, -1},
 };
 
+
+/// Huffman codec value bases.
 const int huffmanBases_[HUFFMAN_BASES_NUM][HUFFMAN_BASE_SIZE] =
 {
     {0, 1,  2,   4,   12,    44,     172,    2220,   34988, 8423596, -1},
@@ -58,7 +61,12 @@ const int huffmanBases_[HUFFMAN_BASES_NUM][HUFFMAN_BASE_SIZE] =
 
 
 
-// Get the most appropriate index for the given data
+/**
+ * Get the most appropriate index for the given data.
+ *
+ * @param data Data to analyze
+ * @return index value
+ */
 quint8 HuffmanAlgorithm::index( const QList<qint64> &data )
 {
   quint8 index = 0;
@@ -72,7 +80,14 @@ quint8 HuffmanAlgorithm::index( const QList<qint64> &data )
 
 
 
-// Compress data
+/**
+ * Compress data with the Huffman algorithm.
+ *
+ * @param encodedData Byte array where to store the compressed data
+ * @param index Index to use for compression
+ * @param source List of values to compress
+ * @return bool
+ */
 bool HuffmanAlgorithm::deflate( QByteArray &encodedData, quint8 index, const QList<qint64> &source )
 {
   DataSource output( encodedData );
@@ -98,7 +113,14 @@ bool HuffmanAlgorithm::deflate( QByteArray &encodedData, quint8 index, const QLi
 
 
 
-// Compress a single value using the Adaptive-Huffman algorithm
+/**
+ * Compress a single value with the Huffman algorithm.
+ *
+ * @param output Data source where to store the compressed value
+ * @param index Index to use for compression
+ * @param value Value to compress
+ * @return bool
+ */
 bool HuffmanAlgorithm::deflateValue( DataSource &output, quint8 index, qint64 value )
 {
   qint64 temp = value;
@@ -168,7 +190,15 @@ bool HuffmanAlgorithm::deflateValue( DataSource &output, quint8 index, qint64 va
 
 
 
-// Decompress data
+/**
+ * Decompress data with the Huffman algorithm.
+ *
+ * @param output Data source where to read the compressed bytes
+ * @param length Number of items to read
+ * @param index Index to use for compression
+ * @param source List where to place decompressed values
+ * @return bool
+ */
 bool HuffmanAlgorithm::inflate( DataSource &source, quint64 length, quint8 index, QList<qint64> &decodedData )
 {
   QVector<int> huffmanBases;

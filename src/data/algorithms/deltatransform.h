@@ -31,9 +31,7 @@ namespace Isf
     namespace Delta
     {
 
-      /// Perform delta-delta transformation on data to deflate
       bool transform( QList<qint64> &data );
-      /// Perform delta-delta inverse transformation on inflated data
       bool inverseTransform( QList<qint64> &data );
 
     }

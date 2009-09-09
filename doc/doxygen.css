@@ -28,6 +28,11 @@ h1
   color: #0071BB;
 }
 
+img {
+  margin: 0;
+  padding: 0;
+}
+
 #content h1
 {
   /* main content title */
@@ -193,7 +198,10 @@ a.el:visited { color: #5F2994; }
 
 a.el {
   text-decoration: none;
-  font-weight:     bold;
+  font-weight:     normal;
+  font-size:       16px;
+  margin: 0;
+  padding: 0;
 }
 
 .fragment {
@@ -377,4 +385,9 @@ td.mdname {
   color: #602020;
   font-style: italic;
   white-space: nowrap;
+}
+
+.directory p {
+  margin: 0;
+  padding: 0;
 }

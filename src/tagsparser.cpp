@@ -5,7 +5,7 @@
  *   Copyright (C) 2009 by Adam Goossens                                   *
  *   adam@kmess.org                                                        *
  ***************************************************************************/
- 
+
 /***************************************************************************
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Lesser General Public License as        *
@@ -41,7 +41,13 @@ using namespace Isf;
 
 
 
-/// Read away an unsupported tag
+/**
+ * Read away an unsupported tag.
+ *
+ * @param source Data Source where to read bytes from
+ * @param tagName Name of the tag if known, index number if not
+ * @return IsfError
+ */
 IsfError TagsParser::parseUnsupported( DataSource &source, const QString &tagName )
 {
   // Unsupported content
@@ -52,7 +58,18 @@ IsfError TagsParser::parseUnsupported( DataSource &source, const QString &tagNam
 
 
 
-/// Read a custom tag
+/**
+ * Read a custom tag.
+ *
+ * 99.9% of custom tags is currently unknown.
+ * As soon as new tags will be identified, this method will recognize them and
+ * delegate their parsing to another method in this class.
+ *
+ * @param source Data Source where to read bytes from
+ * @param drawing Drawing into which the data obtained from the tag should be read
+ * @param tagIndex Index number of the custom tag
+ * @return IsfError
+ */
 IsfError TagsParser::parseCustomTag( DataSource &source, Drawing &drawing, quint64 tagIndex )
 {
   quint64 tag = tagIndex - FIRST_CUSTOM_TAG_ID;
@@ -106,7 +123,13 @@ IsfError TagsParser::parseCustomTag( DataSource &source, Drawing &drawing, quint
 
 
 
-/// Read the table of GUIDs from the data
+/**
+ * Read the table of custom GUIDs.
+ *
+ * @param source Data Source where to read bytes from
+ * @param drawing Drawing into which the data obtained from the tag should be read
+ * @return IsfError
+ */
 IsfError TagsParser::parseGuidTable( DataSource &source, Drawing &drawing )
 {
   if( ! drawing.guids_.isEmpty() )
@@ -201,15 +224,22 @@ IsfError TagsParser::parseGuidTable( DataSource &source, Drawing &drawing )
 
 
 
-/// Read the Persistent Format data
+/**
+ * Read the Persistent Format data.
+ *
+ * This tag probably contains a version number or ID; it's made of a tag
+ * and a payload.
+ * The only observed value so far is 65536, multibyte-encoded as 0x808004,
+ * with a payload size of 3 bytes.
+ *
+ * @see ISF_PERSISTENT_FORMAT_VERSION
+ * @param source Data Source where to read bytes from
+ * @param drawing Drawing into which the data obtained from the tag should be read
+ * @return IsfError
+ */
 IsfError TagsParser::parsePersistentFormat( DataSource &source, Drawing &drawing )
 {
   Q_UNUSED( drawing )
-
-  // This tag probably contains a version number or ID; it's made of a tag
-  // and a payload.
-  // The only observed value so far is 65536, multibyte-encoded as 0x808004,
-  // with a payload size of 3 bytes.
 
   quint64 payloadSize    = decodeUInt( source );
   quint64 sourcePosition = source.pos();
@@ -257,7 +287,13 @@ IsfError TagsParser::parsePersistentFormat( DataSource &source, Drawing &drawing
 
 
 
-/// Read the drawing dimensions
+/**
+ * Read the drawing dimensions.
+ *
+ * @param source Data Source where to read bytes from
+ * @param drawing Drawing into which the data obtained from the tag should be read
+ * @return IsfError
+ */
 IsfError TagsParser::parseHiMetricSize( DataSource &source, Drawing &drawing )
 {
   quint64 payloadSize = decodeUInt( source );
@@ -290,7 +326,13 @@ IsfError TagsParser::parseHiMetricSize( DataSource &source, Drawing &drawing )
 
 
 
-/// Read a block of points attributes
+/**
+ * Read a block of points attributes.
+ *
+ * @param source Data Source where to read bytes from
+ * @param drawing Drawing into which the data obtained from the tag should be read
+ * @return IsfError
+ */
 IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
 {
   quint64 payloadSize = decodeUInt( source );
@@ -457,7 +499,13 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
 
 
 
-/// Read a table of points attributes
+/**
+ * Read a table of points attributes.
+ *
+ * @param source Data Source where to read bytes from
+ * @param drawing Drawing into which the data obtained from the tag should be read
+ * @return IsfError
+ */
 IsfError TagsParser::parseAttributeTable( DataSource &source, Drawing &drawing )
 {
   IsfError result = ISF_ERROR_NONE;
@@ -485,7 +533,13 @@ IsfError TagsParser::parseAttributeTable( DataSource &source, Drawing &drawing )
 
 
 
-/// Read the ink canvas dimensions
+/**
+ * Read the ink canvas dimensions.
+ *
+ * @param source Data Source where to read bytes from
+ * @param drawing Drawing into which the data obtained from the tag should be read
+ * @return IsfError
+ */
 IsfError TagsParser::parseInkSpaceRectangle( DataSource &source, Drawing &drawing )
 {
   if( drawing.canvas_.isValid() )
@@ -511,7 +565,13 @@ IsfError TagsParser::parseInkSpaceRectangle( DataSource &source, Drawing &drawin
 
 
 
-/// Read payload: Metric Table
+/**
+ * Read a Metrics table.
+ *
+ * @param source Data Source where to read bytes from
+ * @param drawing Drawing into which the data obtained from the tag should be read
+ * @return IsfError
+ */
 IsfError TagsParser::parseMetricTable( DataSource &source, Drawing &drawing )
 {
   IsfError result = ISF_ERROR_NONE;
@@ -536,7 +596,13 @@ IsfError TagsParser::parseMetricTable( DataSource &source, Drawing &drawing )
 
 
 
-/// Read payload: Metric Block
+/**
+ * Read a Metrics block.
+ *
+ * @param source Data Source where to read bytes from
+ * @param drawing Drawing into which the data obtained from the tag should be read
+ * @return IsfError
+ */
 IsfError TagsParser::parseMetricBlock( DataSource &source, Drawing &drawing )
 {
   Q_UNUSED( drawing )
@@ -642,7 +708,13 @@ IsfError TagsParser::parseMetricBlock( DataSource &source, Drawing &drawing )
 
 
 
-/// Read a table of transformation matrices
+/**
+ * Read a table of transformation matrices.
+ *
+ * @param source Data Source where to read bytes from
+ * @param drawing Drawing into which the data obtained from the tag should be read
+ * @return IsfError
+ */
 IsfError TagsParser::parseTransformationTable( DataSource &source, Drawing &drawing )
 {
   IsfError result = ISF_ERROR_NONE;
@@ -670,21 +742,31 @@ IsfError TagsParser::parseTransformationTable( DataSource &source, Drawing &draw
 
 
 
-/// Read a drawing transformation matrix
+/**
+ * Read a drawing transformation matrix.
+ *
+ * @param source Data Source where to read bytes from
+ * @param drawing Drawing into which the data obtained from the tag should be read
+ * @param transformType Type of transform to read
+ * @return IsfError
+ */
 IsfError TagsParser::parseTransformation( DataSource &source, Drawing &drawing, quint64 transformType )
 {
   QMatrix *transform = new QMatrix();
 
-  // Unlike the other transformations, scale is expressed in HiMetric units,
-  // so we must convert it to pixels for rendering
+  /*
+   * Unlike the other transformations, scale is expressed in HiMetric units,
+   * so we must convert it to pixels for rendering
+   *
+   * WARNING: The order in which parameters are evaluated is *platform-dependent*. thus,
+   *          you cannot read data like so:
+   *            transform->setMatrix( Compress::decodeFloat( source ), Compress::decodeFloat( source ), ... )
+   *          and expect it to work since you have no guarantee as to which of those
+   *          decodeFloat() methods will be called first.
+   *          You have to read each transform value the long way - assign to variable, then
+   *          set the variable as the parameter.
+   */
 
-  // WARNING: The order in which parameters are evaluated is *platform-dependent*. thus, you cannot read data like so:
-  //
-  // transform->setMatrix ( Compress::decodeFloat( source ), Compress::decodeFloat( source ), ... )
-  //
-  // and expect it to work since you have no guarantee as to which of those decodeFloat() methods will be called first.
-  //
-  // you have to read each transform value the long way - assign to variable, then set the variable as the parameter.
   switch( transformType )
   {
     case TAG_TRANSFORM:
@@ -805,7 +887,13 @@ IsfError TagsParser::parseTransformation( DataSource &source, Drawing &drawing, 
 
 
 
-/// Read a stroke
+/**
+ * Read a stroke.
+ *
+ * @param source Data Source where to read bytes from
+ * @param drawing Drawing into which the data obtained from the tag should be read
+ * @return IsfError
+ */
 IsfError TagsParser::parseStroke( DataSource &source, Drawing &drawing )
 {
   quint64 payloadSize = decodeUInt( source );
@@ -934,7 +1022,13 @@ IsfError TagsParser::parseStroke( DataSource &source, Drawing &drawing )
 
 
 
-/// Read a stroke description block
+/**
+ * Read a stroke description block.
+ *
+ * @param source Data Source where to read bytes from
+ * @param drawing Drawing into which the data obtained from the tag should be read
+ * @return IsfError
+ */
 IsfError TagsParser::parseStrokeDescBlock( DataSource &source, Drawing &drawing )
 {
   quint64 payloadSize = decodeUInt( source );
@@ -1023,7 +1117,13 @@ IsfError TagsParser::parseStrokeDescBlock( DataSource &source, Drawing &drawing 
 
 
 
-/// Read a stroke description table
+/**
+ * Read a stroke description table.
+ *
+ * @param source Data Source where to read bytes from
+ * @param drawing Drawing into which the data obtained from the tag should be read
+ * @return IsfError
+ */
 IsfError TagsParser::parseStrokeDescTable( DataSource &source, Drawing &drawing )
 {
   IsfError result = ISF_ERROR_NONE;
@@ -1048,7 +1148,18 @@ IsfError TagsParser::parseStrokeDescTable( DataSource &source, Drawing &drawing 
 
 
 
-// Print the payload of an unknown tag
+/**
+ * Print the payload of an unknown tag.
+ *
+ * This method can be used to decode tags which are formed by:
+ * - a TAG byte
+ * - a payload size (multibyte-encoded)
+ * - the actual tag data
+ *
+ * @param source Data Source where to read bytes from
+ * @param tagName Name of the tag if known, index number if not
+ * @return Byte array with the contents of the tag
+ */
 QByteArray TagsParser::analyzePayload( DataSource &source, const QString &tagName )
 {
   quint64 payloadSize = decodeUInt( source );
@@ -1060,7 +1171,16 @@ QByteArray TagsParser::analyzePayload( DataSource &source, const QString &tagNam
 
 
 
-// Print the payload of an unknown tag
+/**
+ * Print the payload of an unknown tag.
+ *
+ * This variant can be used to print out an arbitrarily sized data block.
+ *
+ * @param source Data Source where to read bytes from
+ * @param payloadSize Size of the payload to print out
+ * @param message Message to show as label for the printed out data
+ * @return Byte array with the contents of the tag
+ */
 QByteArray TagsParser::analyzePayload( DataSource &source, const quint64 payloadSize, const QString &message )
 {
   QByteArray result;

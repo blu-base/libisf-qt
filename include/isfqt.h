@@ -5,7 +5,7 @@
  *   Copyright (C) 2009 by Adam Goossens                                   *
  *   adam@kmess.org                                                        *
  ***************************************************************************/
- 
+
 /***************************************************************************
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Lesser General Public License as        *
@@ -45,28 +45,29 @@ namespace Isf
 
 
   /**
-   * Possible errors values returned by the ISF library
+   * Possible error return values returned by the ISF library.
    */
   enum IsfError
   {
-    ISF_ERROR_NONE = 0           /// No error
+    ISF_ERROR_NONE = 0           ///< No error
 
     /// Stream reader errors
-  , ISF_ERROR_BAD_VERSION        /// Incompatible ISF version
-  , ISF_ERROR_BAD_STREAMSIZE     /// Stream size of ISF data is too small
-  , ISF_ERROR_INVALID_STREAM     /// The stream contains wrong or duplicated tags
-  , ISF_ERROR_INVALID_PAYLOAD    /// A tag's payload was empty
-  , ISF_ERROR_INVALID_BLOCK      /// A block had invalid contents
+  , ISF_ERROR_BAD_VERSION        ///< Incompatible ISF version
+  , ISF_ERROR_BAD_STREAMSIZE     ///< Stream size of ISF data is too small
+  , ISF_ERROR_INVALID_STREAM     ///< The stream contains wrong or duplicated tags
+  , ISF_ERROR_INVALID_PAYLOAD    ///< A tag's payload was empty
+  , ISF_ERROR_INVALID_BLOCK      ///< A block had invalid contents
 
     /// Other errors
-  , ISF_ERROR_INTERNAL           /// An error within the code has occurred
+  , ISF_ERROR_INTERNAL           ///< An error within the code has occurred
   };
 
 
 
   /**
-   * List of predefined packet properties, used with strokes and their attributes.
+   * List of predefined packet properties.
    *
+   * These are used with strokes and their attributes.
    * The Metrics structure defines how to interpret these properties.
    */
   enum PacketProperty
@@ -116,26 +117,25 @@ namespace Isf
 
 
   /**
-   * Available pen tips
+   * Available pen tips.
    */
   enum PenTip
   {
-    Ball      = 0
-  , Rectangle = 1
+    Ball      = 0  ///< The pen tip is a circle
+  , Rectangle = 1  ///< The pen tip is a square or a rectangle
   };
 
 
 
-
   /**
-   * Stroke drawing flags
+   * Stroke drawing flags.
    */
   enum StrokeFlag
   {
-    FitToCurve     = 0x0001
-  , IgnorePressure = 0x0004
-  , IsHighlighter  = 0x0100
-  , IsRectangle    = 0x0200
+    FitToCurve     = 0x0001  ///< Fit the lines between stroke points to Bezier curves
+  , IgnorePressure = 0x0004  ///< Ignore the pressure level for this stroke
+  , IsHighlighter  = 0x0100  ///< This stroke is an highlighter stroke
+  , IsRectangle    = 0x0200  ///< Meaning unknown
   };
   Q_DECLARE_FLAGS( StrokeFlags, StrokeFlag )
   Q_DECLARE_OPERATORS_FOR_FLAGS( StrokeFlags )
@@ -143,7 +143,7 @@ namespace Isf
 
 
   /**
-   * Units used for metric measurements
+   * Units used for metric measurements.
    *
    * @see http://msdn.microsoft.com/en-us/library/ms840884.aspx
    */
@@ -164,7 +164,9 @@ namespace Isf
 
 
   /**
-   * A metric: a set of values representing what kind of values some
+   * A single metric.
+   *
+   * It is a set of values representing what kind of values some
    * type of measurement will assume.
    */
   struct Metric
@@ -173,7 +175,7 @@ namespace Isf
     Metric()
     {
     }
-    /// Constructor
+    /// Initialized constructor
     Metric( qint64 vMin, qint64 vMax, MetricScale vUnits, float vResolution )
     : min( vMin )
     , max( vMax )
@@ -198,7 +200,7 @@ namespace Isf
    * A table of metrics.
    *
    * The default metric values are hard-coded here, different values read from the stream
-   * will override these
+   * will override these.
    */
   struct Metrics
   {
@@ -231,7 +233,7 @@ namespace Isf
 
 
   /**
-   * Drawing attributes for points
+   * Drawing attributes for points.
    */
   struct AttributeSet
   {
@@ -243,18 +245,18 @@ namespace Isf
     {
     }
 
-    /// color in AABBGGRR format (Alpha channel: 00 is solid, FF is transparent)
+    /// The stroke color, optionally with alpha channel
     QColor       color;
-    /// mask of StrokeFlags
+    /// Mask of StrokeFlags, @see StrokeFlags
     StrokeFlags  flags;
-    /// dimensions of the pencil in Himetric units
+    /// Dimensions of the pencil in pixels
     QSizeF       penSize;
   };
 
 
 
   /**
-   * Drawing attributes for strokes
+   * Drawing attributes for strokes.
    */
   struct StrokeInfo
   {
@@ -277,7 +279,7 @@ namespace Isf
 
 
   /**
-   * A single point within a stroke
+   * A single point within a stroke.
    */
   struct Point
   {
@@ -309,7 +311,7 @@ namespace Isf
 
 
   /**
-   * A pen stroke
+   * A pen stroke.
    */
   struct Stroke
   {
@@ -339,68 +341,28 @@ namespace Isf
 
 
   /**
-   * Conversion unit for HiMetric -> pixels
+   * Conversion factor to convert from HiMetric units to pixels.
    */
   const qreal HiMetricToPixel = 26.4572454037811;
 
 
 
   /**
-   * Main library class.
+   * @class Stream
+   * @brief The main class of the library.
    *
-   * This class contains the only methods you need to transform ISF data into strokes or pictures
-   * and from strokes to ISF data.
+   * This class contains the only methods you need to transform ISF data
+   * into strokes or pictures, and from strokes to ISF data.
    */
   class Stream
   {
 
     public: // Public static methods
 
-      /**
-       * Convert a raw ISF data stream into a drawing.
-       *
-       * If the ISF data is invalid, a null Drawing is returned.
-       *
-       * @param gifBytes Source byte array with an ISF stream
-       * @param decodeFromBase64 Whether the bytes are in the Base64 format and
-       *                         need to be decoded first
-       */
       static Drawing    &reader( const QByteArray &isfData, bool decodeFromBase64 = false );
-
-      /**
-       * Convert a Fortified-GIF image into a drawing.
-       *
-       * If the GIF image or the ISF data are invalid, a null Drawing is returned.
-       *
-       * @param gifBytes Source byte array with a Fortified GIF image
-       * @param decodeFromBase64 True if the bytes are in the Base64 format and
-       *                         need to be decoded first
-       */
       static Drawing    &readerGif( const QByteArray &gifRawBytes, bool decodeFromBase64 = false );
-
-      /**
-       * Return whether the library was built with Fortified GIF support.
-       *
-       * @return bool
-       */
       static bool        supportsGif();
-
-      /**
-       * Convert a drawing into a raw ISF data stream.
-       *
-       * @param drawing Source drawing
-       * @param encodeToBase64 Whether the converted ISF stream should be
-       *                       encoded with Base64 or not
-       */
       static QByteArray  writer( const Drawing &drawing, bool encodeToBase64 = false );
-
-      /**
-       * Convert a drawing into a Fortified-GIF image.
-       *
-       * @param drawing Source drawing
-       * @param encodeToBase64 Whether the converted ISF stream should be
-       *                       encoded with Base64 or not
-       */
       static QByteArray  writerGif( const Drawing &drawing, bool encodeToBase64 = false );
 
   };

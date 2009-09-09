@@ -5,7 +5,7 @@
  *   Copyright (C) 2009 by Adam Goossens                                   *
  *   adam@kmess.org                                                        *
  ***************************************************************************/
- 
+
 /***************************************************************************
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Lesser General Public License as        *
@@ -33,7 +33,9 @@ using namespace Compress;
 
 
 
-// Constructor with no initial data
+/**
+ * Empty constructor.
+ */
 DataSource::DataSource()
 : currentBitIndex_( 8 ) // Invalid position in the current byte
 {
@@ -44,7 +46,11 @@ DataSource::DataSource()
 
 
 
-// Constructor
+/**
+ * Constructor.
+ *
+ * @param data Byte array to copy and use as data source
+ */
 DataSource::DataSource( const QByteArray &data )
 : currentBitIndex_( 8 )
 {
@@ -60,14 +66,20 @@ DataSource::DataSource( const QByteArray &data )
 
 
 
-// Destructor
+/**
+ * Destructor.
+ */
 DataSource::~DataSource()
 {
 }
 
 
 
-// Insert a byte at the end of the data
+/**
+ * Insert a byte at the end of the data.
+ *
+ * @param byte The byte to append
+ */
 void DataSource::append( char byte )
 {
   bool wasEmpty = ( buffer_.size() == 0 );
@@ -92,7 +104,11 @@ void DataSource::append( char byte )
 
 
 
-/// Insert bits at the end of the data
+/**
+ * Insert bits at the end of the data.
+ *
+ * @param constBits The list of bits to append
+ */
 void DataSource::append( const QBitArray &constBits )
 {
   if( constBits.size() == 0 )
@@ -181,7 +197,11 @@ void DataSource::append( const QBitArray &constBits )
 
 
 
-// Insert bytes at the end of the data
+/**
+ * Insert bytes at the end of the data.
+ *
+ * @param bytes The bytes to append
+ */
 void DataSource::append( const QByteArray &bytes )
 {
   bool wasEmpty = ( buffer_.size() == 0 );
@@ -206,7 +226,17 @@ void DataSource::append( const QByteArray &bytes )
 
 
 
-// Get whether the buffer is finished
+/**
+ * Get whether the buffer is finished.
+ *
+ * The buffer is finished (at the end) when there are no more
+ * bytes to read. If the considerBits parameter is set, the
+ * buffer is considered finished when all the bits have been
+ * read.
+ *
+ * @param considerBits Whether to consider the data source as a bits source
+ * @return bool
+ */
 bool DataSource::atEnd( bool considerBits ) const
 {
   if( considerBits )
@@ -221,7 +251,9 @@ bool DataSource::atEnd( bool considerBits ) const
 
 
 
-// Clear the data buffer
+/**
+ * Clear the data buffer.
+ */
 void DataSource::clear()
 {
   buffer_.close();
@@ -237,7 +269,11 @@ void DataSource::clear()
 
 
 
-// Return a reference to the data array
+/**
+ * Return a reference to the internal data array.
+ *
+ * @return byte array
+ */
 const QByteArray &DataSource::data() const
 {
   return buffer_.data();
@@ -245,7 +281,12 @@ const QByteArray &DataSource::data() const
 
 
 
-// Flush the current byte to the buffer
+/**
+ * Flush the current byte to the buffer.
+ *
+ * When in bit mode, this method can be used to save less than 8 bits
+ * in the stream. The unsed bits are set to 0.
+ */
 void DataSource::flush()
 {
   if( currentBitIndex_ >= 8 )
@@ -269,7 +310,11 @@ void DataSource::flush()
 
 
 
-// Retrieve the index of the current bit
+/**
+ * Retrieve the index of the current bit.
+ *
+ * @return Current position within the byte we're reading at the moment
+ */
 quint8 DataSource::getBitIndex()
 {
   return currentBitIndex_;
@@ -277,7 +322,12 @@ quint8 DataSource::getBitIndex()
 
 
 
-// Retrieve the next bit from the data
+/**
+ * Retrieve the next bit from the data.
+ *
+ * @param ok If set, it will contain whether the call was successful or not.
+ * @return bool
+ */
 bool DataSource::getBit( bool *ok )
 {
   if( currentBitIndex_ >= 8 )
@@ -310,7 +360,13 @@ bool DataSource::getBit( bool *ok )
 
 
 
-// Retrieve the next <amount> bits from the data
+/**
+ * Retrieve the next [amount] bits from the data.
+ *
+ * @param amount Number of bits to read
+ * @param ok If set, it will contain whether the call was successful or not.
+ * @return quint64 with the set of read bits
+ */
 quint64 DataSource::getBits( quint8 amount, bool *ok )
 {
   if( amount > 64 )
@@ -374,7 +430,12 @@ quint64 DataSource::getBits( quint8 amount, bool *ok )
 
 
 
-// Retrieve the next byte from the data
+/**
+ * Retrieve the next byte from the data
+ *
+ * @param ok If set, it will contain whether the call was successful or not.
+ * @return char
+ */
 char DataSource::getByte( bool *ok )
 {
   bool   gotBitOk;
@@ -412,7 +473,13 @@ char DataSource::getByte( bool *ok )
 
 
 
-// Retrieve the next <amount> bytes from the data
+/**
+ * Retrieve the next [amount] bytes from the data.
+ *
+ * @param amount Number of bytes to read
+ * @param ok If set, it will contain whether the call was successful or not.
+ * @return byte array of read bytes
+ */
 QByteArray DataSource::getBytes( quint8 amount, bool *ok )
 {
   QByteArray bytes;
@@ -448,7 +515,11 @@ QByteArray DataSource::getBytes( quint8 amount, bool *ok )
 
 
 
-// Move a byte from the buffer into the bit array
+/**
+ * Move a byte from the buffer into the 'current byte' bit array.
+ *
+ * @return bool
+ */
 bool DataSource::moveByteToBitArray()
 {
   quint8 byte = 0;
@@ -491,7 +562,11 @@ bool DataSource::moveByteToBitArray()
 
 
 
-// Get the current position within the data
+/**
+ * Get the current position within the internal data buffer.
+ *
+ * @return qint64
+ */
 qint64 DataSource::pos() const
 {
   return buffer_.pos();
@@ -499,7 +574,11 @@ qint64 DataSource::pos() const
 
 
 
-// Insert a byte at the beginning of the data
+/**
+ * Insert a byte at the beginning of the data.
+ *
+ * @param byte Byte to add
+ */
 void DataSource::prepend( char byte )
 {
   buffer_.buffer().prepend( byte );
@@ -516,7 +595,11 @@ void DataSource::prepend( char byte )
 
 
 
-// Insert bytes at the beginning of the data
+/**
+ * Insert bytes at the beginning of the data.
+ *
+ * @param bytes Bytes to add
+ */
 void DataSource::prepend( const QByteArray &bytes )
 {
   buffer_.buffer().prepend( bytes );
@@ -533,7 +616,10 @@ void DataSource::prepend( const QByteArray &bytes )
 
 
 
-// Return to the start of the buffer
+//
+/**
+ * Return to the start of the buffer.
+ */
 void DataSource::reset()
 {
   buffer_.reset();
@@ -542,7 +628,14 @@ void DataSource::reset()
 
 
 
-// Seek back and forth in the stream
+//
+/**
+ * Seek back and forth in the stream.
+ *
+ * A negative pos will move backwards within the stream.
+ *
+ * @param pos Relative position where to move
+ */
 void DataSource::seekRelative( int pos )
 {
   if( pos < 0 && buffer_.pos() <= 0 )
@@ -565,7 +658,11 @@ void DataSource::seekRelative( int pos )
 
 
 
-// Replace the data array with another
+/**
+ * Replace the data byte array with another.
+ *
+ * @param data New array to copy and use as the data source
+ */
 void DataSource::setData( const QByteArray &data )
 {
   buffer_.close();
@@ -578,7 +675,13 @@ void DataSource::setData( const QByteArray &data )
 
 
 
-// Skip the rest of the current byte
+/**
+ * Skip the rest of the current byte and read the next one.
+ *
+ * When using the data source in bit mode, this skips the
+ * bits remaining in the current byte and prepares to read
+ * the next byte.
+ */
 void DataSource::skipToNextByte()
 {
   if( currentBitIndex_ == 0 )
@@ -591,7 +694,13 @@ void DataSource::skipToNextByte()
 
 
 
-// Reset the current byte
+/**
+ * Skip the rest of the current byte and read the previous one.
+ *
+ * When using the data source in bit mode, this skips the
+ * bits remaining in the current byte and prepares to read
+ * the next byte.
+ */
 void DataSource::skipToPrevByte()
 {
   currentBitIndex_ = 8;
@@ -599,7 +708,12 @@ void DataSource::skipToPrevByte()
 
 
 
-// Get the size of the data
+//
+/**
+ * Get the size of the data.
+ *
+ * @return qint64
+ */
 qint64 DataSource::size() const
 {
   return buffer_.size();
