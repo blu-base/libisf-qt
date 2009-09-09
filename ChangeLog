@@ -1,3 +1,5 @@
+2009-09-10 (Adam)
+ * Don't extract private members in Doxygen output.
 
 2009-09-09 (Valerio)
  * Added Fortified GIF read-write support. New optional dependency, giflib.
