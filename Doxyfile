@@ -152,7 +152,6 @@ TOC_EXPAND             = NO
 DISABLE_INDEX          = YES
 ENUM_VALUES_PER_LINE   = 4
 GENERATE_TREEVIEW      = YES
-USE_INLINE_TREES       = YES
 TREEVIEW_WIDTH         = 250
 FORMULA_FONTSIZE       = 10
 #---------------------------------------------------------------------------

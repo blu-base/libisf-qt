@@ -193,10 +193,10 @@ bool HuffmanAlgorithm::deflateValue( DataSource &output, quint8 index, qint64 va
 /**
  * Decompress data with the Huffman algorithm.
  *
- * @param output Data source where to read the compressed bytes
+ * @param source Data source where to read the compressed bytes
  * @param length Number of items to read
  * @param index Index to use for compression
- * @param source List where to place decompressed values
+ * @param decodedData List where to place decompressed values
  * @return bool
  */
 bool HuffmanAlgorithm::inflate( DataSource &source, quint64 length, quint8 index, QList<qint64> &decodedData )
