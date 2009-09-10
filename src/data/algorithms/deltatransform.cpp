@@ -38,12 +38,12 @@ bool Delta::transform( QList<qint64> &data )
 
   for( qint64 index = 0; index < data.size(); ++index )
   {
-    qint64 delta = data[ index ] - previousDelta;
+    qint64 currentItem = data[ index ];
+
+    data[ index ] = data[ index ] + previousDelta - ( currentDelta * 2 );
 
     previousDelta = currentDelta;
-    currentDelta = previousDelta;
-
-    data[ index ] = delta;
+    currentDelta = currentItem;
   }
 
   return true;

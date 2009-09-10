@@ -99,7 +99,10 @@ bool Compress::inflatePacketData( DataSource &source, quint64 length, QList<qint
     {
       // Detect if the data is encoded with delta-delta transformation
       bool requiresDeltaDeltaTransform = ( BitPackingTransformMask & byte );
-      algorithmData ^= BitPackingTransformMask;
+      if( requiresDeltaDeltaTransform )
+      {
+        algorithmData ^= BitPackingTransformMask;
+      }
 
 #ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "- Inflating" << length << "items using the Bit Packing algorithm and a block size of" << algorithmData;

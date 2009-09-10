@@ -2,6 +2,9 @@
  * Do not add twice single-dot strokes in InkCanvas.
  * Removed a leftover debug message.
  * Fixed the Drawing copy constructor, which was copying even empty lists.
+ * Fixed Bit Packing compression and the Delta-Delta transform, now the lib
+   works perfectly again.
+ * Fixed argument parsing in test_decode.
 
 2009-09-10 (Adam)
  * Don't extract private members in Doxygen output.

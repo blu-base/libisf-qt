@@ -48,7 +48,7 @@ class TestDecode : public QMainWindow, private Ui::TestDecode
       }
 
       int rewriteIndex = arguments.indexOf( "--rewrite" );
-      if( rewriteIndex < 0 )
+      if( rewriteIndex >= 0 )
       {
         rewrite = true;
         arguments.removeAt( rewriteIndex );
