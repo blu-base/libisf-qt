@@ -118,6 +118,13 @@ IsfError TagsParser::parseCustomTag( DataSource &source, Drawing &drawing, quint
 #endif
   }
 
+/*
+ * Other observed custom tags:
+ * Tag GUID                               | Encoding           | Property data sample
+ * {634BF9C9-E4DC-4842-995D-5AA84CDB887F} | Bit Packing Byte   | (3, 0, 27, 253, 255, 255)
+ * {43D8C905-2CC8-C34A-BCDA-2E74E78721AD} | Bit Packing Byte   | (3, 132, 0)
+ */
+
   return ISF_ERROR_NONE;
 }
 

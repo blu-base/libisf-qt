@@ -152,26 +152,35 @@ Drawing::Drawing( const Drawing &other )
     // Get the indices of the various stroke properties; and
     // for the new stroke, use the same indices
 
-    // It is probably safe to simply use the pointer at the same index..
-    if( stroke->attributes )
+    // It is probably safe to simply use the same index, since the
+    // lists are copied in order.
+    if( stroke->attributes && other.attributeSets_.count() > 0 )
     {
       int otherAttributeSet = other.attributeSets_.indexOf( stroke->attributes );
-      newStroke->attributes = attributeSets_.at( otherAttributeSet );
+      newStroke->attributes = ( otherAttributeSet >= 0 )
+                              ? attributeSets_.at( otherAttributeSet )
+                              : 0;
     }
-    if( stroke->info )
+    if( stroke->info && other.strokeInfo_.count() > 0 )
     {
       int otherStrokeInfo = other.strokeInfo_.indexOf( stroke->info );
-      newStroke->info = strokeInfo_.at( otherStrokeInfo );
+      newStroke->info = ( otherStrokeInfo >= 0 )
+                        ? strokeInfo_.at( otherStrokeInfo )
+                        : 0;
     }
-    if( stroke->metrics )
+    if( stroke->metrics && other.metrics_.count() > 0 )
     {
       int otherMetrics = other.metrics_.indexOf( stroke->metrics );
-      newStroke->metrics = metrics_.at( otherMetrics );
+      newStroke->metrics = ( otherMetrics >= 0 )
+                           ? metrics_.at( otherMetrics )
+                           : 0;
     }
-    if( stroke->transform )
+    if( stroke->transform && other.transforms_.count() > 0 )
     {
       int otherTransforms = other.transforms_.indexOf( stroke->transform );
-      newStroke->transform = transforms_.at( otherTransforms );
+      newStroke->transform = ( otherTransforms >= 0 )
+                             ? transforms_.at( otherTransforms )
+                             : 0;
     }
   }
 }

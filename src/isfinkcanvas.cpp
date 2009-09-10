@@ -383,6 +383,9 @@ void InkCanvas::mousePressEvent( QMouseEvent *event )
 
   currentStroke_ = new Isf::Stroke;
   currentStroke_->points.append( Isf::Point( lastPoint_ ) );
+
+  // Draw the initial point
+  drawLineTo( lastPoint_ );
 }
 
 
@@ -430,6 +433,12 @@ void InkCanvas::mouseMoveEvent( QMouseEvent *event )
 
   QPoint position( event->pos() );
 
+  // Don't add duplicate points. Mainly useful when drawing dots.
+  if( lastPoint_ == position )
+  {
+    return;
+  }
+
   drawLineTo( position );
 
   if( currentStroke_ == 0 )
@@ -474,7 +483,12 @@ void InkCanvas::mouseReleaseEvent( QMouseEvent *event )
   }
 
   QPoint position = event->pos();
-  drawLineTo( position );
+
+  // Don't redraw already drawn points or lines
+  if( lastPoint_ != position )
+  {
+    drawLineTo( position );
+  }
 
   scribbling_ = false;
   emit inkChanged();
@@ -491,8 +505,14 @@ void InkCanvas::mouseReleaseEvent( QMouseEvent *event )
   qDebug() << "Finishing up stroke";
 #endif
 
-  currentStroke_->points.append( Isf::Point( lastPoint_ ) );
+  // Don't add duplicate points. Mainly useful when drawing dots.
+  if( lastPoint_ != position )
+  {
+    currentStroke_->points.append( Isf::Point( lastPoint_ ) );
+  }
+
   drawing_->addStroke( currentStroke_ );
+
   currentStroke_ = 0;
 
   drawingDirty_ = true;
