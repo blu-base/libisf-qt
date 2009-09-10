@@ -35,6 +35,8 @@ using namespace Isf::Compress;
  */
 quint8 BitPackingByteAlgorithm::index( const QList<qint64> &data )
 {
+  Q_UNUSED( data );
+
   quint8 index = 0;
 /*
   qint64 num;

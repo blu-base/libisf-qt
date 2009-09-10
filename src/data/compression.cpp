@@ -408,6 +408,9 @@ bool Compress::inflatePropertyData( DataSource &source, quint64 length, QList<qi
  */
 bool Compress::deflatePropertyData( QByteArray &encodedData, const QList<qint64> &source )
 {
+  Q_UNUSED( encodedData );
+  Q_UNUSED( source );
+
   bool result = false;
 
   qWarning() << "Property data saving is not implemented at the moment!";
