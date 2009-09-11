@@ -39,12 +39,7 @@ using namespace Isf;
 
 
 /**
- * Create a new InkCanvas widget that allows you to draw Ink on a canvas.
- *
- * To retrieve a QImage that contains the image drawn, use the function
- * image().
- *
- * To get the Isf::Drawing instance for your ink, use drawing().
+ * Create a new InkCanvas widget.
  *
  * @param parent The parent widget.
  */
@@ -134,10 +129,10 @@ void InkCanvas::updateCursor()
 
 
 /**
- * Return the current suggested size for the canvas.
+ * Return the suggested size for the canvas.
  *
- * The actual suggested size is one which can fit the current drawing well.
- * By default the size should be around 300x300 - of course, this is flexible.
+ * The actual size hint will depend on the size of the drawing on the canvas. By default,
+ * the size hint is 300x300 pixels.
  */
 QSize InkCanvas::sizeHint() const
 {
@@ -156,10 +151,10 @@ QSize InkCanvas::sizeHint() const
 
 
 /**
- * Clears the current image.
+ * Clears the current image, discarding all drawn strokes.
  *
- * All the Ink data is discarded, but the status is not: for example,
- * the stroke size and color are kept.
+ * Stroke attributes such as pen size, pen type and color are not cleared.
+ *
  */
 void InkCanvas::clear()
 {
@@ -181,7 +176,7 @@ void InkCanvas::clear()
 /**
  * Change the color of the pen used to draw on the Ink canvas.
  *
- * @param newColor The new color
+ * @param newColor The new color for the pen.
  */
 void InkCanvas::setPenColor( QColor newColor )
 {
@@ -197,7 +192,7 @@ void InkCanvas::setPenColor( QColor newColor )
 
 
 /**
- * Change the size of the pen used to draw on the Ink canvas.
+ * Change the size of the pen. This value is in pixels.
  *
  * @param pixels The size of the pen, in pixels
  */
@@ -216,7 +211,8 @@ void InkCanvas::setPenSize( int pixels )
 /**
  * Change the pen type.
  *
- * See the PenType enum documentation for more information.
+ * Currently, only PenType::EraserPen and PenType::DrawingPen are supported. See the PenType 
+ * enum for more information.
  *
  * @see PenType
  * @param type The new pen type
@@ -287,9 +283,9 @@ void InkCanvas::drawLineTo( const QPoint &endPoint )
 
 
 /**
- * Get whether the drawing is empty.
+ * Get whether the drawing is empty (i.e., contains no strokes).
  *
- * @return True if the Ink image is empty (i.e., no strokes), false otherwise
+ * @return True if the Ink image is empty, false otherwise
  */
 bool InkCanvas::isEmpty()
 {
@@ -391,13 +387,13 @@ void InkCanvas::mousePressEvent( QMouseEvent *event )
 
 
 /**
- * Keep on drawing the current stroke.
+ * Continue drawing the current stroke.
  *
- * While the mouse is moving, we continue drawing the stroke we started
- * in mousePressEvent(), by drawing a line for each event we receive.
- * Drawing ends when the mouse button is depressed.
+ * As the cursor moves across the canvas we continue drawing the stroke started in
+ * mousePressEvent(). A line is drawn between the last point and the current point 
+ * as given by QMouseEvent::pos().
  *
- * This method is usually called by Qt.
+ * Once the mouse button is released, drawing ends.
  *
  * @see mousePressEvent()
  * @see mouseReleaseEvent()
@@ -456,9 +452,9 @@ void InkCanvas::mouseMoveEvent( QMouseEvent *event )
 
 
 /**
- * End drawing the current stroke.
+ * Finish drawing the current stroke.
  *
- * This method is usually called by Qt.
+ * Adds this stroke, with the correct attributes, to the Isf::Drawing strokes collection.
  *
  * @see mousePressEvent()
  * @see mouseMoveEvent()
@@ -539,12 +535,15 @@ void InkCanvas::clearBuffer()
 
 
 /**
- * Repaint the widget.
+ * Repaints the ink canvas.
  *
- * For performance, painting is done using an internal buffer instead
- * of redrawing all strokes everytime.
+ * For performance reasons an internal buffer is used to ensure that
+ * the entire Ink drawing is not re-rendered on each paintEvent call.
+ * This buffer is invalidated only when a stroke is added or removed, the 
+ * drawing is changed or the canvas cleared.
  *
- * @param event The painting request.
+ *
+ * @param event The paint event from Qt.
  */
 void InkCanvas::paintEvent( QPaintEvent *event )
 {
@@ -609,7 +608,7 @@ void InkCanvas::resizeEvent( QResizeEvent *event )
 
 
 /**
- * Return the drawn Ink as a QImage.
+ * Renders the ink drawing to a QImage and returns it.
  *
  * @return A QImage containing the rendered Ink.
  */
@@ -660,16 +659,25 @@ InkCanvas::PenType InkCanvas::penType()
 
 
 /**
- * Return the Isf::Drawing instance that the InkCanvas is currently manipulating.
+ * Retrieve the Isf::Drawing instance that the canvas is currently manipulating.
  *
- * Warning: If you call this method without having called setDrawing() previously, the
- *          returned Isf::Drawing pointer will be referencing an Isf::Drawing object
- *          *internal* to InkCanvas.
- *          Do not delete this initial reference or undefined behaviour (read: bad
- *          behaviour and/or crashes) will result.
+ * Beware: if you have not set your own Isf::Drawing instance via setDrawing(), you must not delete
+ * the object that this method returns. In this case this method returns a pointer to an internal
+ * Isf::Drawing instance that must not be deleted. If you have previously used setDrawing() then you 
+ * are free to do whatever you like with this pointer.
  *
- * However, you can delete any references you get from here, AFTER you have call setDrawing()
- * for the first time.
+ * \code
+ * InkCanvas *canvas = new InkCanvas( this );
+ * 
+ * Isf::Drawing *drawing = canvas->drawing();
+ * delete drawing; // bad! deleting an object internal to InkCanvas.
+ *
+ * canvas->setDrawing( existingIsfDrawingInstance );
+ *
+ * drawing = canvas->drawing();
+ * delete drawing; // good - drawing points to existingIsfDrawingInstance.
+ * \endcode
+ *
  *
  * @see setDrawing()
  * @return The current Isf::Drawing instance.
@@ -713,8 +721,7 @@ QByteArray InkCanvas::bytes()
 /**
  * Set the canvas colour (i.e., the background colour of the InkCanvas control)
  *
- * Note that this is not saved with the Ink drawing, but
- * it is only used to paint the widget.
+ * Note: this is not saved with the Ink data. This is only used for colouring the canvas.
  *
  * @param newColor The new canvas color.
  */
@@ -730,10 +737,10 @@ void InkCanvas::setCanvasColor( QColor newColor )
 
 
 /**
- * Changes the currently displayed ink with the Isf::Drawing supplied.
+ * Changes the currently displayed Ink to the one supplied.
  *
- * Note: InkCanvas does not take ownership of this Isf::Drawing instance.
- * It is the caller's responsibility to delete the given instance.
+ * Note: InkCanvas does not take ownership of Isf::Drawing instances supplied here.
+ * You are still responsible for ensuring they are deleted appropriately.
  *
  * @param drawing The new Ink drawing to display.
  */

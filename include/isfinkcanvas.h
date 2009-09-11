@@ -40,11 +40,35 @@ namespace Isf
 
   /**
    * @class InkCanvas
-   * @brief This is an Ink-editing control.
+   * @brief This is a control designed for the drawing and display of Ink.
    *
-   * It manipulates data in ISF format and is capable of
-   * drawing strokes, erasing strokes and setting pen size and color.
-   * It can also return the drawn image as a QImage.
+   * InkCanvas is used for drawing and displaying Ink. The currently displayed Ink drawing can be retrieved 
+   * or set using the drawing() and setDrawing() methods.
+   *
+   * To set the properties of the current pen, use the setPenColor(), setPenSize() and setPenType() methods.
+   * The supported pen types are outlined in the PenType enumeration documentation.
+   *
+   * Example:
+   *
+   * \code
+   * InkCanvas *canvas = new Isf::InkCanvas( this );
+   * canvas->setPenColor( Qt::blue );
+   * canvas->setPenSize( 10 );
+   *
+   * // the pen is now 10 pixels thick and blue.
+   *
+   * canvas->setPenType( EraserPen );
+   *
+   * // now an eraser will be used and strokes can be erased individually.
+   * \endcode
+   *
+   * To return the currently displayed Ink as a QImage, use image(). To return the raw ISF data, suitable 
+   * for saving to disk or sending over a network, use bytes().
+   *
+   * To write the ISF data directly to a QIODevice, such as a file, use the save() method.
+   *
+   * Connect to the inkChanged() signal to be notified when the drawing displayed on the canvas changes,
+   * either through strokes being drawn or deleted, or the current drawing being changed.
    *
    * @author Adam Goossens (adam@kmess.org)
    */
@@ -57,7 +81,11 @@ namespace Isf
       /**
        * The various types of pens supported by InkCanvas.
        *
-       * Erasing by pixel is not supported yet.
+       * The DrawingPen is a standard pen for drawing new strokes onto the canvas.
+       * The pen size and color are controlled by setPenSize() and setPenColor().
+       *
+       * The EraserPen is used for erasing individual strokes. Pixel-by-pixel erase is not
+       * yet supported.
        */
       enum PenType
       {
@@ -133,7 +161,8 @@ namespace Isf
       bool                drawingDirty_;
 
     signals:
-      /// Emitted when the ink representation was modified
+      /// Emitted when the ink representation is modified (stroke drawn, 
+      /// stroke deleted, current drawing changed).
       void                inkChanged();
   };
 

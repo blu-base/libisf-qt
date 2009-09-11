@@ -1,3 +1,6 @@
+2009-09-11 (Adam)
+ * Improve doxygen comments of InkCanvas.
+
 2009-09-10 (Valerio)
  * Do not add twice single-dot strokes in InkCanvas.
  * Removed a leftover debug message.
