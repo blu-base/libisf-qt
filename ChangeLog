@@ -1,3 +1,6 @@
+2009-10-03 (Adam)
+ * Remove unused HIMETRIC conversion methods.
+
 2009-09-11 (Adam)
  * Improve doxygen comments of InkCanvas.
 

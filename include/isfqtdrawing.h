@@ -93,34 +93,6 @@ namespace Isf
       bool                       setCurrentAttributeSet( AttributeSet *attributeSet );
       bool                       setCurrentTransform( QMatrix *transform );
 
-    public: // Public static utility methods
-      /**
-       * Converts a value from himetric units to pixels.
-       *
-       * The paint device is required to retrieve the device size.
-       * Himetric is a device-dependent unit.
-       *
-       * @param himetric The value to convert
-       * @param device The device used to detect the size of the drawing context
-       */
-      inline static float        himetricToPixels( float himetric, QPaintDevice &device )
-      {
-        return ( ( (float)device.width() / (float)device.widthMM() ) * ( himetric * 0.01 ) );
-      }
-      /**
-       * Converts a value from pixels to himetric units.
-       *
-       * The paint device is required to retrieve the device size.
-       * Himetric is a device-dependent unit.
-       *
-       * @param pixels The value to convert
-       * @param device The device used to detect the size of the drawing context
-       */
-      inline static float        pixelsToHimetric( float pixels, QPaintDevice &device )
-      {
-        return ( pixels / ( (float)device.width() / (float)device.widthMM() ) / 0.01 );
-      }
-
     private: // Private properties
       /// List of attributes of the points in the drawing
       QList<AttributeSet*>       attributeSets_;
