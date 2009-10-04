@@ -93,9 +93,10 @@ CONFIGURE_FILE( cmake/IsfQtConfig.cmake.in "${CMAKE_CURRENT_BINARY_DIR}/IsfQtCon
 
 #### Installation ####
 
-IF( NOT IS_BUNDLED_BUILD )
+# Do not install the resources if we're bundling it in KMess
+IF( NOT USE_BUNDLED_LIBRARIES MATCHES "ISFQT" )
   INSTALL( FILES ${CMAKE_CURRENT_BINARY_DIR}/IsfQtConfig.cmake
           DESTINATION ${LIB_INSTALL_DIR}/isfqt )
   INSTALL( FILES cmake/FindIsfQt.cmake
           DESTINATION ${CMAKE_ROOT}/Modules )
-ENDIF( NOT IS_BUNDLED_BUILD )
+ENDIF()
