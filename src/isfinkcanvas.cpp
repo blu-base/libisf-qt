@@ -515,6 +515,9 @@ void InkCanvas::mouseReleaseEvent( QMouseEvent *event )
 
   // clear the buffer.
   clearBuffer();
+  
+  // update
+  update();
 }
 
 

@@ -265,25 +265,21 @@ qint32 Drawing::addStroke( Stroke *newStroke )
   // add FitToCurve (Windows will use Bezier smoothing to make the ink look nice)
   newStroke->attributes->flags |= FitToCurve;
 
-  // set the bounding rectangle.
-  if ( polygon.boundingRect().size() == QSize(1, 1) )
-  {
-    // can't have a 1px by 1px bounding rect - the eraser will never hit it.
-    // make the bounding rectange completely cover the drawn stroke.
-    float penSize = newStroke->attributes->penSize.width();
-    QPoint point = newStroke->points.at( 0 ).position;
-    newStroke->boundingRect = QRect( point.x() - penSize / 2, point.y() - penSize / 2, penSize, penSize );
-  }
-  else
-  {
-    newStroke->boundingRect = polygon.boundingRect();
-  }
+  float halfPenSize = newStroke->attributes->penSize.width() / 2;
+    
+  // set bounding rectangle, expanded it to accommodate pen size.
+  newStroke->boundingRect = polygon.boundingRect().adjusted(  -( halfPenSize ), - ( halfPenSize ), 
+                                                               halfPenSize, halfPenSize );
 
   isNull_ = false;
   strokes_.append( newStroke );
 
-  // force a bounding rectangle update
-  boundingRect_ = QRect();
+  boundingRect_ = boundingRect_.united( newStroke->boundingRect );
+
+  // this stroke needs to be repainted.
+  changedStrokes_.append( newStroke );
+
+  dirty_ = true;
 
   return ( strokes_.count() - 1 );
 }
@@ -329,6 +325,7 @@ void Drawing::clear()
   strokes_      .clear();
   transforms_   .clear();
   attributeSets_.clear();
+  changedStrokes_.clear();
 
   // Invalidate the current item pointers
   currentMetrics_      = 0;
@@ -339,6 +336,7 @@ void Drawing::clear()
   // Nullify the other properties
   boundingRect_ = QRect();
   canvas_       = QRect();
+  cacheRect_    = QRect();
   error_        = ISF_ERROR_NONE;
   hasXData_     = true;
   hasYData_     = true;
@@ -346,6 +344,8 @@ void Drawing::clear()
   maxGuid_      = 0;
   maxPenSize_   = QSizeF();
   size_         = QSize();
+  dirty_        = false;
+  cachePixmap_  = QPixmap();
 
   // set the default transform
   defaultTransform_.scale( 1.f, 1.f );
@@ -402,9 +402,17 @@ bool Drawing::deleteStroke( quint32 index )
     return false;
   }
 
-  delete strokes_.takeAt( index );
-  boundingRect_ = QRect(); // force a recalculation.
+  Stroke *victim = strokes_.takeAt( index );
+  
+  // make sure this goes from the changedStrokes_ list too.
+  changedStrokes_.removeAll( victim );
 
+  delete victim;
+  
+  dirty_ = true;
+
+  boundingRect_ = QRect(); // force a recalculation.
+  
   return true;
 }
 
@@ -504,7 +512,7 @@ const QList<AttributeSet*> Drawing::attributeSets()
 QRect Drawing::boundingRect()
 {
   // if the boundingRect_ is invalid, update it.
-  // it becomes invalid after a stroke is added or deleted.
+  // it becomes invalid after a stroke is deleted.
   if ( boundingRect_ == QRect() )
   {
     foreach( Stroke *stroke, strokes_ )
@@ -563,6 +571,11 @@ QPixmap Drawing::pixmap( const QColor backgroundColor )
     return QPixmap();
   }
 
+  if ( ! dirty_ && ! cachePixmap_.isNull() )
+  {
+    return cachePixmap_;
+  }
+  
   QSize size_ = size();
 
   if( size_.width() > 2000 || size_.height() > 2000 )
@@ -573,25 +586,63 @@ QPixmap Drawing::pixmap( const QColor backgroundColor )
     return QPixmap();
   }
 
-  QPixmap pixmap( size_ );
-  pixmap.fill( backgroundColor );
-  QPainter painter( &pixmap );
+  // is the cache null, or are we repainting everything? if so, create a new pixmap.
+  if ( cachePixmap_.isNull() || changedStrokes_.isEmpty() )
+  {
+    cachePixmap_ = QPixmap( size_ );
+    cachePixmap_.fill( Qt::transparent );
+    cacheRect_ = boundingRect();
+  }
+  else
+  {
+    // otherwise, resize and repaint the cache.
+
+    QRect newRect = boundingRect();
+    
+    // has the size of the drawing changed? if so, resize the cachePixmap_.
+    if ( cacheRect_.size() != newRect.size() )
+    {
+  //     qDebug() << "Cache pixmap needs resizing to" << size_;
+  //     qDebug() << "Cache rect:" << cacheRect_;
+  //     qDebug() << "New rect:" << newRect;
+
+      QPixmap pixmap( size_ );
+      pixmap.fill( Qt::transparent );
+      QPainter painter( &pixmap );
+
+      int xOffset = ( newRect.x() - cacheRect_.x() ) * -1;
+      int yOffset = ( newRect.y() - cacheRect_.y() ) * -1;
+
+  //     qDebug() << "x-offset:"<<xOffset<<", y-offset:"<<yOffset;
+      painter.drawPixmap( xOffset, yOffset, cachePixmap_ );
+      
+      cachePixmap_ = pixmap;
+      cacheRect_ = newRect;
+    }
+  }
+  
+  // if we're told specifically what strokes to paint, only paint those ones.
+  // otherwise, paint all of them.
+  
+  QList<Stroke*> strokes = ( changedStrokes_.isEmpty() ? strokes_ : changedStrokes_ );
 
 #ifdef ISFQT_DEBUG
   qDebug() << "Rendering a drawing of size" << size_;
 #endif
 
 #ifdef ISFQT_DEBUG_VERBOSE
-  qDebug() << "The drawing contains" << strokes_.count() << "strokes.";
+  qDebug() << "The drawing contains" << strokes_.count() << "strokes; rendering" << strokes.count() << "strokes.";
 #endif
 
   // if there are no strokes there's no point going
   // through the rest of this logic.
-  if ( strokes_.count() == 0 )
+  if ( strokes.count() == 0 )
   {
-    return pixmap;
+    return cachePixmap_;
   }
 
+  QPainter painter( &cachePixmap_ );
+ 
   painter.setWindow( boundingRect() );
   painter.setWorldMatrixEnabled( true );
   painter.setRenderHints(   QPainter::Antialiasing
@@ -611,7 +662,7 @@ QPixmap Drawing::pixmap( const QColor backgroundColor )
   currentTransform_     = 0;
 
   int index = 0;
-  foreach( const Stroke *stroke, strokes_ )
+  foreach( const Stroke *stroke, strokes )
   {
     if( currentMetrics_ != stroke->metrics )
     {
@@ -712,11 +763,15 @@ QPixmap Drawing::pixmap( const QColor backgroundColor )
 
   painter.end();
 
+  changedStrokes_.clear();
+  
 #ifdef ISFQT_DEBUG
   qDebug() << "Rendering complete.";
 #endif
 
-  return pixmap;
+  dirty_ = false;
+
+  return cachePixmap_;
 }
 
 

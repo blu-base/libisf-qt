@@ -32,6 +32,7 @@
 #include <QMatrix>
 #include <QPaintDevice>
 #include <QUuid>
+#include <QPixmap>
 
 
 // Forward declarations
@@ -98,8 +99,14 @@ namespace Isf
       QList<AttributeSet*>       attributeSets_;
       /// Bounding rectangle of the drawing
       QRect                      boundingRect_;
+      /// Cached bounding rectangle
+      QRect                      cacheRect_;
+      /// The cached pixmap
+      QPixmap                    cachePixmap_;
       /// Virtual drawing canvas dimensions
       QRect                      canvas_;
+      /// A list of strokes that need to be repainted.
+      QList<Stroke*>             changedStrokes_;
       /// Link to the currently used metric data
       Metrics                   *currentMetrics_;
       /// Link to the currently used point info data
@@ -116,6 +123,8 @@ namespace Isf
       StrokeInfo                 defaultStrokeInfo_;
       /// Link to the default transformation
       QMatrix                    defaultTransform_;
+      /// Is the drawing dirty? i.e, requires repainting?
+      bool                       dirty_;
       /// Last parsing error (if there is one)
       IsfError                   error_;
       /// List of registered GUIDs
