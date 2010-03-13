@@ -94,6 +94,9 @@ namespace Isf
       bool                       setCurrentAttributeSet( AttributeSet *attributeSet );
       bool                       setCurrentTransform( QMatrix *transform );
 
+    private:
+      QPainterPath  generatePainterPath( Stroke *stroke, bool fitToCurve );
+
     private: // Private properties
       /// List of attributes of the points in the drawing
       QList<AttributeSet*>       attributeSets_;

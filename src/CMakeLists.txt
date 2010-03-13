@@ -14,6 +14,7 @@ SET( ISFQT_SOURCES
      tagswriter.cpp
      isfqt.cpp
      isfinkcanvas.cpp
+     bezierspline.cpp
    )
 
 SET( ISFQT_PUBLIC_HEADERS

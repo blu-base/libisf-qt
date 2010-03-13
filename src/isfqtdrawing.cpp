@@ -28,6 +28,7 @@
 #include "data/datasource.h"
 #include "data/multibytecoding.h"
 #include "tagsparser.h"
+#include "bezierspline.h"
 
 #include <IsfQtDrawing>
 
@@ -469,6 +470,82 @@ IsfError Drawing::error() const
 
 
 
+/**
+ * Given a list of knot points, generates a QPainterPath that describes the stroke.
+ *
+ * If fitToCurve is true, uses bezier curves to approximate the stroke, giving a much smoother appearance.
+ * See the comments in BezierSpline::calculateControlPoints.
+ * 
+ * @param knotPoints The known points of the curve (the "knot" points).
+ * @param fitToCurve If true, bezier approximation is used to smooth the resulting curve.
+ */
+QPainterPath Drawing::generatePainterPath( Stroke *stroke, bool fitToCurve )
+{
+  QList<Point> strokePoints = stroke->points;
+
+  if ( strokePoints.size() == 0 )
+  {
+    return QPainterPath();
+  }
+  
+  QPoint startPos( strokePoints.at(0).position );
+  
+  QPainterPath path( QPointF( startPos.x(), startPos.y() ) );
+  
+  if ( ! fitToCurve )
+  {
+    foreach( Point point, strokePoints )
+    {
+      path.lineTo( point.position );
+    }
+    
+  }
+  else
+  {
+    // don't calculate control points if they've
+    // already been calculated.
+    if ( stroke->knotPoints.isEmpty() )
+    {
+      // for a better curve, don't pass through all of points.
+      // skip about 70% of them.
+      int toSkip = 0.70 * strokePoints.size();
+      int step = strokePoints.size() / ( strokePoints.size() - toSkip );
+      
+      step = ( step < 1 ) ? 1 : step;   // sanity check.
+
+      QList<QPointF> points;
+      
+      for( int i = 0; i < strokePoints.size(); i += step )
+      {
+        points.append( strokePoints.at(i).position );
+      }
+      
+      // always pass through the last point.
+      points.append( strokePoints.last().position );
+      
+      QList<QPointF> c1;
+      QList<QPointF> c2;
+
+      // generate the bezier control points.
+      BezierSpline::calculateControlPoints( points, &c1, &c2 );
+      
+      stroke->c1 = c1;
+      stroke->c2 = c2;
+      stroke->knotPoints = points;
+    }
+    
+    for( int i = 0; i < stroke->c1.size(); i++ )
+    {
+      // draw the bezier curve!
+      path.cubicTo( stroke->c1[i], stroke->c2[i], stroke->knotPoints[i + 1] );
+    }
+  }
+  
+  return path;
+}
+
+
+
 
 /**
  * Retrieve an attribute set to manipulate.
@@ -662,7 +739,7 @@ QPixmap Drawing::pixmap( const QColor backgroundColor )
   currentTransform_     = 0;
 
   int index = 0;
-  foreach( const Stroke *stroke, strokes )
+  foreach( Stroke *stroke, strokes )
   {
     if( currentMetrics_ != stroke->metrics )
     {
@@ -692,6 +769,7 @@ QPixmap Drawing::pixmap( const QColor backgroundColor )
       QPen pen = painter.pen();
       pen.setWidthF( currentAttributeSet_->penSize.width() / currentTransform_->m22() );
       painter.setPen( pen );
+      painter.setBrush( Qt::transparent );
     }
 
 #ifdef ISFQT_DEBUG_VERBOSE
@@ -701,37 +779,12 @@ QPixmap Drawing::pixmap( const QColor backgroundColor )
 
     if( stroke->points.count() > 1 )
     {
-      Point lastPoint;
-      foreach( const Point &point, stroke->points )
-      {
-//       qDebug() << "Point:" << point.position;
 
-        if( lastPoint.position.isNull() )
-        {
-          lastPoint = point;
-          continue;
-        }
+      bool fitToCurve = stroke->attributes->flags & FitToCurve;
+      QPainterPath path = generatePainterPath( stroke, fitToCurve );
 
-        if( currentStrokeInfo_->hasPressureData )
-        {
-          // FIXME Ignoring pressure data - need to find out how pressure must be applied
-//           pen.setWidth( pen.widthF() + point.pressureLevel );
-//           painter.setPen( pen );
-        }
-
-        // How nice of QPainter! Lines drawn from and to the same point
-        // won't be drawn at all
-        if( point.position == lastPoint.position )
-        {
-          painter.drawPoint( point.position );
-        }
-        else
-        {
-          painter.drawLine( lastPoint.position, point.position );
-        }
-
-        lastPoint = point;
-      }
+      // TODO: pressure data.
+      painter.drawPath( path );
     }
     else
     {
@@ -1020,5 +1073,4 @@ bool Drawing::setCurrentTransform( QMatrix *transform )
 
   return true;
 }
-
 

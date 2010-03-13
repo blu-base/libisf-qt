@@ -334,6 +334,8 @@ namespace Isf
     Metrics      *metrics;
     /// List of points
     QList<Point>  points;
+    /// List of Bezier control points.
+    QList<QPointF>  c1, c2, knotPoints;
     /// Link to this stroke's transformation, if any
     QMatrix      *transform;
   };
