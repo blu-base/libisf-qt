@@ -1,3 +1,7 @@
+2010-03-13 (Adam)
+ * Add a bezier curve smoothing algorithm. Strokes with the FitToCurve flag set are
+   rendered with an approximate bezier curve. Gives much smoother looking strokes.
+
 2010-02-21 (Adam)
  * Optimise the painting of strokes. Cache logic added to IsfQtDrawing and only
    strokes that have been added are painted. Also, no longer do a full bounding rect
