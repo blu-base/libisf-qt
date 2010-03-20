@@ -1,3 +1,7 @@
+2010-03-20 (Adam)
+ * Slight optimisation to painting - we no longer draw the background color, Qt does it for us.
+   Also, only render the parts of the buffer that have changed.
+
 2010-03-13 (Adam)
  * Add a bezier curve smoothing algorithm. Strokes with the FitToCurve flag set are
    rendered with an approximate bezier curve. Gives much smoother looking strokes.

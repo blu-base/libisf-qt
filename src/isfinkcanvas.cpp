@@ -59,6 +59,10 @@ InkCanvas:: InkCanvas( QWidget *parent )
   setPenColor( Qt::black );
   setPenSize( 4 );
 
+  setAttribute( Qt::WA_StaticContents, true );      // only give us paint events for the parts of us that become visible on resize.
+
+  setAutoFillBackground( true );
+
   clear();
 
   // prepare the buffer
@@ -68,9 +72,7 @@ InkCanvas:: InkCanvas( QWidget *parent )
   updateCursor();
 
   // start with a drawing pen by default.
-  setPenType( DrawingPen );
-
-  setAttribute( Qt::WA_StaticContents );
+  setPenType( DrawingPen );  
 }
 
 
@@ -554,11 +556,6 @@ void InkCanvas::paintEvent( QPaintEvent *event )
 
   QPainter painter( this );
 
-  painter.save();
-  painter.setBrush( QBrush( canvasColor_ ) );
-  painter.drawRect( QRect(-1, -1, width() + 1 , height() + 1 ) );
-  painter.restore();
-
   if( drawing_ == 0 )
   {
     qWarning() << "Uninitialized usage of InkCanvas!";
@@ -586,7 +583,7 @@ void InkCanvas::paintEvent( QPaintEvent *event )
   painter.drawPixmap( boundingRect.topLeft(), isfPixmap );
 
   // draw the buffer from 0,0.
-  painter.drawPixmap( QPoint(0, 0), bufferPixmap_ );
+  painter.drawPixmap( event->rect(), bufferPixmap_, event->rect() );
 
   QWidget::paintEvent( event );
 }
@@ -734,6 +731,10 @@ void InkCanvas::setCanvasColor( QColor newColor )
   qDebug() << "Setting new canvas color:" << newColor.name();
 #endif
   canvasColor_ = newColor;
+  
+  QPalette p = palette();
+  p.setColor( QPalette::Window, newColor );
+  setPalette( p );
   update();
 }
 
