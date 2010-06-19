@@ -692,8 +692,8 @@ Isf::Drawing *InkCanvas::drawing()
 /**
  * Save the current ISF drawing to a QIODevice.
  *
- * If the base64 param is True, then the drawing will be written base64-encoded.
- * This is helpful for transmission over mediums which are not binary-friendly.
+ * If the base64 param is true, then the drawing will be written base64-encoded.
+ * This is helpful for transmission over binary-unfriendly media.
  *
  * @param dev The QIODevice to save to.
  * @param base64 If true, the drawing is written encoded with base64.
@@ -744,7 +744,7 @@ void InkCanvas::setCanvasColor( QColor newColor )
  * Changes the currently displayed Ink to the one supplied.
  *
  * Note: InkCanvas does not take ownership of Isf::Drawing instances supplied here.
- * You are still responsible for ensuring they are deleted appropriately.
+ * You are still responsible of ensuring they are deleted appropriately.
  *
  * @param drawing The new Ink drawing to display.
  */
