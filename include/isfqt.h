@@ -363,9 +363,11 @@ namespace Isf
 
       static Drawing    &reader( const QByteArray &isfData, bool decodeFromBase64 = false );
       static Drawing    &readerGif( const QByteArray &gifRawBytes, bool decodeFromBase64 = false );
+      static Drawing    &readerPng( const QByteArray &pngRawBytes, bool decodeFromBase64 = false );
       static bool        supportsGif();
       static QByteArray  writer( const Drawing &drawing, bool encodeToBase64 = false );
       static QByteArray  writerGif( const Drawing &drawing, bool encodeToBase64 = false );
+      static QByteArray  writerPng( const Drawing &drawing, bool encodeToBase64 = false );
 
   };
 

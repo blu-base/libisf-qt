@@ -72,7 +72,7 @@ InkCanvas:: InkCanvas( QWidget *parent )
   updateCursor();
 
   // start with a drawing pen by default.
-  setPenType( DrawingPen );  
+  setPenType( DrawingPen );
 }
 
 
@@ -213,7 +213,7 @@ void InkCanvas::setPenSize( int pixels )
 /**
  * Change the pen type.
  *
- * Currently, only PenType::EraserPen and PenType::DrawingPen are supported. See the PenType 
+ * Currently, only PenType::EraserPen and PenType::DrawingPen are supported. See the PenType
  * enum for more information.
  *
  * @see PenType
@@ -392,7 +392,7 @@ void InkCanvas::mousePressEvent( QMouseEvent *event )
  * Continue drawing the current stroke.
  *
  * As the cursor moves across the canvas we continue drawing the stroke started in
- * mousePressEvent(). A line is drawn between the last point and the current point 
+ * mousePressEvent(). A line is drawn between the last point and the current point
  * as given by QMouseEvent::pos().
  *
  * Once the mouse button is released, drawing ends.
@@ -517,7 +517,7 @@ void InkCanvas::mouseReleaseEvent( QMouseEvent *event )
 
   // clear the buffer.
   clearBuffer();
-  
+
   // update
   update();
 }
@@ -544,7 +544,7 @@ void InkCanvas::clearBuffer()
  *
  * For performance reasons an internal buffer is used to ensure that
  * the entire Ink drawing is not re-rendered on each paintEvent call.
- * This buffer is invalidated only when a stroke is added or removed, the 
+ * This buffer is invalidated only when a stroke is added or removed, the
  * drawing is changed or the canvas cleared.
  *
  *
@@ -663,12 +663,12 @@ InkCanvas::PenType InkCanvas::penType()
  *
  * Beware: if you have not set your own Isf::Drawing instance via setDrawing(), you must not delete
  * the object that this method returns. In this case this method returns a pointer to an internal
- * Isf::Drawing instance that must not be deleted. If you have previously used setDrawing() then you 
+ * Isf::Drawing instance that must not be deleted. If you have previously used setDrawing() then you
  * are free to do whatever you like with this pointer.
  *
  * \code
  * InkCanvas *canvas = new InkCanvas( this );
- * 
+ *
  * Isf::Drawing *drawing = canvas->drawing();
  * delete drawing; // bad! deleting an object internal to InkCanvas.
  *
@@ -731,7 +731,7 @@ void InkCanvas::setCanvasColor( QColor newColor )
   qDebug() << "Setting new canvas color:" << newColor.name();
 #endif
   canvasColor_ = newColor;
-  
+
   QPalette p = palette();
   p.setColor( QPalette::Window, newColor );
   setPalette( p );
@@ -761,6 +761,7 @@ void InkCanvas::setDrawing( Isf::Drawing *drawing )
 
   drawingDirty_ = true;
 
+  updateGeometry();
   update();
 }
 

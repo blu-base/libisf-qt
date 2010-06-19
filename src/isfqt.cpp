@@ -623,6 +623,51 @@ Drawing &Stream::readerGif( const QByteArray &gifRawBytes, bool decodeFromBase64
 
 
 /**
+ * Convert a Fortified-PNG image into a drawing.
+ *
+ * If the PNG image or the ISF data within it are invalid, or if the PNG did not
+ * have any ISF stream within, then a null Drawing is returned.
+ *
+ * @param gifRawBytes Source byte array with a Fortified PNG image
+ * @param decodeFromBase64 True if the bytes are in the Base64 format and
+ *                         need to be decoded first
+ * @return an Isf::Drawing, with null contents on error
+ */
+Drawing &Stream::readerPng( const QByteArray &pngRawBytes, bool decodeFromBase64 )
+{
+  QByteArray isfData;
+
+#ifdef ISFQT_DEBUG_VERBOSE
+  qDebug() << "Reading a PNG-Fortified file";
+#endif
+
+  QByteArray pngBytes( decodeFromBase64
+                        ? QByteArray::fromBase64( pngRawBytes )
+                        : pngRawBytes );
+
+  QImage imageData( QImage::fromData( pngBytes, "PNG" ) );
+  if( ! imageData.isNull() )
+  {
+#ifdef ISFQT_DEBUG_VERBOSE
+    qDebug() << "Picture data is valid: checking for the ISF data tag...";
+#endif
+    isfData = imageData.text( "application/x-ms-ink" ).toAscii();
+
+    if( ! isfData.isEmpty() )
+    {
+#ifdef ISFQT_DEBUG_VERBOSE
+      qDebug() << "ISF data found! Decoding from Base64 and parsing it...";
+#endif
+      isfData = QByteArray::fromBase64( isfData );
+    }
+  }
+
+  return reader( isfData );
+}
+
+
+
+/**
  * Return whether the library was built with Fortified GIF support or not.
  *
  * @return bool
@@ -703,11 +748,14 @@ QByteArray Stream::writer( const Drawing &drawing, bool encodeToBase64 )
  * withous GIF support. Use Stream::supportsGif() to verify whether
  * GIF was compiled in or not.
  *
+ * The Fortified-GIF format is nothing more than a GIF image with the original
+ * ISF drawing added as a GIF Comment field.
+ *
  * @see supportsGif()
  * @param drawing Source drawing
- * @param encodeToBase64 Whether the converted ISF stream should be
+ * @param encodeToBase64 Whether the converted GIF should be
  *                       encoded with Base64 or not
- * @return Byte array with an ISF data stream
+ * @return Byte array with a GIF data stream (optionally encoded with Base64)
  */
 QByteArray Stream::writerGif( const Drawing &drawing, bool encodeToBase64 )
 {
@@ -904,6 +952,56 @@ writeError:
   else
   {
     return imageBytes;
+  }
+}
+
+
+
+/**
+ * Convert a drawing into a Fortified-PNG image.
+ *
+ * The resulting byte array will be empty if the drawing is not valid.
+ *
+ * The Fortified-PNG format is nothing more than a PNG image with the original
+ * ISF drawing added as a PNG text field.
+ *
+ * @param drawing Source drawing
+ * @param encodeToBase64 Whether the converted ISF stream should be
+ *                       encoded with Base64 or not
+ * @return Byte array with a PNG data stream (optionally encoded with Base64)
+ */
+QByteArray Stream::writerPng( const Drawing &drawing, bool encodeToBase64 )
+{
+  Drawing source( drawing );
+
+  // Get the ISF data stream
+  QByteArray isfData( writer( source ) );
+
+#ifdef ISFQT_DEBUG_VERBOSE
+  qDebug() << "PNG-Fortifying an ISF stream of size" << isfData.size();
+#endif
+
+  // Get the actual image
+  QImage isfImage( source.pixmap().toImage() );
+
+  // Add to it the Base64 version of the ISF drawing, as a comment and in Base64 form
+  // (that's because the PNG text fields are only meant to hold text)
+  isfImage.setText( "application/x-ms-ink", isfData.toBase64() );
+
+  // Save it as a PNG image
+  QBuffer imageBytes;
+  imageBytes.open( QIODevice::WriteOnly );
+  isfImage.save( &imageBytes, "PNG" );
+  imageBytes.close();
+
+  // Convert to Base64 if needed
+  if( encodeToBase64 )
+  {
+    return imageBytes.data().toBase64();
+  }
+  else
+  {
+    return imageBytes.data();
   }
 }
 

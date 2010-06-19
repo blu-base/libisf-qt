@@ -1,3 +1,8 @@
+2010-06-19 (Valerio)
+ * Added support for PNG fortification. Like GIF fortification, this feature allows to
+   write a PNG containing the full ISF drawing inside itself. Of course, it's now also
+   possible to read a PNG containing ISF data and retrieve the actual drawing.
+
 2010-03-20 (Adam)
  * Slight optimisation to painting - we no longer draw the background color, Qt does it for us.
    Also, only render the parts of the buffer that have changed.
