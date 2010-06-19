@@ -267,9 +267,9 @@ qint32 Drawing::addStroke( Stroke *newStroke )
   newStroke->attributes->flags |= FitToCurve;
 
   float halfPenSize = newStroke->attributes->penSize.width() / 2;
-    
+
   // set bounding rectangle, expanded it to accommodate pen size.
-  newStroke->boundingRect = polygon.boundingRect().adjusted(  -( halfPenSize ), - ( halfPenSize ), 
+  newStroke->boundingRect = polygon.boundingRect().adjusted(  -( halfPenSize ), - ( halfPenSize ),
                                                                halfPenSize, halfPenSize );
 
   isNull_ = false;
@@ -404,16 +404,16 @@ bool Drawing::deleteStroke( quint32 index )
   }
 
   Stroke *victim = strokes_.takeAt( index );
-  
+
   // make sure this goes from the changedStrokes_ list too.
   changedStrokes_.removeAll( victim );
 
   delete victim;
-  
+
   dirty_ = true;
 
   boundingRect_ = QRect(); // force a recalculation.
-  
+
   return true;
 }
 
@@ -475,7 +475,7 @@ IsfError Drawing::error() const
  *
  * If fitToCurve is true, uses bezier curves to approximate the stroke, giving a much smoother appearance.
  * See the comments in BezierSpline::calculateControlPoints.
- * 
+ *
  * @param knotPoints The known points of the curve (the "knot" points).
  * @param fitToCurve If true, bezier approximation is used to smooth the resulting curve.
  */
@@ -487,18 +487,18 @@ QPainterPath Drawing::generatePainterPath( Stroke *stroke, bool fitToCurve )
   {
     return QPainterPath();
   }
-  
+
   QPoint startPos( strokePoints.at(0).position );
-  
+
   QPainterPath path( QPointF( startPos.x(), startPos.y() ) );
-  
+
   if ( ! fitToCurve )
   {
     foreach( Point point, strokePoints )
     {
       path.lineTo( point.position );
     }
-    
+
   }
   else
   {
@@ -510,37 +510,37 @@ QPainterPath Drawing::generatePainterPath( Stroke *stroke, bool fitToCurve )
       // skip about 70% of them.
       int toSkip = 0.70 * strokePoints.size();
       int step = strokePoints.size() / ( strokePoints.size() - toSkip );
-      
+
       step = ( step < 1 ) ? 1 : step;   // sanity check.
 
       QList<QPointF> points;
-      
+
       for( int i = 0; i < strokePoints.size(); i += step )
       {
         points.append( strokePoints.at(i).position );
       }
-      
+
       // always pass through the last point.
       points.append( strokePoints.last().position );
-      
+
       QList<QPointF> c1;
       QList<QPointF> c2;
 
       // generate the bezier control points.
       BezierSpline::calculateControlPoints( points, &c1, &c2 );
-      
+
       stroke->c1 = c1;
       stroke->c2 = c2;
       stroke->knotPoints = points;
     }
-    
+
     for( int i = 0; i < stroke->c1.size(); i++ )
     {
       // draw the bezier curve!
       path.cubicTo( stroke->c1[i], stroke->c2[i], stroke->knotPoints[i + 1] );
     }
   }
-  
+
   return path;
 }
 
@@ -639,6 +639,7 @@ QSize Drawing::size()
  * drawing.
  *
  * @param backgroundColor The color used as background in the returned image.
+ *                        Default is transparent.
  * @return The rendered drawing, or a null one on error.
  */
 QPixmap Drawing::pixmap( const QColor backgroundColor )
@@ -652,7 +653,7 @@ QPixmap Drawing::pixmap( const QColor backgroundColor )
   {
     return cachePixmap_;
   }
-  
+
   QSize size_ = size();
 
   if( size_.width() > 2000 || size_.height() > 2000 )
@@ -667,7 +668,7 @@ QPixmap Drawing::pixmap( const QColor backgroundColor )
   if ( cachePixmap_.isNull() || changedStrokes_.isEmpty() )
   {
     cachePixmap_ = QPixmap( size_ );
-    cachePixmap_.fill( Qt::transparent );
+    cachePixmap_.fill( backgroundColor );
     cacheRect_ = boundingRect();
   }
   else
@@ -675,7 +676,7 @@ QPixmap Drawing::pixmap( const QColor backgroundColor )
     // otherwise, resize and repaint the cache.
 
     QRect newRect = boundingRect();
-    
+
     // has the size of the drawing changed? if so, resize the cachePixmap_.
     if ( cacheRect_.size() != newRect.size() )
     {
@@ -684,7 +685,7 @@ QPixmap Drawing::pixmap( const QColor backgroundColor )
   //     qDebug() << "New rect:" << newRect;
 
       QPixmap pixmap( size_ );
-      pixmap.fill( Qt::transparent );
+      pixmap.fill( backgroundColor );
       QPainter painter( &pixmap );
 
       int xOffset = ( newRect.x() - cacheRect_.x() ) * -1;
@@ -692,15 +693,15 @@ QPixmap Drawing::pixmap( const QColor backgroundColor )
 
   //     qDebug() << "x-offset:"<<xOffset<<", y-offset:"<<yOffset;
       painter.drawPixmap( xOffset, yOffset, cachePixmap_ );
-      
+
       cachePixmap_ = pixmap;
       cacheRect_ = newRect;
     }
   }
-  
+
   // if we're told specifically what strokes to paint, only paint those ones.
   // otherwise, paint all of them.
-  
+
   QList<Stroke*> strokes = ( changedStrokes_.isEmpty() ? strokes_ : changedStrokes_ );
 
 #ifdef ISFQT_DEBUG
@@ -719,7 +720,7 @@ QPixmap Drawing::pixmap( const QColor backgroundColor )
   }
 
   QPainter painter( &cachePixmap_ );
- 
+
   painter.setWindow( boundingRect() );
   painter.setWorldMatrixEnabled( true );
   painter.setRenderHints(   QPainter::Antialiasing
@@ -817,7 +818,7 @@ QPixmap Drawing::pixmap( const QColor backgroundColor )
   painter.end();
 
   changedStrokes_.clear();
-  
+
 #ifdef ISFQT_DEBUG
   qDebug() << "Rendering complete.";
 #endif

@@ -75,7 +75,7 @@ namespace Isf
       void                       clear();
       IsfError                   error() const;
       bool                       isNull() const;
-      QPixmap                    pixmap( const QColor backgroundColor = Qt::white );
+      QPixmap                    pixmap( const QColor backgroundColor = Qt::transparent );
       QSize                      size();
       Stroke                    *stroke( quint32 index );
       Stroke                    *strokeAtPoint( const QPoint &point );

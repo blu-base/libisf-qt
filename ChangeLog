@@ -1,4 +1,8 @@
 2010-06-19 (Valerio)
+ * Changed the default behavior of InkCanvas::pixmap(), now paints on a transparent
+   background, instead of a white one.
+
+2010-06-19 (Valerio)
  * Added support for PNG fortification. Like GIF fortification, this feature allows to
    write a PNG containing the full ISF drawing inside itself. Of course, it's now also
    possible to read a PNG containing ISF data and retrieve the actual drawing.

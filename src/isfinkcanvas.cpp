@@ -614,7 +614,7 @@ void InkCanvas::resizeEvent( QResizeEvent *event )
  */
 QImage InkCanvas::image()
 {
-  return drawing_->pixmap().toImage();
+  return drawing_->pixmap( Qt::white ).toImage();
 }
 
 
