@@ -4,16 +4,22 @@ CMAKE_MINIMUM_REQUIRED( VERSION 2.6 )
 
 #### Main switches ####
 
-# Define the default build type
-# Possible values:
-# - none
-# - release
-# - debug
-# - debugfull       (even fewer optimisations)
-# - relwithdebinfo  (release with debug info)
-# - minsizerel      (minimum size release)
-# Uncomment the next line to force building in full debug mode
-SET( CMAKE_BUILD_TYPE debugfull )
+
+# Only set the build type if we're not being bundled: if we are, we'll
+# use the build type specified by the parent project
+IF( NOT USE_BUNDLED_LIBRARIES MATCHES "ISFQT" )
+
+  # Define the default build type
+  # Possible values:
+  # - none
+  # - release
+  # - debug
+  # - debugfull       (even fewer optimisations)
+  # - relwithdebinfo  (release with debug info)
+  # - minsizerel      (minimum size release)
+  # Uncomment the next line to force building in full debug mode
+  SET( CMAKE_BUILD_TYPE debugfull )
+ENDIF()
 
 # Define the library version number
 SET( ISFQT_VERSION "0.9" )
@@ -67,6 +73,16 @@ IF( CMAKE_COMPILER_IS_GNUCXX )
   SET( CMAKE_CXX_FLAGS_DEBUGFULL
        "-O0 -g3 -fno-inline -Wall -Woverloaded-virtual -Wsign-compare -Wundef -fvisibility=default" )
 ENDIF( CMAKE_COMPILER_IS_GNUCXX )
+
+IF( NOT ISFQT_DEBUG_OUTPUT STREQUAL "1" AND NOT ISFQT_DEBUG_OUTPUT STREQUAL "0" )
+  IF( CMAKE_BUILD_TYPE MATCHES debug )
+    SET( ISFQT_DEBUG_OUTPUT 1 )
+  ELSE()
+    SET( ISFQT_DEBUG_OUTPUT 0 )
+  ENDIF()
+ENDIF()
+
+
 
 INCLUDE_DIRECTORIES( ${CMAKE_CURRENT_BINARY_DIR} src include )
 

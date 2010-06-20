@@ -8,7 +8,9 @@
 #define ISFQT_VERSION "${ISFQT_VERSION}"
 
 // Define if debug output should be enabled
-#define ISFQT_DEBUG ${ISFQT_DEBUG_OUTPUT}
+#if ${ISFQT_DEBUG_OUTPUT}
+  #define ISFQT_DEBUG
+#endif
 
 // Define if fortified-GIF support is enabled
 #define ISFQT_GIF_ENABLED ${GIF_ENABLED}
