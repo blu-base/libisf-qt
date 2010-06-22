@@ -15,15 +15,17 @@ SET( ISFQT_SOURCES
      isfqt.cpp
      isfinkcanvas.cpp
      bezierspline.cpp
+     isfqtstroke.cpp
    )
 
 SET( ISFQT_PUBLIC_HEADERS
      ../include/isfqt.h
      ../include/isfqtdrawing.h
      ../include/isfinkcanvas.h
-     ../include/IsfQt
+     ../include/isfqtstroke.h
      ../include/IsfQtDrawing
      ../include/IsfInkCanvas
+     ../include/IsfQtStroke
    )
 
 SET( ISFQT_LIBS
