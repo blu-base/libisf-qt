@@ -114,6 +114,18 @@ namespace Isf
 
 
 
+  /**
+   * Bezier control points data
+   */
+  struct BezierData
+  {
+      QList<QPointF> c1;
+      QList<QPointF> c2;
+      QList<QPointF> knotPoints;
+  };
+
+
+
 }
 
 
