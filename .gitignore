@@ -1,1 +1,6 @@
-build/
+
+# Build files and dirs
+build*
+
+# KDevelop and other IDE-specific project files
+*.kdev*
