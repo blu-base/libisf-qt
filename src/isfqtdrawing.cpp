@@ -49,11 +49,7 @@ using namespace Compress;
  * As soon as you add data, the instance becomes non-NULL.
  */
 Drawing::Drawing()
-: currentMetrics_( 0 )
-, currentAttributeSet_( 0 )
-, currentStrokeInfo_( 0 )
-, currentTransform_( 0 )
-, error_( ISF_ERROR_NONE )
+: error_( ISF_ERROR_NONE )
 , hasXData_( true )
 , hasYData_( true )
 , isNull_( true )
@@ -75,10 +71,6 @@ Drawing::Drawing()
 Drawing::Drawing( const Drawing &other )
 : boundingRect_( other.boundingRect_ )
 , canvas_( other.canvas_ )
-, currentMetrics_( 0 )
-, currentAttributeSet_( 0 )
-, currentStrokeInfo_( 0 )
-, currentTransform_( 0 )
 , defaultMetrics_( other.defaultMetrics_ )
 , defaultAttributeSet_( other.defaultAttributeSet_ )
 , defaultStrokeInfo_( other.defaultStrokeInfo_ )
@@ -102,44 +94,24 @@ Drawing::Drawing( const Drawing &other )
   {
     Metrics *newMetrics = new Metrics( *metrics );
     metrics_.append( newMetrics );
-
-    if( metrics == other.currentMetrics_ )
-    {
-      currentMetrics_ = newMetrics;
-    }
   }
 
   foreach( StrokeInfo *strokeInfo, other.strokeInfo_ )
   {
     StrokeInfo *newStrokeInfo = new StrokeInfo( *strokeInfo );
     strokeInfo_.append( newStrokeInfo );
-
-    if( strokeInfo == other.currentStrokeInfo_ )
-    {
-      currentStrokeInfo_ = newStrokeInfo;
-    }
   }
 
   foreach( QMatrix *transform, other.transforms_ )
   {
     QMatrix *newTransform = new QMatrix( *transform );
     transforms_.append( newTransform );
-
-    if( transform == other.currentTransform_ )
-    {
-      currentTransform_ = newTransform;
-    }
   }
 
   foreach( AttributeSet *attributeSet, other.attributeSets_ )
   {
     AttributeSet *newAttributeSet = new AttributeSet( *attributeSet );
     attributeSets_.append( newAttributeSet );
-
-    if( attributeSet == other.currentAttributeSet_ )
-    {
-      currentAttributeSet_ = newAttributeSet;
-    }
   }
 
   // Then: clone the strokes. Each stroke is linked to a certain
@@ -149,43 +121,8 @@ Drawing::Drawing( const Drawing &other )
   {
     Stroke *newStroke = new Stroke( *stroke );
     strokes_.append( newStroke );
-
-    // Get the indices of the various stroke properties; and
-    // for the new stroke, use the same indices
-
-    // It is probably safe to simply use the same index, since the
-    // lists are copied in order.
-    if( stroke->attributes && other.attributeSets_.count() > 0 )
-    {
-      int otherAttributeSet = other.attributeSets_.indexOf( stroke->attributes );
-      newStroke->attributes = ( otherAttributeSet >= 0 )
-                              ? attributeSets_.at( otherAttributeSet )
-                              : 0;
-    }
-    if( stroke->info && other.strokeInfo_.count() > 0 )
-    {
-      int otherStrokeInfo = other.strokeInfo_.indexOf( stroke->info );
-      newStroke->info = ( otherStrokeInfo >= 0 )
-                        ? strokeInfo_.at( otherStrokeInfo )
-                        : 0;
-    }
-    if( stroke->metrics && other.metrics_.count() > 0 )
-    {
-      int otherMetrics = other.metrics_.indexOf( stroke->metrics );
-      newStroke->metrics = ( otherMetrics >= 0 )
-                           ? metrics_.at( otherMetrics )
-                           : 0;
-    }
-    if( stroke->transform && other.transforms_.count() > 0 )
-    {
-      int otherTransforms = other.transforms_.indexOf( stroke->transform );
-      newStroke->transform = ( otherTransforms >= 0 )
-                             ? transforms_.at( otherTransforms )
-                             : 0;
-    }
   }
 }
-
 
 
 /**
@@ -211,7 +148,7 @@ Drawing::~Drawing()
  *
  * @param newAttributeSet The attribute set to add
  * @return Index of the new attribute set or -1 on failure
- */
+ *
 qint32 Drawing::addAttributeSet( AttributeSet *newAttributeSet )
 {
   if( newAttributeSet == 0 )
@@ -234,6 +171,19 @@ qint32 Drawing::addAttributeSet( AttributeSet *newAttributeSet )
   }
 
   return ( attributeSets_.count() - 1 );
+}*/
+
+
+
+/**
+ * Add a new stroke to the drawing.
+ *
+ * @param newStroke The stroke to add
+ * @return Index of the new stroke or -1 on failure
+ */
+qint32 Drawing::addStroke( QList<Point> points )
+{
+  return addStroke( new Stroke( points ) );
 }
 
 
@@ -251,31 +201,10 @@ qint32 Drawing::addStroke( Stroke *newStroke )
     return -1;
   }
 
-  quint64 numPoints = newStroke->points.count();
-
-  // The polygon is used to determine the stroke's bounding rect
-  QPolygon polygon( numPoints );
-  for( quint64 index = 0; index < numPoints; ++index )
-  {
-    polygon.setPoint( index, newStroke->points.at( index ).position );
-  }
-
-  // assign the attributes to the stroke.
-  newStroke->attributes = currentAttributeSet_;
-
-  // add FitToCurve (Windows will use Bezier smoothing to make the ink look nice)
-  newStroke->attributes->flags |= FitToCurve;
-
-  float halfPenSize = newStroke->attributes->penSize.width() / 2;
-
-  // set bounding rectangle, expanded it to accommodate pen size.
-  newStroke->boundingRect = polygon.boundingRect().adjusted(  -( halfPenSize ), - ( halfPenSize ),
-                                                               halfPenSize, halfPenSize );
-
   isNull_ = false;
   strokes_.append( newStroke );
 
-  boundingRect_ = boundingRect_.united( newStroke->boundingRect );
+  boundingRect_ = boundingRect_.united( newStroke->boundingRect() );
 
   // this stroke needs to be repainted.
   changedStrokes_.append( newStroke );
@@ -328,12 +257,6 @@ void Drawing::clear()
   attributeSets_.clear();
   changedStrokes_.clear();
 
-  // Invalidate the current item pointers
-  currentMetrics_      = 0;
-  currentAttributeSet_ = 0;
-  currentStrokeInfo_   = 0;
-  currentTransform_    = 0;
-
   // Nullify the other properties
   boundingRect_ = QRect();
   canvas_       = QRect();
@@ -351,41 +274,6 @@ void Drawing::clear()
   // set the default transform
   defaultTransform_.scale( 1.f, 1.f );
   defaultTransform_.translate( .0f, .0f );
-}
-
-
-
-/**
- * Remove an attribute set from the drawing.
- *
- * @param index Index of the attribute set to delete
- * @return bool
- */
-bool Drawing::deleteAttributeSet( quint32 index )
-{
-  if( (qint64)index >= attributeSets_.count() )
-  {
-    return false;
-  }
-
-  delete attributeSets_.takeAt( index );
-
-  // re-calculate max pen size
-  foreach( AttributeSet *set, attributeSets_ )
-  {
-    // This value is used to adjust the drawing borders to include thick strokes
-    if( set->penSize.width() > maxPenSize_.width() )
-    {
-      maxPenSize_.setWidth( set->penSize.width() );
-    }
-    if( set->penSize.height() > maxPenSize_.height() )
-    {
-      maxPenSize_.setHeight( set->penSize.height() );
-    }
-  }
-
-  qDebug() << "Max Pen Size:"<<maxPenSize_;
-  return true;
 }
 
 
@@ -481,7 +369,7 @@ IsfError Drawing::error() const
  */
 QPainterPath Drawing::generatePainterPath( Stroke *stroke, bool fitToCurve )
 {
-  QList<Point> strokePoints = stroke->points;
+  QList<Point>& strokePoints = stroke->points();
 
   if ( strokePoints.size() == 0 )
   {
@@ -502,9 +390,11 @@ QPainterPath Drawing::generatePainterPath( Stroke *stroke, bool fitToCurve )
   }
   else
   {
+    BezierData* bezier = stroke->bezierInfo();
+
     // don't calculate control points if they've
     // already been calculated.
-    if ( stroke->knotPoints.isEmpty() )
+    if( bezier->knotPoints.isEmpty() )
     {
       // for a better curve, don't pass through all of points.
       // skip about 70% of them.
@@ -529,50 +419,19 @@ QPainterPath Drawing::generatePainterPath( Stroke *stroke, bool fitToCurve )
       // generate the bezier control points.
       BezierSpline::calculateControlPoints( points, &c1, &c2 );
 
-      stroke->c1 = c1;
-      stroke->c2 = c2;
-      stroke->knotPoints = points;
+      bezier->c1 = c1;
+      bezier->c2 = c2;
+      bezier->knotPoints = points;
     }
 
-    for( int i = 0; i < stroke->c1.size(); i++ )
+    for( int i = 0; i < bezier->c1.size(); i++ )
     {
       // draw the bezier curve!
-      path.cubicTo( stroke->c1[i], stroke->c2[i], stroke->knotPoints[i + 1] );
+      path.cubicTo( bezier->c1[ i ], bezier->c2[ i ], bezier->knotPoints[ i + 1 ] );
     }
   }
 
   return path;
-}
-
-
-
-
-/**
- * Retrieve an attribute set to manipulate.
- *
- * @param index Index of the attribute set to get
- * @return AttributeSet or 0 if not found
- */
-AttributeSet *Drawing::attributeSet( quint32 index )
-{
-  if( (qint64)index >= attributeSets_.count() )
-  {
-    return 0;
-  }
-
-  return attributeSets_.at( index );
-}
-
-
-
-/**
- * Retrieve the attribute sets.
- *
- * @return The list of existing attribute sets
- */
-const QList<AttributeSet*> Drawing::attributeSets()
-{
-  return attributeSets_;
 }
 
 
@@ -590,21 +449,23 @@ QRect Drawing::boundingRect()
 {
   // if the boundingRect_ is invalid, update it.
   // it becomes invalid after a stroke is deleted.
-  if ( boundingRect_ == QRect() )
+  if( boundingRect_ == QRect() )
   {
     foreach( Stroke *stroke, strokes_ )
     {
-      if ( stroke->transform != 0 )
+      const QRect rect( stroke->boundingRect() );
+      QMatrix* transform = stroke->transform();
+      if( transform != 0 )
       {
-        boundingRect_ = boundingRect_.united( stroke->transform->mapRect( stroke->boundingRect ) );
+        boundingRect_ = boundingRect_.united( transform->mapRect( rect ) );
       }
       else
       {
-        boundingRect_ = boundingRect_.united( stroke->boundingRect );
+        boundingRect_ = boundingRect_.united( rect );
       }
     }
 
-    QSize penSize( maxPenSize_.toSize() );
+    const QSize penSize( maxPenSize_.toSize() );
     boundingRect_.adjust( -penSize.width() - 1, -penSize.height() - 1,
                           +penSize.width() + 1, +penSize.height() + 1 );
 
@@ -644,12 +505,12 @@ QSize Drawing::size()
  */
 QPixmap Drawing::pixmap( const QColor backgroundColor )
 {
-  if ( isNull() )
+  if( isNull() )
   {
     return QPixmap();
   }
 
-  if ( ! dirty_ && ! cachePixmap_.isNull() )
+  if( ! dirty_ && ! cachePixmap_.isNull() )
   {
     return cachePixmap_;
   }
@@ -665,7 +526,7 @@ QPixmap Drawing::pixmap( const QColor backgroundColor )
   }
 
   // is the cache null, or are we repainting everything? if so, create a new pixmap.
-  if ( cachePixmap_.isNull() || changedStrokes_.isEmpty() )
+  if( cachePixmap_.isNull() || changedStrokes_.isEmpty() )
   {
     cachePixmap_ = QPixmap( size_ );
     cachePixmap_.fill( backgroundColor );
@@ -678,11 +539,11 @@ QPixmap Drawing::pixmap( const QColor backgroundColor )
     QRect newRect = boundingRect();
 
     // has the size of the drawing changed? if so, resize the cachePixmap_.
-    if ( cacheRect_.size() != newRect.size() )
+    if( cacheRect_.size() != newRect.size() )
     {
-  //     qDebug() << "Cache pixmap needs resizing to" << size_;
-  //     qDebug() << "Cache rect:" << cacheRect_;
-  //     qDebug() << "New rect:" << newRect;
+//       qDebug() << "Cache pixmap needs resizing to" << size_;
+//       qDebug() << "Cache rect:" << cacheRect_;
+//       qDebug() << "New rect:" << newRect;
 
       QPixmap pixmap( size_ );
       pixmap.fill( backgroundColor );
@@ -691,7 +552,7 @@ QPixmap Drawing::pixmap( const QColor backgroundColor )
       int xOffset = ( newRect.x() - cacheRect_.x() ) * -1;
       int yOffset = ( newRect.y() - cacheRect_.y() ) * -1;
 
-  //     qDebug() << "x-offset:"<<xOffset<<", y-offset:"<<yOffset;
+//       qDebug() << "x-offset:"<<xOffset<<", y-offset:"<<yOffset;
       painter.drawPixmap( xOffset, yOffset, cachePixmap_ );
 
       cachePixmap_ = pixmap;
@@ -709,7 +570,7 @@ QPixmap Drawing::pixmap( const QColor backgroundColor )
 #endif
 
 #ifdef ISFQT_DEBUG_VERBOSE
-  qDebug() << "The drawing contains" << strokes_.count() << "strokes; rendering" << strokes.count() << "strokes.";
+  qDebug() << "Rendering" << strokes.count() << "out of" << strokes_.count() << "strokes in the drawing.";
 #endif
 
   // if there are no strokes there's no point going
@@ -734,15 +595,14 @@ QPixmap Drawing::pixmap( const QColor backgroundColor )
   pen.setJoinStyle( Qt::RoundJoin );
 
   // Keep record of the currently used properties, to avoid re-setting them for each stroke
-  currentMetrics_       = 0;
-  currentAttributeSet_  = 0;
-  currentStrokeInfo_    = 0;
-  currentTransform_     = 0;
+  Metrics*    currentMetrics_    = 0;
+  StrokeInfo* currentStrokeInfo_ = 0;
+  QMatrix*    currentTransform_  = 0;
 
   int index = 0;
   foreach( Stroke *stroke, strokes )
   {
-    if( currentMetrics_ != stroke->metrics )
+    if( currentMetrics_ != stroke->metrics() )
     {
       currentMetrics_ = stroke->metrics;
       // TODO need to convert all units somehow?
@@ -1028,50 +888,4 @@ bool Drawing::isNull() const
   return isNull_;
 }
 
-
-
-
-/**
- * Change the current attribute set.
- *
- * This will change the attribute set which will be applied
- * to the next strokes.
- *
- * @param attributeSet the new attribute set
- * @return bool
- */
-bool Drawing::setCurrentAttributeSet( AttributeSet *attributeSet )
-{
-  if( ! attributeSets_.contains( attributeSet ) )
-  {
-    return false;
-  }
-
-  currentAttributeSet_ = attributeSet;
-
-  return true;
-}
-
-
-
-/**
- * Change the current transformation.
- *
- * This will change the transformation which will be applied
- * to the next strokes.
- *
- * @param transform the new transformation
- * @return bool
- */
-bool Drawing::setCurrentTransform( QMatrix *transform )
-{
-  if( ! transforms_.contains( transform ) )
-  {
-    return false;
-  }
-
-  currentTransform_ = transform;
-
-  return true;
-}
 
