@@ -311,38 +311,6 @@ namespace Isf
 
 
   /**
-   * A pen stroke.
-   */
-  struct Stroke
-  {
-    /// Constructor
-    Stroke()
-    : attributes( 0 )
-    , info( 0 )
-    , metrics( 0 )
-    , transform( 0 )
-    {
-    }
-
-    /// Bounding rectangle of this stroke
-    QRect         boundingRect;
-    /// Link to the attributes of this stroke's points, if any
-    AttributeSet *attributes;
-    /// Link to this stroke's attributes, if any
-    StrokeInfo   *info;
-    /// Link to this stroke's metrics, if any
-    Metrics      *metrics;
-    /// List of points
-    QList<Point>  points;
-    /// List of Bezier control points.
-    QList<QPointF>  c1, c2, knotPoints;
-    /// Link to this stroke's transformation, if any
-    QMatrix      *transform;
-  };
-
-
-
-  /**
    * Conversion factor to convert from HiMetric units to pixels.
    */
   const qreal HiMetricToPixel = 26.4572454037811;

@@ -27,6 +27,7 @@
 #define ISFQTDRAWING_H
 
 #include <IsfQt>
+#include <IsfQtStroke>
 
 #include <QMap>
 #include <QMatrix>
@@ -65,37 +66,32 @@ namespace Isf
 
     public: // public constructors
                                  Drawing();
-                                 Drawing( const Drawing &other );
+                                 Drawing( const Drawing & );
                                 ~Drawing();
 
     public: // public state retrieval methods
-      AttributeSet              *attributeSet( quint32 index );
-      const QList<AttributeSet*> attributeSets();
       QRect                      boundingRect();
       void                       clear();
       IsfError                   error() const;
       bool                       isNull() const;
-      QPixmap                    pixmap( const QColor backgroundColor = Qt::transparent );
+      QPixmap                    pixmap( const QColor = Qt::transparent );
       QSize                      size();
-      Stroke                    *stroke( quint32 index );
-      Stroke                    *strokeAtPoint( const QPoint &point );
+      Stroke*                    stroke( quint32 );
+      Stroke*                    strokeAtPoint( const QPoint& );
       const QList<Stroke*>       strokes();
-      QMatrix                   *transform( quint32 index );
+      QMatrix*                   transform( quint32 );
       const QList<QMatrix*>      transforms();
 
     public: // public manipulation methods
-      qint32                     addAttributeSet( AttributeSet *newAttributeSet );
-      qint32                     addStroke( Stroke *newStroke );
-      qint32                     addTransform( QMatrix *newTransform );
-      bool                       deleteAttributeSet( quint32 index );
-      bool                       deleteStroke( quint32 index );
-      bool                       deleteStroke( Stroke *stroke ) ;
-      bool                       deleteTransform( quint32 index );
-      bool                       setCurrentAttributeSet( AttributeSet *attributeSet );
-      bool                       setCurrentTransform( QMatrix *transform );
+      qint32                     addStroke( Stroke* );
+      Stroke*                    addStroke( QList<Point> = QList<Point>() );
+      qint32                     addTransform( QMatrix* );
+      bool                       deleteStroke( quint32 );
+      bool                       deleteStroke( Stroke* );
+      bool                       deleteTransform( quint32 );
 
     private:
-      QPainterPath  generatePainterPath( Stroke *stroke, bool fitToCurve );
+      QPainterPath               generatePainterPath( Stroke*, bool );
 
     private: // Private properties
       /// List of attributes of the points in the drawing
@@ -110,14 +106,6 @@ namespace Isf
       QRect                      canvas_;
       /// A list of strokes that need to be repainted.
       QList<Stroke*>             changedStrokes_;
-      /// Link to the currently used metric data
-      Metrics                   *currentMetrics_;
-      /// Link to the currently used point info data
-      AttributeSet              *currentAttributeSet_;
-      /// Link to the currently used stroke info data
-      StrokeInfo                *currentStrokeInfo_;
-      /// Link to the currently used transformation
-      QMatrix                   *currentTransform_;
       /// Link to the default metric data
       Metrics                    defaultMetrics_;
       /// Link to the default point info data
