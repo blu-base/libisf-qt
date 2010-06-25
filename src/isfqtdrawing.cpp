@@ -78,7 +78,6 @@ Drawing::Drawing( const Drawing &other )
 , isNull_( other.isNull_ )
 , maxGuid_( other.maxGuid_ )
 , maxPenSize_( other.maxPenSize_ )
-, size_( other.size_ )
 {
 #ifdef ISFQT_DEBUG_VERBOSE
   qDebug() << "** Copying ISF drawing:" << (void*)&other << "into new:" << this << "**";
@@ -120,8 +119,6 @@ qint32 Drawing::addStroke( PointList points )
   newStroke->addPoints( points );
   newStroke->finalize();
 
-  boundingRect_ = boundingRect_.united( newStroke->boundingRect() );
-
   return addStroke( newStroke );
 }
 
@@ -143,12 +140,12 @@ qint32 Drawing::addStroke( Stroke *newStroke )
   isNull_ = false;
   strokes_.append( newStroke );
 
-  boundingRect_ = boundingRect_.united( newStroke->boundingRect() );
-
-  // this stroke needs to be repainted.
+  // This stroke needs to be painted
   changedStrokes_.append( newStroke );
 
   dirty_ = true;
+
+  updateBoundingRect();
 
   return ( strokes_.count() - 1 );
 }
@@ -164,7 +161,7 @@ void Drawing::clear()
 {
   // Clean up the internal property lists
   qDeleteAll( strokes_ );
-  strokes_      .clear();
+  strokes_       .clear();
   changedStrokes_.clear();
 
   // Nullify the other properties
@@ -177,7 +174,6 @@ void Drawing::clear()
   isNull_       = true;
   maxGuid_      = 0;
   maxPenSize_   = QSizeF();
-  size_         = QSize();
   dirty_        = false;
   cachePixmap_  = QPixmap();
 }
@@ -206,7 +202,7 @@ bool Drawing::deleteStroke( quint32 index )
 
   dirty_ = true;
 
-  boundingRect_ = QRect(); // force a recalculation.
+  updateBoundingRect();
 
   return true;
 }
@@ -345,33 +341,8 @@ QPainterPath Drawing::generatePainterPath( Stroke *stroke, bool fitToCurve )
  *
  * @return The current bounding box.
  */
-QRect Drawing::boundingRect()
+QRect Drawing::boundingRect() const
 {
-  // if the boundingRect_ is invalid, update it.
-  // it becomes invalid after a stroke is deleted.
-  if( boundingRect_ == QRect() )
-  {
-    foreach( Stroke *stroke, strokes_ )
-    {
-      const QRect rect( stroke->boundingRect() );
-      QMatrix* transform = stroke->transform();
-      if( transform != 0 )
-      {
-        boundingRect_ = boundingRect_.united( transform->mapRect( rect ) );
-      }
-      else
-      {
-        boundingRect_ = boundingRect_.united( rect );
-      }
-    }
-
-    const QSize penSize( maxPenSize_.toSize() );
-    boundingRect_.adjust( -penSize.width() - 1, -penSize.height() - 1,
-                          +penSize.width() + 1, +penSize.height() + 1 );
-
-    size_ = boundingRect_.size();
-  }
-
   return boundingRect_;
 }
 
@@ -382,9 +353,9 @@ QRect Drawing::boundingRect()
  *
  * @return Size of the drawing, in pixels.
  */
-QSize Drawing::size()
+QSize Drawing::size() const
 {
-  return boundingRect().size();
+  return boundingRect_.size();
 }
 
 
@@ -415,12 +386,12 @@ QPixmap Drawing::pixmap( const QColor backgroundColor )
     return cachePixmap_;
   }
 
-  QSize size_ = size();
+  QSize drawingSize( size() );
 
-  if( size_.width() > 2000 || size_.height() > 2000 )
+  if( drawingSize.width() > 2000 || drawingSize.height() > 2000 )
   {
     qWarning() << "Cannot render a drawing so big!";
-    qDebug()   << "[Information - Size:" << size_ << "pixels]";
+    qDebug()   << "[Information - Size:" << drawingSize << "pixels]";
 
     return QPixmap();
   }
@@ -428,24 +399,24 @@ QPixmap Drawing::pixmap( const QColor backgroundColor )
   // is the cache null, or are we repainting everything? if so, create a new pixmap.
   if( cachePixmap_.isNull() || changedStrokes_.isEmpty() )
   {
-    cachePixmap_ = QPixmap( size_ );
+    cachePixmap_ = QPixmap( drawingSize );
     cachePixmap_.fill( backgroundColor );
-    cacheRect_ = boundingRect();
+    cacheRect_ = boundingRect_;
   }
   else
   {
     // otherwise, resize and repaint the cache.
 
-    QRect newRect = boundingRect();
+    QRect newRect = boundingRect_;
 
     // has the size of the drawing changed? if so, resize the cachePixmap_.
     if( cacheRect_.size() != newRect.size() )
     {
-//       qDebug() << "Cache pixmap needs resizing to" << size_;
+//       qDebug() << "Cache pixmap needs resizing to" << drawingSize;
 //       qDebug() << "Cache rect:" << cacheRect_;
 //       qDebug() << "New rect:" << newRect;
 
-      QPixmap pixmap( size_ );
+      QPixmap pixmap( drawingSize );
       pixmap.fill( backgroundColor );
       QPainter painter( &pixmap );
 
@@ -466,7 +437,7 @@ QPixmap Drawing::pixmap( const QColor backgroundColor )
   QList<Stroke*> strokes = ( changedStrokes_.isEmpty() ? strokes_ : changedStrokes_ );
 
 #ifdef ISFQT_DEBUG
-  qDebug() << "Rendering a drawing of size" << size_;
+  qDebug() << "Rendering a drawing of size" << drawingSize;
 #endif
 
 #ifdef ISFQT_DEBUG_VERBOSE
@@ -482,7 +453,7 @@ QPixmap Drawing::pixmap( const QColor backgroundColor )
 
   QPainter painter( &cachePixmap_ );
 
-  painter.setWindow( boundingRect() );
+  painter.setWindow( boundingRect_ );
   painter.setWorldMatrixEnabled( true );
   painter.setRenderHints(   QPainter::Antialiasing
                           | QPainter::SmoothPixmapTransform
@@ -766,6 +737,37 @@ const QList<Stroke*> Drawing::strokes()
 bool Drawing::isNull() const
 {
   return isNull_;
+}
+
+
+
+
+/**
+ * Update the bounding rectangle of the drawing.
+ *
+ * The bounding rectangle (or bounding box) is a QRect large enough (and as
+ * small as) to hold all of the strokes in this Drawing instance.
+ */
+void Drawing::updateBoundingRect()
+{
+  boundingRect_ = QRect();
+  foreach( Stroke *stroke, strokes_ )
+  {
+    const QRect rect( stroke->boundingRect() );
+    QMatrix* transform = stroke->transform();
+    if( transform != 0 )
+    {
+      boundingRect_ = boundingRect_.united( transform->mapRect( rect ) );
+    }
+    else
+    {
+      boundingRect_ = boundingRect_.united( rect );
+    }
+  }
+
+  const QSize penSize( maxPenSize_.toSize() );
+  boundingRect_.adjust( -penSize.width() - 1, -penSize.height() - 1,
+                        +penSize.width() + 1, +penSize.height() + 1 );
 }
 
 

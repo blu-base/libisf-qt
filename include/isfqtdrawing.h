@@ -72,13 +72,13 @@ namespace Isf
                                 ~Drawing();
 
     public: // public state retrieval methods
-      QRect                      boundingRect();
+      QRect                      boundingRect() const;
       void                       clear();
       IsfError                   error() const;
       qint32                     indexOfStroke( const Stroke* ) const;
       bool                       isNull() const;
       QPixmap                    pixmap( const QColor = Qt::transparent );
-      QSize                      size();
+      QSize                      size() const;
       Stroke*                    stroke( quint32 );
       Stroke*                    strokeAtPoint( const QPoint& );
       const QList<Stroke*>       strokes();
@@ -91,6 +91,7 @@ namespace Isf
 
     private:
       QPainterPath               generatePainterPath( Stroke*, bool );
+      void                       updateBoundingRect();
 
     private: // Private properties
       /// Bounding rectangle of the drawing
