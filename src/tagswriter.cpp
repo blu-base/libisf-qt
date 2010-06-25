@@ -46,7 +46,7 @@ using namespace Isf::Compress;
  * @param drawing Drawing from which to obtain the data to write
  * @return IsfError
  */
-IsfError TagsWriter::addPersistentFormat( StreamData* streamData, const Drawing& drawing )
+IsfError TagsWriter::addPersistentFormat( StreamData* streamData, const Drawing* drawing )
 {
   Q_UNUSED( drawing );
 
@@ -75,11 +75,11 @@ IsfError TagsWriter::addPersistentFormat( StreamData* streamData, const Drawing&
  * @param drawing Drawing from which to obtain the data to write
  * @return IsfError
  */
-IsfError TagsWriter::addHiMetricSize( StreamData* streamData, const Drawing& drawing )
+IsfError TagsWriter::addHiMetricSize( StreamData* streamData, const Drawing* drawing )
 {
   QByteArray tagContents;
 
-  QPoint size( drawing.boundingRect().bottomRight() );
+  QPoint size( drawing->boundingRect().bottomRight() );
   tagContents.append( encodeInt( size.x() ) );
   tagContents.append( encodeInt( size.y() ) );
 
@@ -106,7 +106,7 @@ IsfError TagsWriter::addHiMetricSize( StreamData* streamData, const Drawing& dra
  * @param drawing Drawing from which to obtain the data to write
  * @return IsfError
  */
-IsfError TagsWriter::addAttributeTable( StreamData* streamData, const Drawing& drawing )
+IsfError TagsWriter::addAttributeTable( StreamData* streamData, const Drawing* drawing )
 {
   QByteArray   blockData;
   QByteArray   tagContents;
@@ -247,7 +247,7 @@ IsfError TagsWriter::addAttributeTable( StreamData* streamData, const Drawing& d
  * @param drawing Drawing from which to obtain the data to write
  * @return IsfError
  */
-IsfError TagsWriter::addMetricsTable( StreamData* streamData, const Drawing& drawing )
+IsfError TagsWriter::addMetricsTable( StreamData* streamData, const Drawing* drawing )
 {
   QByteArray   metricData;
   QByteArray   metricBlockData;
@@ -333,7 +333,7 @@ IsfError TagsWriter::addMetricsTable( StreamData* streamData, const Drawing& dra
  * @param drawing Drawing from which to obtain the data to write
  * @return IsfError
  */
-IsfError TagsWriter::addTransformationTable( StreamData* streamData, const Drawing& drawing )
+IsfError TagsWriter::addTransformationTable( StreamData* streamData, const Drawing* drawing )
 {
   QByteArray blockData;
   QByteArray tagContents;
@@ -490,13 +490,13 @@ IsfError TagsWriter::addTransformationTable( StreamData* streamData, const Drawi
  * @param drawing Drawing from which to obtain the data to write
  * @return IsfError
  */
-IsfError TagsWriter::addStrokes( StreamData* streamData, const Drawing& drawing )
+IsfError TagsWriter::addStrokes( StreamData* streamData, const Drawing* drawing )
 {
   QByteArray blockData;
   QByteArray tagContents;
 
 #ifdef ISFQT_DEBUG_VERBOSE
-  qDebug() << "- Adding" << drawing.strokes_.count() << "strokes...";
+  qDebug() << "- Adding" << drawing->strokes_.count() << "strokes...";
   quint8 counter = 0;
 #endif
 
@@ -505,7 +505,7 @@ IsfError TagsWriter::addStrokes( StreamData* streamData, const Drawing& drawing 
   const Metrics* currentMetrics   = 0;
   const QMatrix* currentTransform = 0;
 
-  foreach( Stroke* stroke, drawing.strokes_ )
+  foreach( Stroke* stroke, drawing->strokes_ )
   {
     // There is more than one set of metrics, assign each stroke to its own
     if( streamData->metrics.count() > 1 )
@@ -609,7 +609,7 @@ IsfError TagsWriter::addStrokes( StreamData* streamData, const Drawing& drawing 
  * @param drawing Drawing from which to obtain the data to write
  * @return IsfError
  */
-IsfError TagsWriter::prepare( StreamData* streamData, const Drawing& drawing )
+IsfError TagsWriter::prepare( StreamData* streamData, const Drawing* drawing )
 {
 #ifdef ISFQT_DEBUG_VERBOSE
   qDebug() << "- Optimizing data...";
@@ -620,11 +620,11 @@ IsfError TagsWriter::prepare( StreamData* streamData, const Drawing& drawing )
   streamData->transforms.clear();
 
 #ifdef ISFQT_DEBUG_VERBOSE
-  qDebug() << "  - " << drawing.strokes_.count() << "strokes to optimize";
+  qDebug() << "  - " << drawing->strokes_.count() << "strokes to optimize";
 #endif
 
   // Prepare the list of attributes
-  foreach( Stroke* stroke, drawing.strokes_ )
+  foreach( Stroke* stroke, drawing->strokes_ )
   {
     AttributeSet set;
     set.color   = stroke->color();

@@ -53,20 +53,22 @@ namespace Isf
   {
 
     public: // Static public methods
-      static IsfError parseCustomTag( StreamData* streamData, Drawing& drawing, quint64 tagIndex );
-      static IsfError parseGuidTable( StreamData* streamData, Drawing& drawing );
-      static IsfError parseHiMetricSize( StreamData* streamData, Drawing& drawing );
-      static IsfError parseInkSpaceRectangle( StreamData* streamData, Drawing& drawing );
-      static IsfError parseAttributeBlock( StreamData* streamData, Drawing& drawing );
-      static IsfError parseAttributeTable( StreamData* streamData, Drawing& drawing );
-      static IsfError parsePersistentFormat( StreamData* streamData, Drawing& drawing );
-      static IsfError parseMetricBlock( StreamData* streamData, Drawing& drawing );
-      static IsfError parseMetricTable( StreamData* streamData, Drawing& drawing );
-      static IsfError parseTransformation( StreamData* streamData, Drawing& drawing, quint64 transformType );
-      static IsfError parseTransformationTable( StreamData* streamData, Drawing& drawing );
-      static IsfError parseStroke( StreamData* streamData, Drawing& drawing );
-      static IsfError parseStrokeDescBlock( StreamData* streamData, Drawing& drawing );
-      static IsfError parseStrokeDescTable( StreamData* streamData, Drawing& drawing );
+      static IsfError nextTag( StreamData* streamData, Drawing* drawing );
+
+      static IsfError parseCustomTag( StreamData* streamData, Drawing* drawing, quint64 tagIndex );
+      static IsfError parseGuidTable( StreamData* streamData, Drawing* drawing );
+      static IsfError parseHiMetricSize( StreamData* streamData, Drawing* drawing );
+      static IsfError parseInkSpaceRectangle( StreamData* streamData, Drawing* drawing );
+      static IsfError parseAttributeBlock( StreamData* streamData, Drawing* drawing );
+      static IsfError parseAttributeTable( StreamData* streamData, Drawing* drawing );
+      static IsfError parsePersistentFormat( StreamData* streamData, Drawing* drawing );
+      static IsfError parseMetricBlock( StreamData* streamData, Drawing* drawing );
+      static IsfError parseMetricTable( StreamData* streamData, Drawing* drawing );
+      static IsfError parseTransformation( StreamData* streamData, Drawing* drawing, quint64 transformType );
+      static IsfError parseTransformationTable( StreamData* streamData, Drawing* drawing );
+      static IsfError parseStroke( StreamData* streamData, Drawing* drawing );
+      static IsfError parseStrokeDescBlock( StreamData* streamData, Drawing* drawing );
+      static IsfError parseStrokeDescTable( StreamData* streamData, Drawing* drawing );
 
     public: // Static public debugging methods
       static IsfError parseUnsupported( StreamData* streamData, const QString& tagName );
