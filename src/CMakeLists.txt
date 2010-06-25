@@ -14,7 +14,6 @@ SET( ISFQT_SOURCES
      tagswriter.cpp
      isfqt.cpp
      isfinkcanvas.cpp
-     bezierspline.cpp
      isfqtstroke.cpp
    )
 

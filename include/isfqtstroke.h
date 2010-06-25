@@ -35,6 +35,11 @@
 #include <QSizeF>
 
 
+// Forward declarations
+class QPainterPath;
+
+
+
 namespace Isf
 {
 
@@ -42,7 +47,6 @@ namespace Isf
 
   // Forward declarations
   class AttributeSet;
-  class BezierData;
 
 
 
@@ -58,13 +62,13 @@ namespace Isf
 
       void          addPoint( Point );
       void          addPoints( PointList );
-      BezierData*   bezierInfo();
       QRect         boundingRect() const;
       QColor        color() const;
       void          finalize();
       StrokeFlags   flags() const;
       bool          hasPressureData() const;
       Metrics*      metrics();
+      QPainterPath  painterPath();
       QSizeF        penSize() const;
       PointList&    points();
       void          setColor( QColor );
@@ -76,8 +80,14 @@ namespace Isf
       QMatrix*      transform();
 
     private:
+      void          bezierCalculateControlPoints();
+      void          bezierGetFirstControlPoints( double[], double*, int );
+
+    private:
       /// Bezier data
-      BezierData*    bezierInfo_;
+      QList<QPointF> bezierControlPoints1_;
+      QList<QPointF> bezierControlPoints2_;
+      QList<QPointF> bezierKnots_;
       /// Bounding rectangle of this stroke
       QRect          boundingRect_;
       /// The stroke color, optionally with alpha channel
