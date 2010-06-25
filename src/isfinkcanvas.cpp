@@ -92,62 +92,13 @@ InkCanvas::~InkCanvas()
 
 
 /**
- * Creates a QCursor displayed when the mouse pointer moves over the widget.
+ * Returns the drawing's ISF representation.
  *
- * The cursor becomes a point, drawn with the current stroke colour and pen size.
+ * @return A QByteArray filled with ISF data.
  */
-void InkCanvas::updateCursor()
+QByteArray InkCanvas::bytes()
 {
-  if ( cursorPixmap_.isNull() )
-  {
-    cursorPixmap_ = QPixmap( QSize( 32, 32 ) );
-  }
-
-  if ( penType_ == EraserPen )
-  {
-    cursorPixmap_ = QPixmap( ":pics/draw-eraser.png" );
-    cursor_ = QCursor( cursorPixmap_, 0, cursorPixmap_.height() );
-  }
-  else
-  {
-    cursorPixmap_.fill( Qt::transparent );
-
-    QPainter painter( &cursorPixmap_ );
-
-    painter.setRenderHints( QPainter::Antialiasing | QPainter::SmoothPixmapTransform, true );
-    painter.setPen( QPen( color_, penSize_, Qt::SolidLine, Qt::RoundCap,
-                          Qt::RoundJoin ) );
-
-    // now draw a point.
-    painter.drawPoint( QPoint( cursorPixmap_.size().width() / 2, cursorPixmap_.size().height() / 2 ) );
-
-    cursor_ = QCursor( cursorPixmap_ );
-  }
-
-  // create our cursor.
-  setCursor( cursor_ );
-}
-
-
-
-/**
- * Return the suggested size for the canvas.
- *
- * The actual size hint will depend on the size of the drawing on the canvas. By default,
- * the size hint is 300x300 pixels.
- */
-QSize InkCanvas::sizeHint() const
-{
-  if ( drawing_->isNull() )
-  {
-    return QSize( 300, 300 );
-  }
-  else
-  {
-    QRect boundingRect = drawing_->boundingRect();
-    boundingRect.setTopLeft( QPoint( 0, 0 ) );
-    return boundingRect.size();
-  }
+  return Isf::Stream::writer( *drawing_ );
 }
 
 
@@ -176,58 +127,47 @@ void InkCanvas::clear()
 
 
 /**
- * Change the color of the pen used to draw on the Ink canvas.
+ * Clear the internal pixmap buffer.
  *
- * @param newColor The new color for the pen.
+ * The buffer used to quickly render on the widget painting area
+ * the new and old strokes: every new stroke is saved here.
+ * This allows to avoid repainting all strokes at every paint event.
  */
-void InkCanvas::setPenColor( QColor newColor )
+void InkCanvas::clearBuffer()
 {
-#ifdef ISFQT_DEBUG
-  qDebug() << "Setting new pen color:" << newColor.name();
-#endif
-
-  color_ = newColor;
-
-  updateCursor();
+  bufferPixmap_ = QPixmap( size() );
+  bufferPixmap_.fill( Qt::transparent );
 }
 
 
 
 /**
- * Change the size of the pen. This value is in pixels.
+ * Retrieve the Isf::Drawing instance that the canvas is currently manipulating.
  *
- * @param pixels The size of the pen, in pixels
+ * Beware: if you have not set your own Isf::Drawing instance via setDrawing(), you must not delete
+ * the object that this method returns. In this case this method returns a pointer to an internal
+ * Isf::Drawing instance that must not be deleted. If you have previously used setDrawing() then you
+ * are free to do whatever you like with this pointer.
+ *
+ * \code
+ * InkCanvas *canvas = new InkCanvas( this );
+ *
+ * Isf::Drawing *drawing = canvas->drawing();
+ * delete drawing; // bad! deleting an object internal to InkCanvas.
+ *
+ * canvas->setDrawing( existingIsfDrawingInstance );
+ *
+ * drawing = canvas->drawing();
+ * delete drawing; // good - drawing points to existingIsfDrawingInstance.
+ * \endcode
+ *
+ *
+ * @see setDrawing()
+ * @return The current Isf::Drawing instance.
  */
-void InkCanvas::setPenSize( int pixels )
+Isf::Drawing *InkCanvas::drawing()
 {
-#ifdef ISFQT_DEBUG
-  qDebug() << "Setting new pen size:" << pixels;
-#endif
-  penSize_ = pixels;
-
-  updateCursor();
-}
-
-
-
-/**
- * Change the pen type.
- *
- * Currently, only PenType::EraserPen and PenType::DrawingPen are supported. See the PenType
- * enum for more information.
- *
- * @see PenType
- * @param type The new pen type
- */
-void InkCanvas::setPenType( PenType type )
-{
-#ifdef ISFQT_DEBUG
-  qDebug() << "Setting new pen type:" << type;
-#endif
-
-  penType_ = type;
-
-  updateCursor();
+  return drawing_;
 }
 
 
@@ -280,6 +220,18 @@ void InkCanvas::drawLineTo( const QPoint &endPoint )
 
   // Refresh the widget with the new stroke
   update();
+}
+
+
+
+/**
+ * Renders the ink drawing to a QImage and returns it.
+ *
+ * @return A QImage containing the rendered Ink.
+ */
+QImage InkCanvas::image()
+{
+  return drawing_->pixmap( Qt::white ).toImage();
 }
 
 
@@ -498,21 +450,6 @@ void InkCanvas::mouseReleaseEvent( QMouseEvent *event )
 
 
 /**
- * Clear the internal pixmap buffer.
- *
- * The buffer used to quickly render on the widget painting area
- * the new and old strokes: every new stroke is saved here.
- * This allows to avoid repainting all strokes at every paint event.
- */
-void InkCanvas::clearBuffer()
-{
-  bufferPixmap_ = QPixmap( size() );
-  bufferPixmap_.fill( Qt::transparent );
-}
-
-
-
-/**
  * Repaints the ink canvas.
  *
  * For performance reasons an internal buffer is used to ensure that
@@ -564,35 +501,6 @@ void InkCanvas::paintEvent( QPaintEvent *event )
 
 
 /**
- * The widget has changed size, re-draw everything.
- *
- * @param event The resizing event.
- */
-void InkCanvas::resizeEvent( QResizeEvent *event )
-{
-  // need to resize the buffer pixmap.
-  clearBuffer();
-
-  update();
-
-  QWidget::resizeEvent( event );
-}
-
-
-
-/**
- * Renders the ink drawing to a QImage and returns it.
- *
- * @return A QImage containing the rendered Ink.
- */
-QImage InkCanvas::image()
-{
-  return drawing_->pixmap( Qt::white ).toImage();
-}
-
-
-
-/**
  * Get the current pen color.
  *
  * @return The current pen color.
@@ -632,32 +540,18 @@ InkCanvas::PenType InkCanvas::penType()
 
 
 /**
- * Retrieve the Isf::Drawing instance that the canvas is currently manipulating.
+ * The widget has changed size, re-draw everything.
  *
- * Beware: if you have not set your own Isf::Drawing instance via setDrawing(), you must not delete
- * the object that this method returns. In this case this method returns a pointer to an internal
- * Isf::Drawing instance that must not be deleted. If you have previously used setDrawing() then you
- * are free to do whatever you like with this pointer.
- *
- * \code
- * InkCanvas *canvas = new InkCanvas( this );
- *
- * Isf::Drawing *drawing = canvas->drawing();
- * delete drawing; // bad! deleting an object internal to InkCanvas.
- *
- * canvas->setDrawing( existingIsfDrawingInstance );
- *
- * drawing = canvas->drawing();
- * delete drawing; // good - drawing points to existingIsfDrawingInstance.
- * \endcode
- *
- *
- * @see setDrawing()
- * @return The current Isf::Drawing instance.
+ * @param event The resizing event.
  */
-Isf::Drawing *InkCanvas::drawing()
+void InkCanvas::resizeEvent( QResizeEvent *event )
 {
-  return drawing_;
+  // need to resize the buffer pixmap.
+  clearBuffer();
+
+  update();
+
+  QWidget::resizeEvent( event );
 }
 
 
@@ -675,18 +569,6 @@ Isf::Drawing *InkCanvas::drawing()
 void InkCanvas::save( QIODevice &dev, bool base64 )
 {
   dev.write( Isf::Stream::writer( *drawing_, base64 ) );
-}
-
-
-
-/**
- * Returns the drawing's ISF representation.
- *
- * @return A QByteArray filled with ISF data.
- */
-QByteArray InkCanvas::bytes()
-{
-  return Isf::Stream::writer( *drawing_ );
 }
 
 
@@ -736,6 +618,124 @@ void InkCanvas::setDrawing( Isf::Drawing *drawing )
 
   updateGeometry();
   update();
+}
+
+
+
+/**
+ * Change the color of the pen used to draw on the Ink canvas.
+ *
+ * @param newColor The new color for the pen.
+ */
+void InkCanvas::setPenColor( QColor newColor )
+{
+#ifdef ISFQT_DEBUG
+  qDebug() << "Setting new pen color:" << newColor.name();
+#endif
+
+  color_ = newColor;
+
+  updateCursor();
+}
+
+
+
+/**
+ * Change the size of the pen. This value is in pixels.
+ *
+ * @param pixels The size of the pen, in pixels
+ */
+void InkCanvas::setPenSize( int pixels )
+{
+#ifdef ISFQT_DEBUG
+  qDebug() << "Setting new pen size:" << pixels;
+#endif
+  penSize_ = pixels;
+
+  updateCursor();
+}
+
+
+
+/**
+ * Change the pen type.
+ *
+ * Currently, only PenType::EraserPen and PenType::DrawingPen are supported. See the PenType
+ * enum for more information.
+ *
+ * @see PenType
+ * @param type The new pen type
+ */
+void InkCanvas::setPenType( PenType type )
+{
+#ifdef ISFQT_DEBUG
+  qDebug() << "Setting new pen type:" << type;
+#endif
+
+  penType_ = type;
+
+  updateCursor();
+}
+
+
+
+/**
+ * Return the suggested size for the canvas.
+ *
+ * The actual size hint will depend on the size of the drawing on the canvas. By default,
+ * the size hint is 300x300 pixels.
+ */
+QSize InkCanvas::sizeHint() const
+{
+  if ( drawing_->isNull() )
+  {
+    return QSize( 300, 300 );
+  }
+  else
+  {
+    QRect boundingRect = drawing_->boundingRect();
+    boundingRect.setTopLeft( QPoint( 0, 0 ) );
+    return boundingRect.size();
+  }
+}
+
+
+
+/**
+ * Creates a QCursor displayed when the mouse pointer moves over the widget.
+ *
+ * The cursor becomes a point, drawn with the current stroke colour and pen size.
+ */
+void InkCanvas::updateCursor()
+{
+  if ( cursorPixmap_.isNull() )
+  {
+    cursorPixmap_ = QPixmap( QSize( 32, 32 ) );
+  }
+
+  if ( penType_ == EraserPen )
+  {
+    cursorPixmap_ = QPixmap( ":pics/draw-eraser.png" );
+    cursor_ = QCursor( cursorPixmap_, 0, cursorPixmap_.height() );
+  }
+  else
+  {
+    cursorPixmap_.fill( Qt::transparent );
+
+    QPainter painter( &cursorPixmap_ );
+
+    painter.setRenderHints( QPainter::Antialiasing | QPainter::SmoothPixmapTransform, true );
+    painter.setPen( QPen( color_, penSize_, Qt::SolidLine, Qt::RoundCap,
+                          Qt::RoundJoin ) );
+
+    // now draw a point.
+    painter.drawPoint( QPoint( cursorPixmap_.size().width() / 2, cursorPixmap_.size().height() / 2 ) );
+
+    cursor_ = QCursor( cursorPixmap_ );
+  }
+
+  // create our cursor.
+  setCursor( cursor_ );
 }
 
 

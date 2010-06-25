@@ -153,6 +153,22 @@ qint32 Drawing::addStroke( Stroke *newStroke )
 
 
 
+
+/**
+ * Return the current bounding rectangle of the drawing.
+ *
+ * The bounding rectangle (or bounding box) is a QRect large enough (and as
+ * small as) to hold all of the strokes in this Drawing instance.
+ *
+ * @return The current bounding box.
+ */
+QRect Drawing::boundingRect() const
+{
+  return boundingRect_;
+}
+
+
+
 /**
  * Clean up the drawing.
  *
@@ -243,19 +259,6 @@ IsfError Drawing::error() const
 
 
 /**
- * Return the index of a certain stroke.
- *
- * @param stroke Stroke to search
- * @return Index or -1 if not found
- */
-qint32 Drawing::indexOfStroke( const Stroke* stroke ) const
-{
-  return strokes_.indexOf( const_cast<Stroke*>( stroke ) );
-}
-
-
-
-/**
  * Given a list of knot points, generates a QPainterPath that describes the stroke.
  *
  * If fitToCurve is true, uses bezier curves to approximate the stroke, giving a much smoother appearance.
@@ -333,30 +336,27 @@ QPainterPath Drawing::generatePainterPath( Stroke *stroke, bool fitToCurve )
 
 
 
-
 /**
- * Return the current bounding rectangle of the drawing.
+ * Return the index of a certain stroke.
  *
- * The bounding rectangle (or bounding box) is a QRect large enough (and as
- * small as) to hold all of the strokes in this Drawing instance.
- *
- * @return The current bounding box.
+ * @param stroke Stroke to search
+ * @return Index or -1 if not found
  */
-QRect Drawing::boundingRect() const
+qint32 Drawing::indexOfStroke( const Stroke* stroke ) const
 {
-  return boundingRect_;
+  return strokes_.indexOf( const_cast<Stroke*>( stroke ) );
 }
 
 
 
 /**
- * Return the size of this drawing.
+ * Return whether this drawing is empty.
  *
- * @return Size of the drawing, in pixels.
+ * @return True if this is an empty (null) Drawing, false otherwise.
  */
-QSize Drawing::size() const
+bool Drawing::isNull() const
 {
-  return boundingRect_.size();
+  return isNull_;
 }
 
 
@@ -583,6 +583,18 @@ void Drawing::setBoundingRect( QRect newRect )
 
 
 /**
+ * Return the size of this drawing.
+ *
+ * @return Size of the drawing, in pixels.
+ */
+QSize Drawing::size() const
+{
+  return boundingRect_.size();
+}
+
+
+
+/**
  * Retrieve a stroke to manipulate.
  *
  * @param index Index of the stroke to get
@@ -740,18 +752,6 @@ Stroke *Drawing::strokeAtPoint( const QPoint &point )
 const QList<Stroke*> Drawing::strokes()
 {
   return strokes_;
-}
-
-
-
-/**
- * Return whether this drawing is empty.
- *
- * @return True if this is an empty (null) Drawing, false otherwise.
- */
-bool Drawing::isNull() const
-{
-  return isNull_;
 }
 
 
