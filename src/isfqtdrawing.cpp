@@ -99,7 +99,6 @@ Drawing::Drawing( const Drawing &other )
 Drawing::~Drawing()
 {
   qDeleteAll( strokes_ );
-  qDeleteAll( transforms_ );
 
 #ifdef ISFQT_DEBUG_VERBOSE
   qDebug() << "** Destroyed ISF drawing:" << this << "**";
@@ -157,27 +156,6 @@ qint32 Drawing::addStroke( Stroke *newStroke )
 
 
 /**
- * Add a new transformation to the drawing.
- *
- * @param newTransform The transform to add
- * @return Index of the new transform or -1 on failure
- */
-qint32 Drawing::addTransform( QMatrix *newTransform )
-{
-  if( newTransform == 0 )
-  {
-    return -1;
-  }
-
-  isNull_ = false;
-  transforms_.append( newTransform );
-
-  return ( transforms_.count() - 1 );
-}
-
-
-
-/**
  * Clean up the drawing.
  *
  * This restores the drawing to its initial state: an empty (null) drawing.
@@ -186,9 +164,7 @@ void Drawing::clear()
 {
   // Clean up the internal property lists
   qDeleteAll( strokes_ );
-  qDeleteAll( transforms_ );
   strokes_      .clear();
-  transforms_   .clear();
   changedStrokes_.clear();
 
   // Nullify the other properties
@@ -251,25 +227,6 @@ bool Drawing::deleteStroke( Stroke *stroke )
   }
 
   return deleteStroke( strokes_.indexOf( stroke ) );
-}
-
-
-
-/**
- * Remove a transformation from the drawing.
- *
- * @param index Index of the transform to delete
- * @return bool
- */
-bool Drawing::deleteTransform( quint32 index )
-{
-  if( (qint64)index >= transforms_.count() )
-  {
-    return false;
-  }
-
-  delete transforms_.takeAt( index );
-  return true;
 }
 
 
@@ -797,36 +754,6 @@ Stroke *Drawing::strokeAtPoint( const QPoint &point )
 const QList<Stroke*> Drawing::strokes()
 {
   return strokes_;
-}
-
-
-
-/**
- * Retrieve a transformation to manipulate.
- *
- * @param index Index of the transform to get
- * @return QMatrix or 0 if not found
- */
-QMatrix *Drawing::transform( quint32 index )
-{
-  if( (qint64)index >= transforms_.count() )
-  {
-    return 0;
-  }
-
-  return transforms_.at( index );
-}
-
-
-
-/**
- * Retrieve the transformations.
- *
- * @return The list of existing transformations
- */
-const QList<QMatrix*> Drawing::transforms()
-{
-  return transforms_;
 }
 
 
