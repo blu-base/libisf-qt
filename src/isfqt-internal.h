@@ -208,6 +208,8 @@ namespace Isf
 
     /// List of attributes of the points in the drawing
     QList<AttributeSet>        attributeSets;
+    /// Drawing's bounding rectangle
+    QRect                      boundingRect;
     /// Current attribute set
     quint64                    currentAttributeSetIndex;
     /// Current metrics set
@@ -225,6 +227,7 @@ namespace Isf
     /// Transformation matrices
     QList<QMatrix*>            transforms;
   };
+
 
 
 }
