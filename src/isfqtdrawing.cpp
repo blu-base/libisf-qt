@@ -28,7 +28,6 @@
 #include "data/datasource.h"
 #include "data/multibytecoding.h"
 #include "tagsparser.h"
-#include "bezierspline.h"
 
 #include <IsfQtDrawing>
 
@@ -259,84 +258,6 @@ IsfError Drawing::error() const
 
 
 /**
- * Given a list of knot points, generates a QPainterPath that describes the stroke.
- *
- * If fitToCurve is true, uses bezier curves to approximate the stroke, giving a much smoother appearance.
- * See the comments in BezierSpline::calculateControlPoints.
- *
- * @param knotPoints The known points of the curve (the "knot" points).
- * @param fitToCurve If true, bezier approximation is used to smooth the resulting curve.
- */
-QPainterPath Drawing::generatePainterPath( Stroke *stroke, bool fitToCurve )
-{
-  QList<Point>& strokePoints = stroke->points();
-
-  if ( strokePoints.size() == 0 )
-  {
-    return QPainterPath();
-  }
-
-  QPoint startPos( strokePoints.at(0).position );
-
-  QPainterPath path( QPointF( startPos.x(), startPos.y() ) );
-
-  if ( ! fitToCurve )
-  {
-    foreach( Point point, strokePoints )
-    {
-      path.lineTo( point.position );
-    }
-
-  }
-  else
-  {
-    BezierData* bezier = stroke->bezierInfo();
-
-    // don't calculate control points if they've
-    // already been calculated.
-    if( bezier->knotPoints.isEmpty() )
-    {
-      // for a better curve, don't pass through all of points.
-      // skip about 70% of them.
-      int toSkip = 0.70 * strokePoints.size();
-      int step = strokePoints.size() / ( strokePoints.size() - toSkip );
-
-      step = ( step < 1 ) ? 1 : step;   // sanity check.
-
-      QList<QPointF> points;
-
-      for( int i = 0; i < strokePoints.size(); i += step )
-      {
-        points.append( strokePoints.at(i).position );
-      }
-
-      // always pass through the last point.
-      points.append( strokePoints.last().position );
-
-      QList<QPointF> c1;
-      QList<QPointF> c2;
-
-      // generate the bezier control points.
-      BezierSpline::calculateControlPoints( points, &c1, &c2 );
-
-      bezier->c1 = c1;
-      bezier->c2 = c2;
-      bezier->knotPoints = points;
-    }
-
-    for( int i = 0; i < bezier->c1.size(); i++ )
-    {
-      // draw the bezier curve!
-      path.cubicTo( bezier->c1[ i ], bezier->c2[ i ], bezier->knotPoints[ i + 1 ] );
-    }
-  }
-
-  return path;
-}
-
-
-
-/**
  * Return the index of a certain stroke.
  *
  * @param stroke Stroke to search
@@ -528,10 +449,7 @@ QPixmap Drawing::pixmap( const QColor backgroundColor )
     // TODO: pressure data.
     if( points.count() > 1 )
     {
-      bool fitToCurve = stroke->flags() & FitToCurve;
-      QPainterPath path = generatePainterPath( stroke, fitToCurve );
-
-      painter.drawPath( path );
+      painter.drawPath( stroke->painterPath() );
     }
     else
     {

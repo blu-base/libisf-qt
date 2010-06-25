@@ -91,7 +91,6 @@ namespace Isf
       bool                       deleteStroke( Stroke* );
 
     private:
-      QPainterPath               generatePainterPath( Stroke*, bool );
       void                       updateBoundingRect();
 
     private: // Private properties
