@@ -39,6 +39,8 @@
 // Forward declarations
 class QByteArray;
 
+class AttributeSet;
+
 
 
 namespace Isf
@@ -73,6 +75,7 @@ namespace Isf
       QRect                      boundingRect();
       void                       clear();
       IsfError                   error() const;
+      qint32                     indexOfStroke( const Stroke* ) const;
       bool                       isNull() const;
       QPixmap                    pixmap( const QColor = Qt::transparent );
       QSize                      size();
@@ -84,7 +87,7 @@ namespace Isf
 
     public: // public manipulation methods
       qint32                     addStroke( Stroke* );
-      Stroke*                    addStroke( QList<Point> = QList<Point>() );
+      qint32                     addStroke( PointList = PointList() );
       qint32                     addTransform( QMatrix* );
       bool                       deleteStroke( quint32 );
       bool                       deleteStroke( Stroke* );
@@ -94,8 +97,6 @@ namespace Isf
       QPainterPath               generatePainterPath( Stroke*, bool );
 
     private: // Private properties
-      /// List of attributes of the points in the drawing
-      QList<AttributeSet*>       attributeSets_;
       /// Bounding rectangle of the drawing
       QRect                      boundingRect_;
       /// Cached bounding rectangle
@@ -106,14 +107,6 @@ namespace Isf
       QRect                      canvas_;
       /// A list of strokes that need to be repainted.
       QList<Stroke*>             changedStrokes_;
-      /// Link to the default metric data
-      Metrics                    defaultMetrics_;
-      /// Link to the default point info data
-      AttributeSet               defaultAttributeSet_;
-      /// Link to the default stroke info data
-      StrokeInfo                 defaultStrokeInfo_;
-      /// Link to the default transformation
-      QMatrix                    defaultTransform_;
       /// Is the drawing dirty? i.e, requires repainting?
       bool                       dirty_;
       /// Last parsing error (if there is one)
@@ -130,12 +123,8 @@ namespace Isf
       quint64                    maxGuid_;
       /// Maximum thickness of the strokes
       QSizeF                     maxPenSize_;
-      /// List of metrics used in the drawing
-      QList<Metrics*>            metrics_;
       /// Pixel size of the drawing
       QSize                      size_;
-      /// List of information about the drawing's strokes
-      QList<StrokeInfo*>         strokeInfo_;
       /// List of strokes composing this drawing
       QList<Stroke*>             strokes_;
       /// Transformation matrices

@@ -340,47 +340,19 @@ void InkCanvas::mousePressEvent( QMouseEvent *event )
 
   lastPoint_ = event->pos();
 
-  // Search if there already is an attributes set compatible with the current one
-  Isf::AttributeSet *reusableAttributeSet = 0;
-  foreach( Isf::AttributeSet *set, drawing_->attributeSets() )
-  {
-    if( abs( (qreal)penSize_ - set->penSize.width() ) < 1.0f
-    && color_ == set->color )
-    {
-      reusableAttributeSet = set;
-#ifdef ISFQT_DEBUG
-      qDebug() << "Found an usable ISF attribute set";
-#endif
-      break;
-    }
-  }
-
-  // If none is found, create a new one
-  if( ! reusableAttributeSet )
-  {
-#ifdef ISFQT_DEBUG
-    qDebug() << "Creating new attribute set";
-#endif
-    reusableAttributeSet = new Isf::AttributeSet;
-    reusableAttributeSet->color = color_;
-    reusableAttributeSet->penSize.setWidth ( (qreal)penSize_ );
-    reusableAttributeSet->penSize.setHeight( (qreal)penSize_ );
-
-    drawing_->addAttributeSet( reusableAttributeSet );
-  }
-
-  // Use it for the next strokes
-  drawing_->setCurrentAttributeSet( reusableAttributeSet );
-
   // If there already is a stroke, add it
   if( currentStroke_ )
   {
+    currentStroke_->finalize();
     drawing_->addStroke( currentStroke_ );
     currentStroke_ = 0;
   }
 
-  currentStroke_ = new Isf::Stroke;
-  currentStroke_->points.append( Isf::Point( lastPoint_ ) );
+  currentStroke_ = new Isf::Stroke();
+  currentStroke_->addPoint( lastPoint_ );
+  currentStroke_->setColor( color_ );
+  currentStroke_->setPenSize( QSizeF( (qreal)penSize_, (qreal)penSize_ ) );
+  currentStroke_->setFlag( FitToCurve, true );
 
   // Draw the initial point
   drawLineTo( lastPoint_ );
@@ -448,7 +420,7 @@ void InkCanvas::mouseMoveEvent( QMouseEvent *event )
   }
 
   // Add the new point to the stroke
-  currentStroke_->points.append( Isf::Point( lastPoint_ ) );
+  currentStroke_->addPoint( lastPoint_ );
 }
 
 
@@ -506,9 +478,10 @@ void InkCanvas::mouseReleaseEvent( QMouseEvent *event )
   // Don't add duplicate points. Mainly useful when drawing dots.
   if( lastPoint_ != position )
   {
-    currentStroke_->points.append( Isf::Point( lastPoint_ ) );
+    currentStroke_->addPoint( lastPoint_ );
   }
 
+  currentStroke_->finalize();
   drawing_->addStroke( currentStroke_ );
 
   currentStroke_ = 0;

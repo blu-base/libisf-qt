@@ -25,6 +25,8 @@
 
 #include "isfqtstroke.h"
 
+#include "isfqt-internal.h"
+
 
 using namespace Isf;
 
@@ -35,7 +37,6 @@ using namespace Isf;
  */
 Stroke::Stroke()
 : finalized_( true )
-, info_( 0 )
 , metrics_( 0 )
 , transform_( 0 )
 {
@@ -51,20 +52,14 @@ Stroke::Stroke()
  */
 Stroke::Stroke( const Stroke& other )
 : bezierInfo_( 0 )
-, info_( 0 )
 , metrics_( 0 )
 , transform_( 0 )
 {
-  attributes_ = other.attributes_;
   boundingRect_ = other.boundingRect_;
   finalized_ = other.finalized_;
   points_ = other.points_;
-  bezierInfo_ = new BezierData( other.bezierInfo_ );
+  bezierInfo_ = new BezierData( *other.bezierInfo_ );
 
-  if( other.info_ )
-  {
-    info_ = other.info_;
-  }
   if( other.metrics_ )
   {
     metrics_ = other.metrics_;
@@ -89,18 +84,42 @@ Stroke::~Stroke()
 
 void Stroke::addPoint( Point point )
 {
-  points_.append( point );
+  // Avoid splitting up the logic
+  addPoints( PointList() << point );
+}
+
+
+
+void Stroke::addPoints( PointList points )
+{
+  points_.append( points );
+
+  // Hunt for pressure info
+  if( ! hasPressureData_ )
+  {
+    foreach( Point point, points )
+    {
+      if( point.pressureLevel != 0 )
+      {
+        hasPressureData_ = true;
+        break;
+      }
+    }
+  }
 
   finalized_ = false;
 }
 
 
 
-void Stroke::addPoints( QList<Point> points )
+/**
+ * Returns the rectangle which contains this stroke.
+ *
+ * @return Rectangle
+ */
+QRect Stroke::boundingRect() const
 {
-  points_.append( points );
-
-  finalized_ = false;
+  return boundingRect_;
 }
 
 
@@ -119,31 +138,7 @@ BezierData* Stroke::bezierInfo()
 
 QColor Stroke::color() const
 {
-  return attributes_.color;
-}
-
-
-
-/**
- * Get the stroke drawing flags.
- *
- * @return Stroke flags
- */
-StrokeFlags Stroke::flags() const
-{
-  return attributes_.flags;
-}
-
-
-
-/**
- * Get the stroke metrics.
- *
- * @return Metrics
- */
-Metrics Stroke::metrics()
-{
-  return metrics_;
+  return color_;
 }
 
 
@@ -169,10 +164,16 @@ void Stroke::finalize()
     polygon.setPoint( index, points_.at( index ).position );
   }
 
+  // Transform the bounding rect with the current transformation
+  if( transform_ )
+  {
+    polygon = transform_->map( polygon );
+  }
+
   // Set the bounding rectangle, expanded it to also accommodate pen size
-  float halfPenSize = attributes_.penSize.width() / 2;
-  boundingRect_ = polygon.boundingRect().adjusted(  -( halfPenSize ), -( halfPenSize ),
-                                                    halfPenSize,      halfPenSize );
+  float halfPenSize = penSize_.width() / 2;
+  boundingRect_ = polygon.boundingRect().adjusted( -( halfPenSize ), -( halfPenSize ),
+                                                      halfPenSize,      halfPenSize );
 
   finalized_ = true;
 }
@@ -180,13 +181,49 @@ void Stroke::finalize()
 
 
 /**
+ * Get the stroke drawing flags.
+ *
+ * @return Stroke flags
+ */
+StrokeFlags Stroke::flags() const
+{
+  return flags_;
+}
+
+
+
+/**
+ * Get whether the stroke contains pressure information.
+ *
+ * @return bool
+ */
+bool Stroke::hasPressureData() const
+{
+  return hasPressureData_;
+}
+
+
+
+/**
+ * Get the stroke metrics.
+ *
+ * @return Metrics*
+ */
+Metrics* Stroke::metrics()
+{
+  return metrics_;
+}
+
+
+
+/**
  * Get the current pen size
  *
- * @return QSize of the stroke pen
+ * @return QSizeF of the stroke pen
  */
-QSize Stroke::penSize() const
+QSizeF Stroke::penSize() const
 {
-  return attributes_.penSize;
+  return penSize_;
 }
 
 
@@ -196,10 +233,11 @@ QSize Stroke::penSize() const
  *
  * @return List of stroke points
  */
-QList<Point>& Stroke::points()
+PointList& Stroke::points()
 {
   return points_;
 }
+
 
 
 /**
@@ -209,7 +247,7 @@ QList<Point>& Stroke::points()
  */
 void Stroke::setColor( QColor newColor )
 {
-  attributes_.color = newColor;
+  color_ = newColor;
 }
 
 
@@ -221,28 +259,28 @@ void Stroke::setColor( QColor newColor )
  * @param flag The flag to alter
  * @param set If true, the flag will be set. If false, it will be unset.
  */
-void Stroke::setFlag( Flag flag, bool set )
+void Stroke::setFlag( StrokeFlag flag, bool set )
 {
   if( set )
   {
-    attributes_.flags |= flag;
+    flags_ |= flag;
   }
   else
   {
-    attributes_.flags ^= flag;
+    flags_ ^= flag;
   }
 }
 
 
 
 /**
- * Get the current pen size
+ * Change stroke flags all at once.
  *
- * @return QSize of the stroke pen
+ * @param newFlags Flags bitfield
  */
-void Stroke::setFlags( Flags newFlags )
+void Stroke::setFlags( StrokeFlags newFlags )
 {
-  attributes_.flags = newFlags;
+  flags_ = newFlags;
 }
 
 
@@ -262,11 +300,11 @@ void Stroke::setMetrics( Metrics* newMetrics )
 /**
  * Get the current pen size
  *
- * @return QSize of the stroke pen
+ * @return QSizeF of the stroke pen
  */
-void Stroke::setPenSize( QSize newSize )
+void Stroke::setPenSize( QSizeF newSize )
 {
-  attributes_.penSize = newSize;
+  penSize_ = newSize;
 
   // The bounding box changes with pen size
   finalized_ = false;

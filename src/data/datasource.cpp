@@ -29,7 +29,7 @@
 
 
 using namespace Isf;
-using namespace Compress;
+using namespace Isf::Compress;
 
 
 

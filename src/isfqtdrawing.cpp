@@ -71,10 +71,6 @@ Drawing::Drawing()
 Drawing::Drawing( const Drawing &other )
 : boundingRect_( other.boundingRect_ )
 , canvas_( other.canvas_ )
-, defaultMetrics_( other.defaultMetrics_ )
-, defaultAttributeSet_( other.defaultAttributeSet_ )
-, defaultStrokeInfo_( other.defaultStrokeInfo_ )
-, defaultTransform_( other.defaultTransform_ )
 , error_( other.error_ )
 , guids_( other.guids_ )
 , hasXData_( other.hasXData_ )
@@ -88,35 +84,7 @@ Drawing::Drawing( const Drawing &other )
   qDebug() << "** Copying ISF drawing:" << (void*)&other << "into new:" << this << "**";
 #endif
 
-  // First: create copies of all the local lists
-
-  foreach( Metrics *metrics, other.metrics_ )
-  {
-    Metrics *newMetrics = new Metrics( *metrics );
-    metrics_.append( newMetrics );
-  }
-
-  foreach( StrokeInfo *strokeInfo, other.strokeInfo_ )
-  {
-    StrokeInfo *newStrokeInfo = new StrokeInfo( *strokeInfo );
-    strokeInfo_.append( newStrokeInfo );
-  }
-
-  foreach( QMatrix *transform, other.transforms_ )
-  {
-    QMatrix *newTransform = new QMatrix( *transform );
-    transforms_.append( newTransform );
-  }
-
-  foreach( AttributeSet *attributeSet, other.attributeSets_ )
-  {
-    AttributeSet *newAttributeSet = new AttributeSet( *attributeSet );
-    attributeSets_.append( newAttributeSet );
-  }
-
-  // Then: clone the strokes. Each stroke is linked to a certain
-  // attribute set, metrics set, etc, so we need to associate the
-  // original stroke's properties to the current one's
+  // Clone the stroke objects
   foreach( Stroke *stroke, other.strokes_ )
   {
     Stroke *newStroke = new Stroke( *stroke );
@@ -130,11 +98,8 @@ Drawing::Drawing( const Drawing &other )
  */
 Drawing::~Drawing()
 {
-  qDeleteAll( metrics_ );
-  qDeleteAll( strokeInfo_ );
   qDeleteAll( strokes_ );
   qDeleteAll( transforms_ );
-  qDeleteAll( attributeSets_ );
 
 #ifdef ISFQT_DEBUG_VERBOSE
   qDebug() << "** Destroyed ISF drawing:" << this << "**";
@@ -144,46 +109,21 @@ Drawing::~Drawing()
 
 
 /**
- * Add new a attribute set to the drawing.
- *
- * @param newAttributeSet The attribute set to add
- * @return Index of the new attribute set or -1 on failure
- *
-qint32 Drawing::addAttributeSet( AttributeSet *newAttributeSet )
-{
-  if( newAttributeSet == 0 )
-  {
-    return -1;
-  }
-
-  isNull_ = false;
-
-  attributeSets_.append( newAttributeSet );
-
-  // This value is used to adjust the drawing borders to include thick strokes
-  if( newAttributeSet->penSize.width() > maxPenSize_.width() )
-  {
-    maxPenSize_.setWidth( newAttributeSet->penSize.width() );
-  }
-  if( newAttributeSet->penSize.height() > maxPenSize_.height() )
-  {
-    maxPenSize_.setHeight( newAttributeSet->penSize.height() );
-  }
-
-  return ( attributeSets_.count() - 1 );
-}*/
-
-
-
-/**
  * Add a new stroke to the drawing.
  *
  * @param newStroke The stroke to add
  * @return Index of the new stroke or -1 on failure
  */
-qint32 Drawing::addStroke( QList<Point> points )
+qint32 Drawing::addStroke( PointList points )
 {
-  return addStroke( new Stroke( points ) );
+  Stroke* newStroke = new Stroke();
+
+  newStroke->addPoints( points );
+  newStroke->finalize();
+
+  boundingRect_ = boundingRect_.united( newStroke->boundingRect() );
+
+  return addStroke( newStroke );
 }
 
 
@@ -245,16 +185,10 @@ qint32 Drawing::addTransform( QMatrix *newTransform )
 void Drawing::clear()
 {
   // Clean up the internal property lists
-  qDeleteAll( metrics_ );
-  qDeleteAll( strokeInfo_ );
   qDeleteAll( strokes_ );
   qDeleteAll( transforms_ );
-  qDeleteAll( attributeSets_ );
-  metrics_      .clear();
-  strokeInfo_   .clear();
   strokes_      .clear();
   transforms_   .clear();
-  attributeSets_.clear();
   changedStrokes_.clear();
 
   // Nullify the other properties
@@ -270,10 +204,6 @@ void Drawing::clear()
   size_         = QSize();
   dirty_        = false;
   cachePixmap_  = QPixmap();
-
-  // set the default transform
-  defaultTransform_.scale( 1.f, 1.f );
-  defaultTransform_.translate( .0f, .0f );
 }
 
 
@@ -354,6 +284,19 @@ bool Drawing::deleteTransform( quint32 index )
 IsfError Drawing::error() const
 {
   return error_;
+}
+
+
+
+/**
+ * Return the index of a certain stroke.
+ *
+ * @param stroke Stroke to search
+ * @return Index or -1 if not found
+ */
+qint32 Drawing::indexOfStroke( const Stroke* stroke ) const
+{
+  return strokes_.indexOf( const_cast<Stroke*>( stroke ) );
 }
 
 
@@ -594,68 +537,76 @@ QPixmap Drawing::pixmap( const QColor backgroundColor )
   pen.setCapStyle ( Qt::RoundCap  );
   pen.setJoinStyle( Qt::RoundJoin );
 
-  // Keep record of the currently used properties, to avoid re-setting them for each stroke
-  Metrics*    currentMetrics_    = 0;
-  StrokeInfo* currentStrokeInfo_ = 0;
-  QMatrix*    currentTransform_  = 0;
+  // Keep record of the last used properties, to avoid re-setting them for each stroke
+  AttributeSet currentAttributes;
+  Metrics*     currentMetrics    = 0;
+  QMatrix*     currentTransform  = 0;
 
   int index = 0;
   foreach( Stroke *stroke, strokes )
   {
-    if( currentMetrics_ != stroke->metrics() )
+    if( currentAttributes.color   != stroke->color()
+    ||  currentAttributes.flags   != stroke->flags()
+    ||  currentAttributes.penSize != stroke->penSize() )
     {
-      currentMetrics_ = stroke->metrics;
+      currentAttributes.color   = stroke->color();
+      currentAttributes.flags   = stroke->flags();
+      currentAttributes.penSize = stroke->penSize();
+
+      pen.setColor( stroke->color() );
+      pen.setWidthF( stroke->penSize().width() );
+      painter.setPen( pen );
+    }
+    if( stroke->metrics() && currentMetrics != stroke->metrics() )
+    {
+      currentMetrics = stroke->metrics();
       // TODO need to convert all units somehow?
 //       painter.setSomething( currentMetrics );
     }
-    if( currentAttributeSet_ != stroke->attributes && stroke->attributes != 0)
+    if( stroke->transform() && currentTransform != stroke->transform() )
     {
-      currentAttributeSet_ = stroke->attributes;
-
-      pen.setColor( currentAttributeSet_->color );
-      pen.setWidthF( currentAttributeSet_->penSize.width() );
-      painter.setPen( pen );
-    }
-    if( currentStrokeInfo_ != stroke->info )
-    {
-      currentStrokeInfo_ = stroke->info;
-    }
-    if( currentTransform_ != stroke->transform && stroke->transform != 0 )
-    {
-      currentTransform_ = stroke->transform;
-      painter.setWorldTransform( QTransform( *currentTransform_ ), false );
+      currentTransform = stroke->transform();
+      painter.setWorldTransform( QTransform( *currentTransform ), false );
 
       // the problem with setting the world transform is that it will scale the pen size too.
       // we don't want that. so we have to artificially beef up the pen size.
       QPen pen = painter.pen();
-      pen.setWidthF( currentAttributeSet_->penSize.width() / currentTransform_->m22() );
+      pen.setWidthF( stroke->penSize().width() / currentTransform->m22() );
+
+/*
+      // FIXME Ignoring pressure data - need to find out how pressure must be applied
+      pen.setWidth( pen.widthF() + points??.pressureLevel );
+*/
+
       painter.setPen( pen );
       painter.setBrush( Qt::transparent );
     }
 
+    const PointList& points = stroke->points();
+
 #ifdef ISFQT_DEBUG_VERBOSE
-    qDebug() << "Rendering stroke" << index << "containing" << stroke->points.count() << "points";
-    qDebug() << "- Stroke color:" << currentAttributeSet_->color.name() << "Pen size:" << pen.widthF();
+    qDebug() << "Rendering stroke" << index << "containing" << stroke->points().count() << "points";
+    qDebug() << "- Stroke color:" << stroke->color().name() << "Pen size:" << pen.widthF();
 #endif
 
-    if( stroke->points.count() > 1 )
-    {
+    ++index;
 
-      bool fitToCurve = stroke->attributes->flags & FitToCurve;
+    if( points.count() == 0 )
+    {
+      continue;
+    }
+
+    // TODO: pressure data.
+    if( points.count() > 1 )
+    {
+      bool fitToCurve = stroke->flags() & FitToCurve;
       QPainterPath path = generatePainterPath( stroke, fitToCurve );
 
-      // TODO: pressure data.
       painter.drawPath( path );
     }
     else
     {
-      Point point = stroke->points.first();
-      if( currentStrokeInfo_->hasPressureData )
-      {
-        // FIXME Ignoring pressure data - need to find out how pressure must be applied
-//         pen.setWidth( pen.widthF() + point.pressureLevel );
-//         painter.setPen( pen );
-      }
+      Point point = stroke->points().first();
 
 //       qDebug() << "Point:" << point.position;
       painter.drawPoint( point.position );
@@ -671,8 +622,6 @@ QPixmap Drawing::pixmap( const QColor backgroundColor )
     painter.setPen( pen );
 #endif
 */
-
-    ++index;
   }
 
   painter.end();
@@ -749,18 +698,18 @@ Stroke *Drawing::strokeAtPoint( const QPoint &point )
 
   while( i.hasPrevious() )
   {
-    Stroke *s = i.previous();;
+    Stroke *s = i.previous();
 
     // skip strokes where we're not near.
-    if ( ! s->boundingRect.contains( point ) )
+    if ( ! s->boundingRect().contains( point ) )
     {
       continue;
     }
 
     // what's the pen size of this stroke? That way we have a "fudge factor"
-    AttributeSet *set = s->attributes;
-    float penSize = set->penSize.width();
+    float penSize = s->penSize().width();
     float penHalfSize = penSize / 2;
+    float penHalfSizeFixed = penHalfSize * 1.25;
 
     // only want points that fall near the cursor. prevents searching unnecessary points.
     QRect searchRect;
@@ -772,7 +721,9 @@ Stroke *Drawing::strokeAtPoint( const QPoint &point )
     if ( penHalfSize > 5 )
     {
       // 25% extra room to move.
-      searchRect = QRect( point.x() - penHalfSize * 1.25, point.y() - penHalfSize * 1.25, penHalfSize * 1.25, penHalfSize * 1.25 );
+      searchRect = QRect( point.x() - penHalfSizeFixed,
+                          point.y() - penHalfSizeFixed,
+                          penHalfSizeFixed, penHalfSizeFixed );
     }
     else
     {
@@ -781,23 +732,25 @@ Stroke *Drawing::strokeAtPoint( const QPoint &point )
 
     // special case: a single point (sometimes it'll appear as a single point but
     // be made up of two).
-    if ( s->points.size() == 1 || s->points.size() == 2 )
+    const PointList &points( s->points() );
+    if( points.size() == 1 || points.size() == 2 )
     {
-      QLineF dist = QLineF( QPointF( s->points.at(0).position ), QPointF( point ) );
-      if ( dist.length() <= penHalfSize * 1.25 )
+      QLineF dist = QLineF( QPointF( points.at(0).position ), QPointF( point ) );
+      if( dist.length() <= penHalfSizeFixed )
       {
         return s;
       }
+
       continue;
     }
 
     // multiple points.
-    for( int j = 0; j < s->points.size() - 1; j++)
+    for( int j = 0; j < points.size() - 1; j++)
     {
-      QPoint p1 = s->points.at(j).position;
-      QPoint p2 = s->points.at(j+1).position;
+      QPoint p1 = points.at(j).position;
+      QPoint p2 = points.at(j+1).position;
 
-      if ( ! searchRect.contains( p1 ) && ! searchRect.contains( p2 ) )
+      if( ! searchRect.contains( p1 ) && ! searchRect.contains( p2 ) )
       {
         continue;
       }
@@ -815,7 +768,7 @@ Stroke *Drawing::strokeAtPoint( const QPoint &point )
       // so, use Heron's Formula to get the area, plus A=0.5*base*height, re-arrange to get height.
       //
       // easy!
-      float sp = 0.5*( lineA.length() + base.length() + lineC.length() );
+      float sp = 0.5 * ( lineA.length() + base.length() + lineC.length() );
       float a = lineA.length();
       float b = base.length();
       float c = lineC.length();
@@ -823,7 +776,7 @@ Stroke *Drawing::strokeAtPoint( const QPoint &point )
 
       float height = ( 2 * area ) / b;
 
-      if ( height <= penHalfSize * 1.25 )
+      if ( height <= penHalfSizeFixed )
       {
         // got one
         return s;

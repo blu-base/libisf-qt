@@ -26,15 +26,23 @@
 #ifndef ISFQTSTROKE_H
 #define ISFQTSTROKE_H
 
-#include "isfqt-internal.h"
+#include <IsfQt>
 
-// Forward declarations
-class Flag;
-class Flags;
+#include <QColor>
+#include <QList>
+#include <QMatrix>
+#include <QRect>
+#include <QSizeF>
 
 
 namespace Isf
 {
+
+
+
+  // Forward declarations
+  class AttributeSet;
+  class BezierData;
 
 
 
@@ -46,42 +54,49 @@ namespace Isf
     public:
       Stroke();
       Stroke( const Stroke& );
+     ~Stroke();
 
       void          addPoint( Point );
-      void          addPoints( QList<Point> );
+      void          addPoints( PointList );
       BezierData*   bezierInfo();
       QRect         boundingRect() const;
       QColor        color() const;
       void          finalize();
-      QColor        flags() const;
-      Metrics       metrics();
-      QSize         penSize() const;
-      QList<Point>& points();
+      StrokeFlags   flags() const;
+      bool          hasPressureData() const;
+      Metrics*      metrics();
+      QSizeF        penSize() const;
+      PointList&    points();
       void          setColor( QColor );
-      void          setFlag( Flag, bool = true );
-      void          setFlags( Flags );
+      void          setFlag( StrokeFlag, bool = true );
+      void          setFlags( StrokeFlags );
       void          setMetrics( Metrics* );
-      void          setPenSize( QSize );
+      void          setPenSize( QSizeF );
       void          setTransform( QMatrix* );
       QMatrix*      transform();
 
     private:
-      /// Attributes of this stroke's points
-      AttributeSet   attributes_;
       /// Bezier data
       BezierData*    bezierInfo_;
       /// Bounding rectangle of this stroke
       QRect          boundingRect_;
+      /// The stroke color, optionally with alpha channel
+      QColor         color_;
       /// Whether the stroke data needs to be analyzed or not
       bool           finalized_;
-      /// Link to this stroke's attributes, if any
-      StrokeInfo*    info_;
+      /// Mask of StrokeFlags, @see StrokeFlags
+      StrokeFlags    flags_;
+      /// Whether the stroke contains pressure information or not
+      bool           hasPressureData_;
       /// Link to this stroke's metrics, if any
       Metrics*       metrics_;
+      /// Dimensions of the pencil in pixels
+      QSizeF         penSize_;
       /// List of points
-      QList<Point>   points_;
+      PointList      points_;
       /// Link to this stroke's transformation, if any
       QMatrix*       transform_;
+
 
   };
 

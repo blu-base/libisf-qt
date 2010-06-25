@@ -25,12 +25,13 @@
 
 #include "tagsparser.h"
 
-#include "isfqt-internal.h"
-
 #include "data/compression.h"
 #include "data/datasource.h"
 #include "data/multibytecoding.h"
 
+#include "isfqt-internal.h"
+
+#include <IsfQt>
 #include <IsfQtDrawing>
 
 #include <QPolygon>
@@ -38,20 +39,21 @@
 
 
 using namespace Isf;
+using namespace Isf::Compress;
 
 
 
 /**
  * Read away an unsupported tag.
  *
- * @param source Data Source where to read bytes from
+ * @param streamData StreamData object with the stream data
  * @param tagName Name of the tag if known, index number if not
  * @return IsfError
  */
-IsfError TagsParser::parseUnsupported( DataSource &source, const QString &tagName )
+IsfError TagsParser::parseUnsupported( StreamData& streamData, const QString &tagName )
 {
   // Unsupported content
-  analyzePayload( source, tagName + " (Unsupported)" );
+  analyzePayload( streamData, tagName + " (Unsupported)" );
 
   return ISF_ERROR_NONE;
 }
@@ -65,12 +67,12 @@ IsfError TagsParser::parseUnsupported( DataSource &source, const QString &tagNam
  * As soon as new tags will be identified, this method will recognize them and
  * delegate their parsing to another method in this class.
  *
- * @param source Data Source where to read bytes from
+ * @param streamData StreamData object with the stream data
  * @param drawing Drawing into which the data obtained from the tag should be read
  * @param tagIndex Index number of the custom tag
  * @return IsfError
  */
-IsfError TagsParser::parseCustomTag( DataSource &source, Drawing &drawing, quint64 tagIndex )
+IsfError TagsParser::parseCustomTag( StreamData& streamData, Drawing& drawing, quint64 tagIndex )
 {
   quint64 tag = tagIndex - FIRST_CUSTOM_TAG_ID;
 
@@ -85,10 +87,10 @@ IsfError TagsParser::parseCustomTag( DataSource &source, Drawing &drawing, quint
 
   QList<qint64> data;
   QUuid         guid        = drawing.guids_.at( tag );
-  quint64       payloadSize = decodeUInt( source ) + 1;
+  quint64       payloadSize = decodeUInt( *streamData.dataSource ) + 1;
 
   // Decompress the property data
-  DataSource payload( source.getBytes( payloadSize ) );
+  DataSource payload( streamData.dataSource->getBytes( payloadSize ) );
   Compress::inflatePropertyData( payload, payloadSize-1, data );
 
   // String values
@@ -133,11 +135,11 @@ IsfError TagsParser::parseCustomTag( DataSource &source, Drawing &drawing, quint
 /**
  * Read the table of custom GUIDs.
  *
- * @param source Data Source where to read bytes from
+ * @param streamData StreamData object with the stream data
  * @param drawing Drawing into which the data obtained from the tag should be read
  * @return IsfError
  */
-IsfError TagsParser::parseGuidTable( DataSource &source, Drawing &drawing )
+IsfError TagsParser::parseGuidTable( StreamData& streamData, Drawing& drawing )
 {
   if( ! drawing.guids_.isEmpty() )
   {
@@ -147,7 +149,7 @@ IsfError TagsParser::parseGuidTable( DataSource &source, Drawing &drawing )
     return ISF_ERROR_INVALID_STREAM;
   }
 
-  quint64 guidTableSize = decodeUInt( source );
+  quint64 guidTableSize = decodeUInt( *streamData.dataSource );
 
   // GUIDs are 16 bytes long
   quint8 numGuids = guidTableSize / 16;
@@ -162,26 +164,26 @@ IsfError TagsParser::parseGuidTable( DataSource &source, Drawing &drawing )
   bool ok = true;
   quint8 index = 0;
 
-  while( ! source.atEnd() && index < numGuids )
+  while( ! streamData.dataSource->atEnd() && index < numGuids )
   {
     int block1;
     short block2;
     short block3;
     char  block4[ 8 ];
 
-    block1 = source.getBytes( 4, &ok ).toHex().toUInt( &ok, 16 );
+    block1 = streamData.dataSource->getBytes( 4, &ok ).toHex().toUInt( &ok, 16 );
     if( ! ok )
     {
       break;
     }
 
-    block2 = source.getBytes( 2, &ok ).toHex().toUShort( &ok, 16 );
+    block2 = streamData.dataSource->getBytes( 2, &ok ).toHex().toUShort( &ok, 16 );
     if( ! ok )
     {
       break;
     }
 
-     block3 = source.getBytes( 2, &ok ).toHex().toUShort( &ok, 16 );
+     block3 = streamData.dataSource->getBytes( 2, &ok ).toHex().toUShort( &ok, 16 );
     if( ! ok )
     {
       break;
@@ -189,7 +191,7 @@ IsfError TagsParser::parseGuidTable( DataSource &source, Drawing &drawing )
 
     for( int i = 0; ok && i < 8; ++i )
     {
-      block4[ i ] = source.getBytes( 1, &ok ).at( 0 );
+      block4[ i ] = streamData.dataSource->getBytes( 1, &ok ).at( 0 );
     }
     if( ! ok )
     {
@@ -240,16 +242,16 @@ IsfError TagsParser::parseGuidTable( DataSource &source, Drawing &drawing )
  * with a payload size of 3 bytes.
  *
  * @see ISF_PERSISTENT_FORMAT_VERSION
- * @param source Data Source where to read bytes from
+ * @param streamData StreamData object with the stream data
  * @param drawing Drawing into which the data obtained from the tag should be read
  * @return IsfError
  */
-IsfError TagsParser::parsePersistentFormat( DataSource &source, Drawing &drawing )
+IsfError TagsParser::parsePersistentFormat( StreamData& streamData, Drawing& drawing )
 {
   Q_UNUSED( drawing )
 
-  quint64 payloadSize    = decodeUInt( source );
-  quint64 sourcePosition = source.pos();
+  quint64 payloadSize    = decodeUInt( *streamData.dataSource );
+  quint64 sourcePosition = streamData.dataSource->pos();
 
   if( payloadSize == 0 )
   {
@@ -260,17 +262,17 @@ IsfError TagsParser::parsePersistentFormat( DataSource &source, Drawing &drawing
   }
 
   // Try reading one multibyte value
-  quint64 version = decodeUInt( source );
+  quint64 version = decodeUInt( *streamData.dataSource );
 
   // If we read some unexpected contents, dump them to help improving the library
-  quint32 actualPayloadSize = source.pos() - sourcePosition;
+  quint32 actualPayloadSize = streamData.dataSource->pos() - sourcePosition;
   if( actualPayloadSize != payloadSize )
   {
 #ifdef ISFQT_DEBUG
     qDebug() << "Invalid payload contents for TAG_PERSISTENT_FORMAT!"
              << "Read" << actualPayloadSize << "bytes instead of" << payloadSize;
-    source.seekRelative( - actualPayloadSize );
-    analyzePayload( source, payloadSize, "TAG_PERSISTENT_FORMAT unknown contents" );
+    streamData.dataSource->seekRelative( - actualPayloadSize );
+    analyzePayload( streamData, payloadSize, "TAG_PERSISTENT_FORMAT unknown contents" );
 #endif
   }
 
@@ -297,13 +299,13 @@ IsfError TagsParser::parsePersistentFormat( DataSource &source, Drawing &drawing
 /**
  * Read the drawing dimensions.
  *
- * @param source Data Source where to read bytes from
+ * @param streamData StreamData object with the stream data
  * @param drawing Drawing into which the data obtained from the tag should be read
  * @return IsfError
  */
-IsfError TagsParser::parseHiMetricSize( DataSource &source, Drawing &drawing )
+IsfError TagsParser::parseHiMetricSize( StreamData& streamData, Drawing& drawing )
 {
-  quint64 payloadSize = decodeUInt( source );
+  quint64 payloadSize = decodeUInt( *streamData.dataSource );
 
   if( payloadSize == 0 )
   {
@@ -321,8 +323,8 @@ IsfError TagsParser::parseHiMetricSize( DataSource &source, Drawing &drawing )
     return ISF_ERROR_INVALID_STREAM;
   }
 
-  drawing.size_.setWidth ( decodeInt( source ) );
-  drawing.size_.setHeight( decodeInt( source ) );
+  drawing.size_.setWidth ( decodeInt( *streamData.dataSource ) );
+  drawing.size_.setHeight( decodeInt( *streamData.dataSource ) );
 
 #ifdef ISFQT_DEBUG_VERBOSE
   qDebug() << "- Drawing dimensions:" << drawing.size_;
@@ -336,13 +338,14 @@ IsfError TagsParser::parseHiMetricSize( DataSource &source, Drawing &drawing )
 /**
  * Read a block of points attributes.
  *
- * @param source Data Source where to read bytes from
+ * @param streamData StreamData object with the stream data
  * @param drawing Drawing into which the data obtained from the tag should be read
  * @return IsfError
  */
-IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
+IsfError TagsParser::parseAttributeBlock( StreamData& streamData, Drawing& drawing )
 {
-  quint64 payloadSize = decodeUInt( source );
+  DataSource& dataSource = *streamData.dataSource;
+  quint64 payloadSize = decodeUInt( dataSource );
 
   if( payloadSize == 0 )
   {
@@ -352,27 +355,26 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
     return ISF_ERROR_INVALID_PAYLOAD;
   }
 
-  drawing.attributeSets_.append( new AttributeSet() );
-  AttributeSet *set = drawing.attributeSets_.last();
+  AttributeSet set;
 
   // set this once when we get the first DRAW_ATTRS_BLOCK. then,
   // everytime we get a DIDX we can update it. if we don't do this
   // then the first stroke will have the same colour as the last stroke.
-  if ( drawing.currentAttributeSet_ == &drawing.defaultAttributeSet_ )
-  {
-    drawing.currentAttributeSet_ = set;
-  }
+//   if ( drawing.currentAttributeSetIndex == &drawing.defaultAttributeSet_ )
+//   {
+//     streamData.currentAttributeSetIndex = streamData.attributeSets.indexOf( set );
+//   }
 
 #ifdef ISFQT_DEBUG_VERBOSE
-  qDebug() << "- Added drawing attribute block #" << ( drawing.attributeSets_.count() - 1 );
+  qDebug() << "- Added drawing attribute block #" << ( streamData.attributeSets.count() - 1 );
 #endif
 
-  qint64 payloadEnd = source.pos() + payloadSize;
-  while( source.pos() < payloadEnd && ! source.atEnd() )
+  qint64 payloadEnd = dataSource.pos() + payloadSize;
+  while( dataSource.pos() < payloadEnd && ! dataSource.atEnd() )
   {
     // Read the property and its value
-    quint64 property = decodeUInt( source ); // contains a PacketProperty value
-    quint64 value    = decodeUInt( source );
+    quint64 property = decodeUInt( dataSource ); // contains a PacketProperty value
+    quint64 value    = decodeUInt( dataSource );
 
     switch( property )
     {
@@ -389,11 +391,11 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
         // as QRgb stores the value in BGR order: QRgb(RRGGBB) <-- value(BBGGRR).
         // TODO: It also contains an alpha value, ignored here for now because it's unknown if
         // it is needed or not
-        set->color = QColor( qBlue ( invertedColor ),
-                             qGreen( invertedColor ),
-                             qRed  ( invertedColor ) );
+        set.color = QColor( qBlue ( invertedColor ),
+                            qGreen( invertedColor ),
+                            qRed  ( invertedColor ) );
 #ifdef ISFQT_DEBUG_VERBOSE
-        qDebug() << "- Got pen color" << set->color.name().toUpper();
+        qDebug() << "- Got pen color" << set.color.name().toUpper();
 #endif
         break;
       }
@@ -404,15 +406,15 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
                  << "(" << (value/HiMetricToPixel) << "pixels )";
 #endif
         // In square/round pens the width will be the only value present.
-        set->penSize.setWidth ( (float)value / HiMetricToPixel );
-        set->penSize.setHeight( (float)value / HiMetricToPixel );
+        set.penSize.setWidth ( (float)value / HiMetricToPixel );
+        set.penSize.setHeight( (float)value / HiMetricToPixel );
         break;
 
       case GUID_PEN_HEIGHT:
 #ifdef ISFQT_DEBUG_VERBOSE
         qDebug() << "- Got pen height" << QString::number( (float)value, 'g', 16 );
 #endif
-        set->penSize.setHeight( (float)value / HiMetricToPixel );
+        set.penSize.setHeight( (float)value / HiMetricToPixel );
         break;
 
       case GUID_PEN_TIP:
@@ -421,12 +423,12 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
 #endif
         if( value )
         {
-          set->flags |= IsRectangle;
+          set.flags |= IsRectangle;
         }
         break;
 
       case GUID_DRAWING_FLAGS:
-        set->flags = (StrokeFlags)( ( 0XFF00 & set->flags ) | (ushort) value );
+        set.flags = (StrokeFlags)( ( 0XFF00 & set.flags ) | (ushort) value );
 #ifdef ISFQT_DEBUG_VERBOSE
         qDebug() << "- Got flags value:" << value;
         if( value & FitToCurve )
@@ -458,7 +460,7 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
 #ifdef ISFQT_DEBUG_VERBOSE
         qDebug() << "- Got pen transparency" << value;
 #endif
-        set->color.setAlpha( value );
+        set.color.setAlpha( value );
         break;
 
       case GUID_ROP:
@@ -466,7 +468,7 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
         qDebug() << "- Got ROP property (Run Of Press? Reject Occasional Partners?)";
         // We already read the first value, go back
 //         source.seekRelative( getMultiByteSize( value ) );
-        analyzePayload( source, 3 );
+        analyzePayload( streamData, 3 );
 #endif
 //         info.flags |= IsHighlighter;
         break;
@@ -479,11 +481,11 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
         // If the tag *should* be known, record it differently
         if( drawing.maxGuid_ > 0 && property >= 100 && property <= drawing.maxGuid_ )
         {
-          analyzePayload( source, "TAG_PROPERTY_" + QString::number( property ) );
+          analyzePayload( streamData, "TAG_PROPERTY_" + QString::number( property ) );
         }
         else
         {
-          analyzePayload( source, "Unknown property " + QString::number( property ) );
+          analyzePayload( streamData, "Unknown property " + QString::number( property ) );
         }
         break;
     }
@@ -491,15 +493,16 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
 
   // Update the drawing's maximum pen size.
   // This value is used to adjust the drawing borders to include thick strokes
-  if( set->penSize.width() > drawing.maxPenSize_.width() )
+  if( set.penSize.width() > drawing.maxPenSize_.width() )
   {
-    drawing.maxPenSize_.setWidth( set->penSize.width() );
+    drawing.maxPenSize_.setWidth( set.penSize.width() );
   }
-  if( set->penSize.height() > drawing.maxPenSize_.height() )
+  if( set.penSize.height() > drawing.maxPenSize_.height() )
   {
-    drawing.maxPenSize_.setHeight( set->penSize.height() );
+    drawing.maxPenSize_.setHeight( set.penSize.height() );
   }
 
+  streamData.attributeSets.append( set );
 
   return ISF_ERROR_NONE;
 }
@@ -509,14 +512,15 @@ IsfError TagsParser::parseAttributeBlock( DataSource &source, Drawing &drawing )
 /**
  * Read a table of points attributes.
  *
- * @param source Data Source where to read bytes from
+ * @param streamData StreamData object with the stream data
  * @param drawing Drawing into which the data obtained from the tag should be read
  * @return IsfError
  */
-IsfError TagsParser::parseAttributeTable( DataSource &source, Drawing &drawing )
+IsfError TagsParser::parseAttributeTable( StreamData& streamData, Drawing& drawing )
 {
   IsfError result = ISF_ERROR_NONE;
-  quint64 payloadSize = decodeUInt( source );
+  DataSource& dataSource = *streamData.dataSource;
+  quint64 payloadSize = decodeUInt( dataSource );
 
   if( payloadSize == 0 )
   {
@@ -526,13 +530,13 @@ IsfError TagsParser::parseAttributeTable( DataSource &source, Drawing &drawing )
     return ISF_ERROR_INVALID_PAYLOAD;
   }
 
-  qint64 payloadEnd = source.pos() + payloadSize;
-  while( result == ISF_ERROR_NONE && source.pos() < payloadEnd && ! source.atEnd() )
+  qint64 payloadEnd = dataSource.pos() + payloadSize;
+  while( result == ISF_ERROR_NONE && dataSource.pos() < payloadEnd && ! dataSource.atEnd() )
   {
 #ifdef ISFQT_DEBUG_VERBOSE
     qDebug() << "Got tag: TAG_DRAW_ATTRS_BLOCK";
 #endif
-    result = parseAttributeBlock( source, drawing );
+    result = parseAttributeBlock( streamData, drawing );
   }
 
   return result;
@@ -543,11 +547,11 @@ IsfError TagsParser::parseAttributeTable( DataSource &source, Drawing &drawing )
 /**
  * Read the ink canvas dimensions.
  *
- * @param source Data Source where to read bytes from
+ * @param streamData StreamData object with the stream data
  * @param drawing Drawing into which the data obtained from the tag should be read
  * @return IsfError
  */
-IsfError TagsParser::parseInkSpaceRectangle( DataSource &source, Drawing &drawing )
+IsfError TagsParser::parseInkSpaceRectangle( StreamData& streamData, Drawing& drawing )
 {
   if( drawing.canvas_.isValid() )
   {
@@ -558,10 +562,11 @@ IsfError TagsParser::parseInkSpaceRectangle( DataSource &source, Drawing &drawin
   }
 
   // This tag has a fixed 4-byte size
-  drawing.canvas_.setLeft  ( decodeInt( source ) );
-  drawing.canvas_.setTop   ( decodeInt( source ) );
-  drawing.canvas_.setRight ( decodeInt( source ) );
-  drawing.canvas_.setBottom( decodeInt( source ) );
+  DataSource& dataSource = *streamData.dataSource;
+  drawing.canvas_.setLeft  ( decodeInt( dataSource ) );
+  drawing.canvas_.setTop   ( decodeInt( dataSource ) );
+  drawing.canvas_.setRight ( decodeInt( dataSource ) );
+  drawing.canvas_.setBottom( decodeInt( dataSource ) );
 
 #ifdef ISFQT_DEBUG
   qDebug() << "- Got drawing canvas:" << drawing.canvas_;
@@ -575,14 +580,16 @@ IsfError TagsParser::parseInkSpaceRectangle( DataSource &source, Drawing &drawin
 /**
  * Read a Metrics table.
  *
- * @param source Data Source where to read bytes from
+ * @param streamData StreamData object with the stream data
  * @param drawing Drawing into which the data obtained from the tag should be read
  * @return IsfError
  */
-IsfError TagsParser::parseMetricTable( DataSource &source, Drawing &drawing )
+IsfError TagsParser::parseMetricTable( StreamData& streamData, Drawing& drawing )
 {
   IsfError result = ISF_ERROR_NONE;
-  quint64 payloadSize = decodeUInt( source );
+  DataSource& dataSource = *streamData.dataSource;
+
+  quint64 payloadSize = decodeUInt( dataSource );
 
   if( payloadSize == 0 )
   {
@@ -592,10 +599,10 @@ IsfError TagsParser::parseMetricTable( DataSource &source, Drawing &drawing )
     return ISF_ERROR_INVALID_PAYLOAD;
   }
 
-  qint64 payloadEnd = source.pos() + payloadSize;
-  while( result == ISF_ERROR_NONE && source.pos() < payloadEnd && ! source.atEnd() )
+  qint64 payloadEnd = dataSource.pos() + payloadSize;
+  while( result == ISF_ERROR_NONE && dataSource.pos() < payloadEnd && ! dataSource.atEnd() )
   {
-    result = parseMetricBlock( source, drawing );
+    result = parseMetricBlock( streamData, drawing );
   }
 
   return result;
@@ -606,15 +613,16 @@ IsfError TagsParser::parseMetricTable( DataSource &source, Drawing &drawing )
 /**
  * Read a Metrics block.
  *
- * @param source Data Source where to read bytes from
+ * @param streamData StreamData object with the stream data
  * @param drawing Drawing into which the data obtained from the tag should be read
  * @return IsfError
  */
-IsfError TagsParser::parseMetricBlock( DataSource &source, Drawing &drawing )
+IsfError TagsParser::parseMetricBlock( StreamData& streamData, Drawing& drawing )
 {
   Q_UNUSED( drawing )
 
-  quint64 payloadSize = decodeUInt( source );
+  DataSource& dataSource = *streamData.dataSource;
+  quint64 payloadSize = decodeUInt( dataSource );
 
   if( payloadSize == 0 )
   {
@@ -625,13 +633,13 @@ IsfError TagsParser::parseMetricBlock( DataSource &source, Drawing &drawing )
   }
 
   Metrics *metricsList = new Metrics();
-  qint64 payloadEnd = source.pos() + payloadSize;
-  while( source.pos() < payloadEnd && ! source.atEnd() )
+  qint64 payloadEnd = dataSource.pos() + payloadSize;
+  while( dataSource.pos() < payloadEnd && ! dataSource.atEnd() )
   {
-    quint64 property = Isf::Compress::decodeUInt( source );
+    quint64 property = Isf::Compress::decodeUInt( dataSource );
 
-    qint64 initialPos = source.pos();
-    payloadSize = Isf::Compress::decodeUInt( source );
+    qint64 initialPos = dataSource.pos();
+    payloadSize = Isf::Compress::decodeUInt( dataSource );
 
     // Two multibyte signed ints, one byte, one float: minimum 7 bytes
     if( payloadSize < 7 )
@@ -639,16 +647,16 @@ IsfError TagsParser::parseMetricBlock( DataSource &source, Drawing &drawing )
 #ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "- Metric id" << property << "has an invalid payload size:" << payloadSize;
 #endif
-      analyzePayload( source, payloadSize );
+      analyzePayload( streamData, payloadSize );
       continue;
     }
 
     // Get the metric values
     Metric metric;
-    metric.min        = Isf::Compress::decodeInt( source );
-    metric.max        = Isf::Compress::decodeInt( source );
-    metric.units      = (MetricScale) source.getByte();
-    metric.resolution = Isf::Compress::decodeFloat( source );
+    metric.min        = Isf::Compress::decodeInt( dataSource );
+    metric.max        = Isf::Compress::decodeInt( dataSource );
+    metric.units      = (MetricScale) dataSource.getByte();
+    metric.resolution = Isf::Compress::decodeFloat( dataSource );
 
     // Identify the metric
     switch( property )
@@ -675,17 +683,17 @@ IsfError TagsParser::parseMetricBlock( DataSource &source, Drawing &drawing )
 #ifdef ISFQT_DEBUG_VERBOSE
         qDebug() << "- Unknown metric, id:" << property << "size:" << payloadSize;
 #endif
-        analyzePayload( source, payloadSize );
+        analyzePayload( streamData, payloadSize );
         continue;
     }
 
 #ifdef ISFQT_DEBUG
     // If there's extra data, show it
-    quint64 parsedPayload = ( source.pos() - initialPos );
+    quint64 parsedPayload = ( dataSource.pos() - initialPos );
     if( parsedPayload < payloadSize )
     {
       qDebug() << "- Extra data:";
-      analyzePayload( source, payloadSize - parsedPayload );
+      analyzePayload( streamData, payloadSize - parsedPayload );
     }
 #endif
 
@@ -699,16 +707,16 @@ IsfError TagsParser::parseMetricBlock( DataSource &source, Drawing &drawing )
   }
 
   // Save the obtained metrics
-  drawing.metrics_.append( metricsList );
-  Metrics *savedMetrics = drawing.metrics_.last();
+  streamData.metrics.append( metricsList );
 
   // set this once when we get the first METRIC_BLOCK. then,
   // everytime we get a MIDX we can update it. if we don't do this
   // then the first stroke will have the same metrics as the last stroke.
-  if ( drawing.currentMetrics_ == &drawing.defaultMetrics_ )
-  {
-    drawing.currentMetrics_ = savedMetrics;
-  }
+//   Metrics *savedMetrics = streamData.metrics.last();
+//   if ( drawing.currentMetrics_ == &drawing.defaultMetrics_ )
+//   {
+//     drawing.currentMetrics_ = savedMetrics;
+//   }
 
   return ISF_ERROR_NONE;
 }
@@ -718,14 +726,15 @@ IsfError TagsParser::parseMetricBlock( DataSource &source, Drawing &drawing )
 /**
  * Read a table of transformation matrices.
  *
- * @param source Data Source where to read bytes from
+ * @param streamData StreamData object with the stream data
  * @param drawing Drawing into which the data obtained from the tag should be read
  * @return IsfError
  */
-IsfError TagsParser::parseTransformationTable( DataSource &source, Drawing &drawing )
+IsfError TagsParser::parseTransformationTable( StreamData& streamData, Drawing& drawing )
 {
   IsfError result = ISF_ERROR_NONE;
-  quint64 payloadSize = decodeUInt( source );
+  DataSource& dataSource = *streamData.dataSource;
+  quint64 payloadSize = decodeUInt( dataSource );
 
   if( payloadSize == 0 )
   {
@@ -735,13 +744,13 @@ IsfError TagsParser::parseTransformationTable( DataSource &source, Drawing &draw
     return ISF_ERROR_INVALID_PAYLOAD;
   }
 
-  qint64 payloadEnd = source.pos() + payloadSize;
-  while( result == ISF_ERROR_NONE && source.pos() < payloadEnd && ! source.atEnd() )
+  qint64 payloadEnd = dataSource.pos() + payloadSize;
+  while( result == ISF_ERROR_NONE && dataSource.pos() < payloadEnd && ! dataSource.atEnd() )
   {
     // Read the type of the next transformation
-    DataTag tagIndex = (DataTag) Compress::decodeUInt( source );
+    DataTag tagIndex = (DataTag) Compress::decodeUInt( dataSource );
 
-    result = parseTransformation( source, drawing, tagIndex );
+    result = parseTransformation( streamData, drawing, tagIndex );
   }
 
   return result;
@@ -752,14 +761,15 @@ IsfError TagsParser::parseTransformationTable( DataSource &source, Drawing &draw
 /**
  * Read a drawing transformation matrix.
  *
- * @param source Data Source where to read bytes from
+ * @param streamData StreamData object with the stream data
  * @param drawing Drawing into which the data obtained from the tag should be read
  * @param transformType Type of transform to read
  * @return IsfError
  */
-IsfError TagsParser::parseTransformation( DataSource &source, Drawing &drawing, quint64 transformType )
+IsfError TagsParser::parseTransformation( StreamData& streamData, Drawing& drawing, quint64 transformType )
 {
   QMatrix *transform = new QMatrix();
+  DataSource& dataSource = *streamData.dataSource;
 
   /*
    * Unlike the other transformations, scale is expressed in HiMetric units,
@@ -778,12 +788,12 @@ IsfError TagsParser::parseTransformation( DataSource &source, Drawing &drawing, 
   {
     case TAG_TRANSFORM:
     {
-      float scaleX = Compress::decodeFloat( source ) / HiMetricToPixel;
-      float scaleY = Compress::decodeFloat( source ) / HiMetricToPixel;
-      float shearX = Compress::decodeFloat( source );
-      float shearY = Compress::decodeFloat( source );
-      float dx     = Compress::decodeFloat( source );
-      float dy     = Compress::decodeFloat( source );
+      float scaleX = Compress::decodeFloat( dataSource ) / HiMetricToPixel;
+      float scaleY = Compress::decodeFloat( dataSource ) / HiMetricToPixel;
+      float shearX = Compress::decodeFloat( dataSource );
+      float shearY = Compress::decodeFloat( dataSource );
+      float dx     = Compress::decodeFloat( dataSource );
+      float dy     = Compress::decodeFloat( dataSource );
 
       transform->setMatrix( scaleX, scaleY, shearX, shearY, dx, dy );
 
@@ -801,7 +811,7 @@ IsfError TagsParser::parseTransformation( DataSource &source, Drawing &drawing, 
 
     case TAG_TRANSFORM_ISOTROPIC_SCALE:
     {
-      float scaleAmount = Compress::decodeFloat( source ) / HiMetricToPixel;
+      float scaleAmount = Compress::decodeFloat( dataSource ) / HiMetricToPixel;
       transform->scale( scaleAmount, scaleAmount );
 #ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "- Transformation details - "
@@ -812,8 +822,8 @@ IsfError TagsParser::parseTransformation( DataSource &source, Drawing &drawing, 
 
     case TAG_TRANSFORM_ANISOTROPIC_SCALE:
     {
-      float scaleX = Compress::decodeFloat( source ) / HiMetricToPixel;
-      float scaleY = Compress::decodeFloat( source ) / HiMetricToPixel;
+      float scaleX = Compress::decodeFloat( dataSource ) / HiMetricToPixel;
+      float scaleY = Compress::decodeFloat( dataSource ) / HiMetricToPixel;
       transform->scale( scaleX, scaleY );
 #ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "- Transformation details - "
@@ -825,7 +835,7 @@ IsfError TagsParser::parseTransformation( DataSource &source, Drawing &drawing, 
 
     case TAG_TRANSFORM_ROTATE:
     {
-      float rotateAmount = Compress::decodeFloat( source ) / 100.0f;
+      float rotateAmount = Compress::decodeFloat( dataSource ) / 100.0f;
       transform->rotate( rotateAmount );
 #ifdef ISFQT_DEBUG_VERBOSE
       qDebug() << "- Transformation details - "
@@ -836,8 +846,8 @@ IsfError TagsParser::parseTransformation( DataSource &source, Drawing &drawing, 
 
     case TAG_TRANSFORM_TRANSLATE:
     {
-      float dx = Compress::decodeFloat( source );
-      float dy = Compress::decodeFloat( source );
+      float dx = Compress::decodeFloat( dataSource );
+      float dy = Compress::decodeFloat( dataSource );
       transform->translate( dx, dy );
 
 #ifdef ISFQT_DEBUG_VERBOSE
@@ -850,10 +860,10 @@ IsfError TagsParser::parseTransformation( DataSource &source, Drawing &drawing, 
 
     case TAG_TRANSFORM_SCALE_AND_TRANSLATE:
     {
-      float scaleX = Compress::decodeFloat( source ) / HiMetricToPixel;
-      float scaleY = Compress::decodeFloat( source ) / HiMetricToPixel;
-      float dx = Compress::decodeFloat( source );
-      float dy = Compress::decodeFloat( source );
+      float scaleX = Compress::decodeFloat( dataSource ) / HiMetricToPixel;
+      float scaleY = Compress::decodeFloat( dataSource ) / HiMetricToPixel;
+      float dx = Compress::decodeFloat( dataSource );
+      float dy = Compress::decodeFloat( dataSource );
 
       transform->scale    ( scaleX, scaleY );
       transform->translate( dx, dy );
@@ -875,18 +885,19 @@ IsfError TagsParser::parseTransformation( DataSource &source, Drawing &drawing, 
       return ISF_ERROR_INVALID_BLOCK;
   }
 
-  drawing.transforms_.append( transform );
+  streamData.transforms.append( transform );
+  drawing.addTransform( transform );
 
   // set this once when we get the first transformation. then,
   // everytime we get a TIDX we can update it. if we don't do this
   // then the first stroke will have the same transform as the last stroke.
-  if ( drawing.currentTransform_ == &drawing.defaultTransform_ )
-  {
-    drawing.currentTransform_ = drawing.transforms_.last();
-  }
+//   if ( drawing.currentTransform_ == &drawing.defaultTransform_ )
+//   {
+//     drawing.currentTransform_ = drawing.transforms_.last();
+//   }
 
 #ifdef ISFQT_DEBUG_VERBOSE
-  qDebug() << "- Added transform block #" << ( drawing.transforms_.count() - 1 );
+  qDebug() << "- Added transform block #" << ( streamData.transforms.count() - 1 );
 #endif
 
   return ISF_ERROR_NONE;
@@ -897,14 +908,15 @@ IsfError TagsParser::parseTransformation( DataSource &source, Drawing &drawing, 
 /**
  * Read a stroke.
  *
- * @param source Data Source where to read bytes from
+ * @param streamData StreamData object with the stream data
  * @param drawing Drawing into which the data obtained from the tag should be read
  * @return IsfError
  */
-IsfError TagsParser::parseStroke( DataSource &source, Drawing &drawing )
+IsfError TagsParser::parseStroke( StreamData& streamData, Drawing& drawing )
 {
-  quint64 payloadSize = decodeUInt( source );
-  quint64 initialPos = source.pos();
+  DataSource& dataSource = *streamData.dataSource;
+  quint64 payloadSize = decodeUInt( dataSource );
+  quint64 initialPos = dataSource.pos();
 
   if( payloadSize == 0 )
   {
@@ -915,14 +927,18 @@ IsfError TagsParser::parseStroke( DataSource &source, Drawing &drawing )
   }
 
   // Get the number of points which comprise this stroke
-  quint64 numPoints = decodeUInt( source );
+  quint64 numPoints = decodeUInt( dataSource );
+
+  QList<qint64> xPointsData, yPointsData, pressureData;
+
+  // If the stream has pressure info, parse it
+  bool streamHasPressureData = streamData.strokeInfos.count() && streamData.strokeInfos.last()->hasPressureData;
 
 #ifdef ISFQT_DEBUG_VERBOSE
   qDebug() << "- Tag size:" << payloadSize << "Points stored:" << numPoints;
 #endif
 
-  QList<qint64> xPointsData, yPointsData, pressureData;
-  if( ! Compress::inflatePacketData( source, numPoints, xPointsData ) )
+  if( ! Compress::inflatePacketData( dataSource, numPoints, xPointsData ) )
   {
 #ifdef ISFQT_DEBUG
     qWarning() << "Decompression failure while extracting X points data!";
@@ -930,7 +946,7 @@ IsfError TagsParser::parseStroke( DataSource &source, Drawing &drawing )
 #endif
   }
 
-  if( ! Compress::inflatePacketData( source, numPoints, yPointsData ) )
+  if( ! Compress::inflatePacketData( dataSource, numPoints, yPointsData ) )
   {
 #ifdef ISFQT_DEBUG
     qWarning() << "Decompression failure while extracting Y points data!";
@@ -938,8 +954,8 @@ IsfError TagsParser::parseStroke( DataSource &source, Drawing &drawing )
 #endif
   }
 
-  if(   drawing.currentStrokeInfo_->hasPressureData
-  &&  ! Compress::inflatePacketData( source, numPoints, pressureData ) )
+  if(   streamHasPressureData
+  &&  ! Compress::inflatePacketData( dataSource, numPoints, pressureData ) )
   {
 #ifdef ISFQT_DEBUG
     qWarning() << "Decompression failure while extracting pressure data!";
@@ -955,7 +971,7 @@ IsfError TagsParser::parseStroke( DataSource &source, Drawing &drawing )
 #endif
   }
 
-  if( drawing.currentStrokeInfo_->hasPressureData
+  if( streamHasPressureData
   &&  (uint)pressureData.size() != numPoints )
   {
 #ifdef ISFQT_DEBUG
@@ -966,61 +982,76 @@ IsfError TagsParser::parseStroke( DataSource &source, Drawing &drawing )
 
   // Add a new stroke
   drawing.strokes_.append( new Stroke() );
-  Stroke *stroke = drawing.strokes_[ drawing.strokes_.size() - 1 ];
+  Stroke *stroke = drawing.strokes_.last();
+
+  // Apply the stroke style, transforms and metrics
+  if( streamData.attributeSets.count() )
+  {
+    AttributeSet set = streamData.attributeSets.at( streamData.currentAttributeSetIndex );
+
+    stroke->setColor  ( set.color   );
+    stroke->setFlags  ( set.flags   );
+    stroke->setPenSize( set.penSize );
+  }
+  if( streamData.metrics.count() )
+  {
+    Metrics* metrics = streamData.metrics.at( streamData.currentMetricsIndex );
+
+    if( ! metrics )
+    {
+      qWarning() << "Invalid reference to metrics" << streamData.currentMetricsIndex;
+    }
+    else
+    {
+      stroke->setMetrics( metrics );
+    }
+  }
+  if( streamData.transforms.count() )
+  {
+    QMatrix* transform = streamData.transforms.at( streamData.currentTransformsIndex );
+
+    if( ! transform )
+    {
+      qWarning() << "Invalid reference to transform" << streamData.currentTransformsIndex;
+    }
+    else
+    {
+      stroke->setTransform( transform );
+    }
+  }
 
 #ifdef ISFQT_DEBUG_VERBOSE
   qDebug() << "- Added stroke #" << ( drawing.strokes_.count() - 1 );
 #endif
 
-  // The polygon is used to obtain the stroke's bounding rect
-  QPolygon polygon( numPoints );
+  // Add the points to the stroke
+  PointList list;
   for( quint64 i = 0; i < numPoints; ++i )
   {
-    stroke->points.append( Point() );
-    Point &point = stroke->points[ stroke->points.size() - 1 ];
+    list.append( Point() );
+    Point &point = list.last();
 
     point.position.setX( xPointsData[ i ] );
     point.position.setY( yPointsData[ i ] );
 
-    polygon.setPoint( i, xPointsData[ i ], yPointsData[ i ] );
-
-    if( drawing.currentStrokeInfo_->hasPressureData )
+    if( streamHasPressureData )
     {
       point.pressureLevel = pressureData[ i ];
     }
   }
-
-  if ( drawing.currentTransform_ != 0 )
-  {
-    polygon = drawing.currentTransform_->map( polygon );
-  }
-
-  stroke->boundingRect = polygon.boundingRect();
-
-  // set the bounding rectangle.
-  if ( stroke->boundingRect.size() == QSize(1, 1) )
-  {
-    // can't have a 1px by 1px bounding rect - the eraser will never hit it.
-    // make the bounding rectange completely cover the drawn stroke.
-    float penSize = drawing.currentAttributeSet_->penSize.width();
-    stroke->boundingRect.setSize( QSize( penSize, penSize ) );
-    stroke->boundingRect.translate( -( penSize / 2 ), -( penSize / 2 ) );
-  }
-
-  stroke->attributes   = drawing.currentAttributeSet_;
-  stroke->info         = drawing.currentStrokeInfo_;
-  stroke->metrics      = drawing.currentMetrics_;
-  stroke->transform    = drawing.currentTransform_;
+  // And finish it out
+  stroke->addPoints( list );
+  stroke->finalize();
 
   // Update the entire drawing's bounding rect
-  drawing.boundingRect_ = drawing.boundingRect_.united( stroke->boundingRect );
+  drawing.boundingRect_ = drawing.boundingRect_.united( stroke->boundingRect() );
 
-  qint64 remainingPayloadSize = payloadSize - ( source.pos() - initialPos );
+  qint64 remainingPayloadSize = payloadSize - ( dataSource.pos() - initialPos );
   if( remainingPayloadSize > 0 )
   {
-    analyzePayload( source,
+    analyzePayload( streamData,
                     remainingPayloadSize,
-                    "Remaining stroke data: " + QString::number(remainingPayloadSize) +
+                    "Remaining stroke data: " + QString::number( remainingPayloadSize ) +
                     " bytes" );
   }
 
@@ -1032,13 +1063,14 @@ IsfError TagsParser::parseStroke( DataSource &source, Drawing &drawing )
 /**
  * Read a stroke description block.
  *
- * @param source Data Source where to read bytes from
+ * @param streamData StreamData object with the stream data
  * @param drawing Drawing into which the data obtained from the tag should be read
  * @return IsfError
  */
-IsfError TagsParser::parseStrokeDescBlock( DataSource &source, Drawing &drawing )
+IsfError TagsParser::parseStrokeDescBlock( StreamData& streamData, Drawing& drawing )
 {
-  quint64 payloadSize = decodeUInt( source );
+  DataSource& dataSource = *streamData.dataSource;
+  quint64 payloadSize = decodeUInt( dataSource );
 
   if( payloadSize == 0 )
   {
@@ -1052,25 +1084,25 @@ IsfError TagsParser::parseStrokeDescBlock( DataSource &source, Drawing &drawing 
   qDebug() << "- Finding stroke description properties in the next" << payloadSize << "bytes";
 #endif
 
-  drawing.strokeInfo_.append( new StrokeInfo() );
-  StrokeInfo *info = drawing.strokeInfo_.last();
+  streamData.strokeInfos.append( new StrokeInfo() );
+  StrokeInfo *info = streamData.strokeInfos.last();
 
   // set this once when we get the first TAG_STROKE_DESC_BLOCK. then,
   // everytime we get a SIDX we can update it. if we don't do this
   // then the first stroke will have the same stroke info as the last stroke.
-  if ( drawing.currentStrokeInfo_ == &drawing.defaultStrokeInfo_ )
-  {
-    drawing.currentStrokeInfo_ = info;
-  }
+//   if ( drawing.currentStrokeInfo_ == &drawing.defaultStrokeInfo_ )
+//   {
+//     drawing.currentStrokeInfo_ = info;
+//   }
 
 #ifdef ISFQT_DEBUG_VERBOSE
-  qDebug() << "- Added stroke info block #" << ( drawing.strokeInfo_.count() - 1 );
+  qDebug() << "- Added stroke info block #" << ( streamData.strokeInfos.count() - 1 );
 #endif
 
-  qint64 payloadEnd = source.pos() + payloadSize;
-  while( source.pos() < payloadEnd && ! source.atEnd() )
+  qint64 payloadEnd = dataSource.pos() + payloadSize;
+  while( dataSource.pos() < payloadEnd && ! dataSource.atEnd() )
   {
-    quint64 tag = decodeUInt( source );
+    quint64 tag = decodeUInt( dataSource );
 
     switch( tag )
     {
@@ -1127,14 +1159,16 @@ IsfError TagsParser::parseStrokeDescBlock( DataSource &source, Drawing &drawing 
 /**
  * Read a stroke description table.
  *
- * @param source Data Source where to read bytes from
+ * @param streamData StreamData object with the stream data
  * @param drawing Drawing into which the data obtained from the tag should be read
  * @return IsfError
  */
-IsfError TagsParser::parseStrokeDescTable( DataSource &source, Drawing &drawing )
+IsfError TagsParser::parseStrokeDescTable( StreamData& streamData, Drawing& drawing )
 {
   IsfError result = ISF_ERROR_NONE;
-  quint64 payloadSize = decodeUInt( source );
+  DataSource& dataSource = *streamData.dataSource;
+
+  quint64 payloadSize = decodeUInt( dataSource );
 
   if( payloadSize == 0 )
   {
@@ -1144,10 +1178,10 @@ IsfError TagsParser::parseStrokeDescTable( DataSource &source, Drawing &drawing 
     return ISF_ERROR_INVALID_PAYLOAD;
   }
 
-  qint64 payloadEnd = source.pos() + payloadSize;
-  while( result == ISF_ERROR_NONE && source.pos() < payloadEnd && ! source.atEnd() )
+  qint64 payloadEnd = dataSource.pos() + payloadSize;
+  while( result == ISF_ERROR_NONE && dataSource.pos() < payloadEnd && ! dataSource.atEnd() )
   {
-    result = parseStrokeDescBlock( source, drawing );
+    result = parseStrokeDescBlock( streamData, drawing );
   }
 
   return result;
@@ -1163,15 +1197,15 @@ IsfError TagsParser::parseStrokeDescTable( DataSource &source, Drawing &drawing 
  * - a payload size (multibyte-encoded)
  * - the actual tag data
  *
- * @param source Data Source where to read bytes from
+ * @param streamData StreamData object with the stream data
  * @param tagName Name of the tag if known, index number if not
  * @return Byte array with the contents of the tag
  */
-QByteArray TagsParser::analyzePayload( DataSource &source, const QString &tagName )
+QByteArray TagsParser::analyzePayload( StreamData& streamData, const QString &tagName )
 {
-  quint64 payloadSize = decodeUInt( source );
+  quint64 payloadSize = decodeUInt( *streamData.dataSource );
 
-  return analyzePayload( source,
+  return analyzePayload( streamData,
                          payloadSize,
                          "Got tag: " + tagName + " with " + QString::number( payloadSize ) + " bytes of payload" );
 }
@@ -1183,12 +1217,12 @@ QByteArray TagsParser::analyzePayload( DataSource &source, const QString &tagNam
  *
  * This variant can be used to print out an arbitrarily sized data block.
  *
- * @param source Data Source where to read bytes from
+ * @param streamData StreamData object with the stream data
  * @param payloadSize Size of the payload to print out
  * @param message Message to show as label for the printed out data
  * @return Byte array with the contents of the tag
  */
-QByteArray TagsParser::analyzePayload( DataSource &source, const quint64 payloadSize, const QString &message )
+QByteArray TagsParser::analyzePayload( StreamData& streamData, const quint64 payloadSize, const QString &message )
 {
   QByteArray result;
   QByteArray output;
@@ -1200,7 +1234,7 @@ QByteArray TagsParser::analyzePayload( DataSource &source, const quint64 payload
 
 #ifndef ISFQT_DEBUG_VERBOSE
   Q_UNUSED( message )
-  source.seekRelative( +payloadSize );
+  streamData.dataSource->seekRelative( +payloadSize );
   return output;
 #endif
 
@@ -1211,9 +1245,9 @@ QByteArray TagsParser::analyzePayload( DataSource &source, const quint64 payload
     qDebug() << message;
   }
   qDebug() << "--------------------------------------------------------------------";
-  while( ! source.atEnd() && pos < payloadSize )
+  while( ! streamData.dataSource->atEnd() && pos < payloadSize )
   {
-    quint8 byte = source.getByte();
+    quint8 byte = streamData.dataSource->getByte();
     result.append( byte );
     output.append( QByteArray::number( byte, 16 ).rightJustified( 2, '0').toUpper() + " " );
 
