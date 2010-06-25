@@ -113,8 +113,23 @@ IsfError TagsWriter::addAttributeTable( StreamData& streamData, const Drawing& d
   AttributeSet defaultAttributeSet;
 
 #ifdef ISFQT_DEBUG_VERBOSE
-  qDebug() << "- Adding" << streamData.attributeSets.count() << "attributes...";
   quint8 counter = 0;
+#endif
+
+  // Add default attributes if the drawing didn't contain any
+  if( streamData.attributeSets.isEmpty() )
+  {
+#ifdef ISFQT_DEBUG_VERBOSE
+    qDebug() << "- Adding a default attribute set...";
+#endif
+    AttributeSet set;
+    streamData.attributeSets.append( set );
+  }
+#ifdef ISFQT_DEBUG_VERBOSE
+  else
+  {
+    qDebug() << "- Adding" << streamData.attributeSets.count() << "attributes...";
+  }
 #endif
 
   foreach( const AttributeSet set, streamData.attributeSets )
@@ -187,7 +202,7 @@ IsfError TagsWriter::addAttributeTable( StreamData& streamData, const Drawing& d
 */
 
       // Add FitToCurve too for now, as a test
-      flags |= FitToCurve;
+//       flags |= FitToCurve;
 
       // Copy the other flags as they are
       blockData.append( encodeUInt( GUID_DRAWING_FLAGS ) );
@@ -338,11 +353,11 @@ IsfError TagsWriter::addTransformationTable( StreamData& streamData, const Drawi
    */
 
 #ifdef ISFQT_DEBUG_VERBOSE
-  qDebug() << "- Adding" << drawing.transforms_.count() << "transformations...";
+  qDebug() << "- Adding" << streamData.transforms.count() << "transformations...";
   quint8 counter = 0;
 #endif
 
-  foreach( const QMatrix *trans, drawing.transforms_ )
+  foreach( const QMatrix *trans, streamData.transforms )
   {
     /*
      * All transforms are written backwards because they're stored my most
@@ -444,7 +459,7 @@ IsfError TagsWriter::addTransformationTable( StreamData& streamData, const Drawi
   }
 
 
-  if ( drawing.transforms_.size() == 0 )
+  if ( streamData.transforms.size() == 0 )
   {
 #ifdef ISFQT_DEBUG_VERBOSE
     qDebug() << "- Added default transformation";
@@ -458,7 +473,7 @@ IsfError TagsWriter::addTransformationTable( StreamData& streamData, const Drawi
     tagContents.append( TAG_TRANSFORM_ISOTROPIC_SCALE );
     tagContents.append( encodeFloat( defaultTransform.m11() * HiMetricToPixel ) );
   }
-  else if ( drawing.transforms_.size() > 1 )
+  else if ( streamData.transforms.size() > 1 )
   {
     tagContents.prepend( encodeUInt( tagContents.size() ) );
     tagContents.prepend( encodeUInt( TAG_TRANSFORM_TABLE ) );
@@ -534,11 +549,11 @@ IsfError TagsWriter::addStrokes( StreamData& streamData, const Drawing& drawing 
 
     // Make sure that the first strokes use the first transform (write a TIDX only
     // when needed)
-    if ( drawing.transforms_.count() > 0 )
+    if ( streamData.transforms.count() > 0 )
     {
       if( currentTransform == 0 )
       {
-        currentTransform = drawing.transforms_.first();
+        currentTransform = streamData.transforms.first();
       }
 
       // Only write a TIDX if this stroke needs a different transform than the last stroke
@@ -546,7 +561,7 @@ IsfError TagsWriter::addStrokes( StreamData& streamData, const Drawing& drawing 
       {
         currentTransform = stroke->transform();
         blockData.append( encodeUInt( TAG_TIDX ) );
-        blockData.append( encodeUInt( drawing.transforms_.indexOf( stroke->transform() ) ) );
+        blockData.append( encodeUInt( streamData.transforms.indexOf( stroke->transform() ) ) );
       }
     }
 
@@ -599,39 +614,60 @@ IsfError TagsWriter::addStrokes( StreamData& streamData, const Drawing& drawing 
  */
 IsfError TagsWriter::prepare( StreamData& streamData, const Drawing& drawing )
 {
-  // Add default elements
-  if( streamData.metrics.isEmpty() )
-  {
-    streamData.metrics.append( new Metrics() );
-  }
-  if( streamData.transforms.isEmpty() )
-  {
-    streamData.transforms.append( new QMatrix() );
-  }
+#ifdef ISFQT_DEBUG_VERBOSE
+  qDebug() << "- Optimizing data...";
+#endif
+
+  streamData.attributeSets.clear();
+  streamData.metrics.clear();
+  streamData.transforms.clear();
+
+#ifdef ISFQT_DEBUG_VERBOSE
+  qDebug() << "  - " << drawing.strokes_.count() << "strokes to optimize";
+#endif
 
   // Prepare the list of attributes
-  if( streamData.attributeSets.isEmpty() )
+  foreach( Stroke* stroke, drawing.strokes_ )
   {
-    AttributeSet current;
-    streamData.attributeSets.append( current );
+    AttributeSet set;
+    set.color   = stroke->color();
+    set.flags   = stroke->flags();
+    set.penSize = stroke->penSize();
 
-    foreach( Stroke* stroke, drawing.strokes_ )
+    Metrics* metrics = stroke->metrics();
+    QMatrix* transform = stroke->transform();
+
+    if( ! streamData.attributeSets.contains( set ) )
     {
-      AttributeSet set;
-      set.color   = stroke->color();
-      set.flags   = stroke->flags();
-      set.penSize = stroke->penSize();
-
-      if( set != current )
-      {
-        current = set;
-        if( ! streamData.attributeSets.contains( set ) )
-        {
-          streamData.attributeSets.append( set );
-        }
-      }
+      streamData.attributeSets.append( set );
+    }
+    if( metrics && ! streamData.metrics.contains( metrics ) )
+    {
+      streamData.metrics.append( metrics );
+    }
+    if( transform && ! streamData.transforms.contains( transform ) )
+    {
+      streamData.transforms.append( transform );
     }
   }
+
+#ifdef ISFQT_DEBUG_VERBOSE
+  int count = 0;
+#endif
+
+  // Add default elements if the drawing didn't contain any
+  if( streamData.attributeSets.isEmpty() )
+  {
+#ifdef ISFQT_DEBUG_VERBOSE
+  qDebug() << "  - Added " << count << "default elements";
+#endif
+    AttributeSet set;
+    streamData.attributeSets.append( set );
+  }
+
+#ifdef ISFQT_DEBUG_VERBOSE
+  qDebug() << "  - Added " << count << "default elements";
+#endif
 
 #ifdef ISFQT_DEBUG_VERBOSE
   qDebug() << "- Optimization phase complete";

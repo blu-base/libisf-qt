@@ -889,7 +889,6 @@ IsfError TagsParser::parseTransformation( StreamData& streamData, Drawing& drawi
   }
 
   streamData.transforms.append( transform );
-  drawing.addTransform( transform );
 
   // set this once when we get the first transformation. then,
   // everytime we get a TIDX we can update it. if we don't do this
