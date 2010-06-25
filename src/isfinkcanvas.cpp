@@ -408,6 +408,12 @@ void InkCanvas::mouseMoveEvent( QMouseEvent *event )
     return;
   }
 
+  if( drawing_ == 0 )
+  {
+    qWarning() << "Uninitialized usage of InkCanvas!";
+    return;
+  }
+
   if ( penType_ == EraserPen )
   {
     // is there a stroke here?
@@ -420,12 +426,6 @@ void InkCanvas::mouseMoveEvent( QMouseEvent *event )
       update();
     }
 
-    return;
-  }
-
-  if( drawing_ == 0 )
-  {
-    qWarning() << "Uninitialized usage of InkCanvas!";
     return;
   }
 
