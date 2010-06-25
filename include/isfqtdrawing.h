@@ -82,16 +82,12 @@ namespace Isf
       Stroke*                    stroke( quint32 );
       Stroke*                    strokeAtPoint( const QPoint& );
       const QList<Stroke*>       strokes();
-      QMatrix*                   transform( quint32 );
-      const QList<QMatrix*>      transforms();
 
     public: // public manipulation methods
       qint32                     addStroke( Stroke* );
       qint32                     addStroke( PointList = PointList() );
-      qint32                     addTransform( QMatrix* );
       bool                       deleteStroke( quint32 );
       bool                       deleteStroke( Stroke* );
-      bool                       deleteTransform( quint32 );
 
     private:
       QPainterPath               generatePainterPath( Stroke*, bool );
@@ -127,8 +123,6 @@ namespace Isf
       QSize                      size_;
       /// List of strokes composing this drawing
       QList<Stroke*>             strokes_;
-      /// Transformation matrices
-      QList<QMatrix*>            transforms_;
 
   };
 
