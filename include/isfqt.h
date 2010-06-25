@@ -41,6 +41,7 @@ namespace Isf
 {
   // Forward declarations
   class Drawing;
+  class StreamData;
 
 
 
@@ -137,8 +138,8 @@ namespace Isf
   , IsHighlighter  = 0x0100  ///< This stroke is an highlighter stroke
   , IsRectangle    = 0x0200  ///< Meaning unknown
   };
-  Q_DECLARE_FLAGS( StrokeFlags, StrokeFlag )
-  Q_DECLARE_OPERATORS_FOR_FLAGS( StrokeFlags )
+  Q_DECLARE_FLAGS( StrokeFlags, StrokeFlag );
+  Q_DECLARE_OPERATORS_FOR_FLAGS( StrokeFlags );
 
 
 
@@ -182,6 +183,14 @@ namespace Isf
     , units( vUnits )
     , resolution( vResolution )
     {
+    }
+    /// Quick comparison operator
+    bool operator ==( const Metric& other )
+    {
+      return min        == other.min
+          && max        == other.max
+          && units      == other.units
+          && resolution == other.resolution;
     }
 
     /// Minimum value
@@ -233,52 +242,6 @@ namespace Isf
 
 
   /**
-   * Drawing attributes for points.
-   */
-  struct AttributeSet
-  {
-    /// Constructor
-    AttributeSet()
-    : color( Qt::black )
-    , flags( 0x10 )        // Meaning unknown
-    , penSize( 8.f, 8.f )  // Default pen is 8.0 pixels wide
-    {
-    }
-
-    /// The stroke color, optionally with alpha channel
-    QColor       color;
-    /// Mask of StrokeFlags, @see StrokeFlags
-    StrokeFlags  flags;
-    /// Dimensions of the pencil in pixels
-    QSizeF       penSize;
-  };
-
-
-
-  /**
-   * Drawing attributes for strokes.
-   */
-  struct StrokeInfo
-  {
-    /// Constructor
-    StrokeInfo()
-    : hasPressureData( false )
-    , hasXData( true )
-    , hasYData( true )
-    {
-    }
-
-    /// Whether the stroke contains pressure info or not
-    bool hasPressureData;
-    /// Whether the stroke contains X coordinates or not
-    bool hasXData;
-    /// Whether the stroke contains Y coordinates or not
-    bool hasYData;
-  };
-
-
-
-  /**
    * A single point within a stroke.
    */
   struct Point
@@ -301,12 +264,25 @@ namespace Isf
     , pressureLevel( pressure )
     {
     }
+    /// Quick comparison operator
+    bool operator ==( const Point& other )
+    {
+      return position      == other.position
+          && pressureLevel == other.pressureLevel;
+    }
 
     /// coordinates
     QPoint      position;
     /// Pressure information
     qint64      pressureLevel;
   };
+
+
+
+  /**
+   * A list of Point items.
+   */
+  typedef QList<Point> PointList;
 
 
 
@@ -337,6 +313,8 @@ namespace Isf
       static QByteArray  writerGif( const Drawing &drawing, bool encodeToBase64 = false );
       static QByteArray  writerPng( const Drawing &drawing, bool encodeToBase64 = false );
 
+    private: // Private static properties
+      static StreamData streamData_;
   };
 
 }

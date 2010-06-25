@@ -44,6 +44,12 @@
 
 namespace Isf
 {
+  // Forward declarations
+  class Stroke;
+  namespace Compress
+  {
+    class DataSource;
+  }
 
 
 
@@ -115,6 +121,66 @@ namespace Isf
 
 
   /**
+   * Drawing attributes for points.
+   */
+  struct AttributeSet
+  {
+    /// Constructor
+    AttributeSet()
+    : color( Qt::black )
+    , flags( 0x10 )        // Meaning unknown
+    , penSize( 8.f, 8.f )  // Default pen is 8.0 pixels wide
+    {
+    }
+    /// Quick comparison operator
+    bool operator ==( const AttributeSet& other )
+    {
+      return color   == other.color
+          && flags   == other.flags
+          && penSize == other.penSize;
+    }
+    /// Quick comparison operator
+    bool operator !=( const AttributeSet& other )
+    {
+      return color   != other.color
+          || flags   != other.flags
+          || penSize != other.penSize;
+    }
+
+    /// The stroke color, optionally with alpha channel
+    QColor       color;
+    /// Mask of StrokeFlags, @see StrokeFlags
+    StrokeFlags  flags;
+    /// Dimensions of the pencil in pixels
+    QSizeF       penSize;
+  };
+
+
+
+  /**
+   * Drawing attributes for strokes.
+   */
+  struct StrokeInfo
+  {
+    /// Constructor
+    StrokeInfo()
+    : hasPressureData( false )
+    , hasXData( true )
+    , hasYData( true )
+    {
+    }
+
+    /// Whether the stroke contains pressure info or not
+    bool hasPressureData;
+    /// Whether the stroke contains X coordinates or not
+    bool hasXData;
+    /// Whether the stroke contains Y coordinates or not
+    bool hasYData;
+  };
+
+
+
+  /**
    * Bezier control points data
    */
   struct BezierData
@@ -124,6 +190,41 @@ namespace Isf
       QList<QPointF> knotPoints;
   };
 
+
+
+  /**
+   * Internal parser data
+   */
+  struct StreamData
+  {
+    StreamData()
+    : currentAttributeSetIndex( 0 )
+    , currentMetricsIndex( 0 )
+    , currentStrokeInfoIndex( 0 )
+    , currentTransformsIndex( 0 )
+    , dataSource( 0 )
+    {
+    }
+
+    /// List of attributes of the points in the drawing
+    QList<AttributeSet>        attributeSets;
+    /// Current attribute set
+    quint64                    currentAttributeSetIndex;
+    /// Current metrics set
+    quint64                    currentMetricsIndex;
+    /// Current stroke info
+    quint64                    currentStrokeInfoIndex;
+    /// Current transform
+    quint64                    currentTransformsIndex;
+    /// Raw bytes source used to read and write streams
+    Compress::DataSource*      dataSource;
+    /// List of metrics used in the drawing
+    QList<Metrics*>            metrics;
+    /// List of stroke info
+    QList<StrokeInfo*>         strokeInfos;
+    /// Transformation matrices
+    QList<QMatrix*>            transforms;
+  };
 
 
 }

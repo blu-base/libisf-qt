@@ -48,6 +48,10 @@ using namespace Compress;
 #define SUPPORTED_ISF_VERSION       0
 
 
+// Initialization of static properties
+StreamData Stream::streamData_;
+
+
 
 /**
  * Convert a raw ISF data stream into a drawing.
@@ -64,17 +68,19 @@ Drawing &Stream::reader( const QByteArray &rawData, bool decodeFromBase64 )
   // Create a new drawing on the heap to ensure it will keep
   // living after this method returns
   Drawing *drawing = new Drawing;
-  DataSource isfData( decodeFromBase64
-                        ? QByteArray::fromBase64( rawData )
-                        : rawData );
-  int size = isfData.size();
-
-  if( size == 0 )
-  {
-    return *drawing;
-  }
 
   ParserState state = ISF_PARSER_START;
+
+  streamData_.dataSource = new DataSource( decodeFromBase64
+                                            ? QByteArray::fromBase64( rawData )
+                                            : rawData );
+
+  int size = streamData_.dataSource->size();
+  if( size == 0 )
+  {
+    state = ISF_PARSER_FINISH;
+    drawing->error_ = ISF_ERROR_BAD_STREAMSIZE;
+  }
 
   while( state != ISF_PARSER_FINISH )
   {
@@ -83,7 +89,7 @@ Drawing &Stream::reader( const QByteArray &rawData, bool decodeFromBase64 )
       case ISF_PARSER_START:
       {
         // step 1: read ISF version.
-        quint8 version = decodeUInt( isfData );
+        quint8 version = decodeUInt( *streamData_.dataSource );
 #ifdef ISFQT_DEBUG_VERBOSE
         qDebug() << "Version:" << version;
 #endif
@@ -106,13 +112,13 @@ Drawing &Stream::reader( const QByteArray &rawData, bool decodeFromBase64 )
       {
         // read ISF stream size.
         // check it matches the length of the data array.
-        quint64 streamSize = decodeUInt( isfData );
+        quint64 streamSize = decodeUInt( *streamData_.dataSource );
 
-        if ( streamSize != (quint64)( isfData.size() - isfData.pos() ) )
+        if ( streamSize != (quint64)( streamData_.dataSource->size() - streamData_.dataSource->pos() ) )
         {
 #ifdef ISFQT_DEBUG
           qDebug() << "Invalid stream size" << streamSize
-                   << ", expected" << ( isfData.size() - isfData.pos() );
+                   << ", expected" << ( streamData_.dataSource->size() - streamData_.dataSource->pos() );
 #endif
           // streamsize is bad.
           drawing->error_ = ISF_ERROR_BAD_STREAMSIZE;
@@ -125,12 +131,6 @@ Drawing &Stream::reader( const QByteArray &rawData, bool decodeFromBase64 )
 #endif
           // Validate the drawing
           drawing->isNull_ = false;
-
-          // Fill up the default properties
-          drawing->currentMetrics_       = &drawing->defaultMetrics_;
-          drawing->currentAttributeSet_  = &drawing->defaultAttributeSet_;
-          drawing->currentStrokeInfo_    = &drawing->defaultStrokeInfo_;
-          drawing->currentTransform_     = &drawing->defaultTransform_;
 
           // start looking for ISF tags.
           state = ISF_PARSER_TAG;
@@ -145,14 +145,14 @@ Drawing &Stream::reader( const QByteArray &rawData, bool decodeFromBase64 )
       // *******************
       case ISF_PARSER_TAG:
       {
-        if( isfData.atEnd() )
+        if( streamData_.dataSource->atEnd() )
         {
           state = ISF_PARSER_FINISH;
           break;
         }
 
-        QString place( "0x" + QString::number( isfData.pos(), 16 ).toUpper() );
-        quint64 tagIndex = decodeUInt( isfData );
+        QString place( "0x" + QString::number( streamData_.dataSource->pos(), 16 ).toUpper() );
+        quint64 tagIndex = decodeUInt( *streamData_.dataSource );
 
         switch( tagIndex )
         {
@@ -160,49 +160,49 @@ Drawing &Stream::reader( const QByteArray &rawData, bool decodeFromBase64 )
 #ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "Got tag (@" << place << "): TAG_INK_SPACE_RECT";
 #endif
-            drawing->error_ = TagsParser::parseInkSpaceRectangle( isfData, *drawing );
+            drawing->error_ = TagsParser::parseInkSpaceRectangle( streamData_, *drawing );
             break;
 
           case TAG_GUID_TABLE:
 #ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "Got tag (@" << place << "): TAG_GUID_TABLE";
 #endif
-            drawing->error_ = TagsParser::parseGuidTable( isfData, *drawing );
+            drawing->error_ = TagsParser::parseGuidTable( streamData_, *drawing );
             break;
 
           case TAG_DRAW_ATTRS_TABLE:
 #ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "Got tag (@" << place << "): TAG_DRAW_ATTRS_TABLE";
 #endif
-            drawing->error_ = TagsParser::parseAttributeTable( isfData, *drawing );
+            drawing->error_ = TagsParser::parseAttributeTable( streamData_, *drawing );
             break;
 
           case TAG_DRAW_ATTRS_BLOCK:
 #ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "Got tag (@" << place << "): TAG_DRAW_ATTRS_BLOCK";
 #endif
-            drawing->error_ = TagsParser::parseAttributeBlock( isfData, *drawing );
+            drawing->error_ = TagsParser::parseAttributeBlock( streamData_, *drawing );
             break;
 
           case TAG_STROKE_DESC_TABLE:
 #ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "Got tag (@" << place << "): TAG_STROKE_DESC_TABLE";
 #endif
-            drawing->error_ = TagsParser::parseStrokeDescTable( isfData, *drawing );
+            drawing->error_ = TagsParser::parseStrokeDescTable( streamData_, *drawing );
             break;
 
           case TAG_STROKE_DESC_BLOCK:
 #ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "Got tag (@" << place << "): TAG_STROKE_DESC_BLOCK";
 #endif
-            drawing->error_ = TagsParser::parseStrokeDescBlock( isfData, *drawing );
+            drawing->error_ = TagsParser::parseStrokeDescBlock( streamData_, *drawing );
             break;
 
           case TAG_BUTTONS:
 #ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "Got tag (@" << place << "): TAG_BUTTONS";
 #endif
-            drawing->error_ = TagsParser::parseUnsupported( isfData, "TAG_BUTTONS" );
+            drawing->error_ = TagsParser::parseUnsupported( streamData_, "TAG_BUTTONS" );
             break;
 
           case TAG_NO_X:
@@ -227,11 +227,12 @@ Drawing &Stream::reader( const QByteArray &rawData, bool decodeFromBase64 )
             qDebug() << "Got tag (@" << place << "): TAG_DIDX";
 #endif
 
-            quint64 value = decodeUInt( isfData );
+            quint64 value = decodeUInt( *streamData_.dataSource );
 
-            if( value < (uint)drawing->attributeSets_.count() )
+            if( value < (uint)streamData_.attributeSets.count() )
             {
-              drawing->currentAttributeSet_ = drawing->attributeSets_[ value ];
+              streamData_.currentAttributeSetIndex = value;
+
 #ifdef ISFQT_DEBUG_VERBOSE
               qDebug() << "- Next strokes will use drawing attributes #" << value;
 #endif
@@ -249,21 +250,21 @@ Drawing &Stream::reader( const QByteArray &rawData, bool decodeFromBase64 )
 #ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "Got tag (@" << place << "): TAG_STROKE";
 #endif
-            drawing->error_ = TagsParser::parseStroke( isfData, *drawing );
+            drawing->error_ = TagsParser::parseStroke( streamData_, *drawing );
             break;
 
           case TAG_STROKE_PROPERTY_LIST:
 #ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "Got tag (@" << place << "): TAG_STROKE_PROPERTY_LIST";
 #endif
-            drawing->error_ = TagsParser::parseUnsupported( isfData, "TAG_STROKE_PROPERTY_LIST" );
+            drawing->error_ = TagsParser::parseUnsupported( streamData_, "TAG_STROKE_PROPERTY_LIST" );
             break;
 
           case TAG_POINT_PROPERTY:
 #ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "Got tag (@" << place << "): TAG_POINT_PROPERTY";
 #endif
-            drawing->error_ = TagsParser::parseUnsupported( isfData, "TAG_POINT_PROPERTY" );
+            drawing->error_ = TagsParser::parseUnsupported( streamData_, "TAG_POINT_PROPERTY" );
             break;
 
           case TAG_SIDX:
@@ -272,11 +273,12 @@ Drawing &Stream::reader( const QByteArray &rawData, bool decodeFromBase64 )
             qDebug() << "Got tag (@" << place << "): TAG_SIDX";
 #endif
 
-            quint64 value = decodeUInt( isfData );
+            quint64 value = decodeUInt( *streamData_.dataSource );
 
-            if( value < (uint)drawing->strokeInfo_.count() )
+            if( value < (uint)streamData_.strokeInfos.count() )
             {
-              drawing->currentStrokeInfo_ = drawing->strokeInfo_[ value ];
+              streamData_.currentStrokeInfoIndex = value
+;
 #ifdef ISFQT_DEBUG_VERBOSE
               qDebug() << "- Next strokes will use stroke info #" << value;
 #endif
@@ -294,63 +296,63 @@ Drawing &Stream::reader( const QByteArray &rawData, bool decodeFromBase64 )
 #ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "Got tag (@" << place << "): TAG_COMPRESSION_HEADER";
 #endif
-            drawing->error_ = TagsParser::parseUnsupported( isfData, "TAG_COMPRESSION_HEADER" );
+            drawing->error_ = TagsParser::parseUnsupported( streamData_, "TAG_COMPRESSION_HEADER" );
             break;
 
           case TAG_TRANSFORM_TABLE:
 #ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "Got tag (@" << place << "): TAG_TRANSFORM_TABLE";
 #endif
-            drawing->error_ = TagsParser::parseTransformationTable( isfData, *drawing );
+            drawing->error_ = TagsParser::parseTransformationTable( streamData_, *drawing );
             break;
 
           case TAG_TRANSFORM:
 #ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "Got tag (@" << place << "): TAG_TRANSFORM";
 #endif
-            drawing->error_ = TagsParser::parseTransformation( isfData, *drawing, tagIndex );
+            drawing->error_ = TagsParser::parseTransformation( streamData_, *drawing, tagIndex );
             break;
 
           case TAG_TRANSFORM_ISOTROPIC_SCALE:
 #ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "Got tag (@" << place << "): TAG_TRANSFORM_ISOTROPIC_SCALE";
 #endif
-            drawing->error_ = TagsParser::parseTransformation( isfData, *drawing, tagIndex );
+            drawing->error_ = TagsParser::parseTransformation( streamData_, *drawing, tagIndex );
             break;
 
           case TAG_TRANSFORM_ANISOTROPIC_SCALE:
 #ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "Got tag (@" << place << "): TAG_TRANSFORM_ANISOTROPIC_SCALE";
 #endif
-            drawing->error_ = TagsParser::parseTransformation( isfData, *drawing, tagIndex );
+            drawing->error_ = TagsParser::parseTransformation( streamData_, *drawing, tagIndex );
             break;
 
           case TAG_TRANSFORM_ROTATE:
 #ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "Got tag (@" << place << "): TAG_TRANSFORM_ROTATE";
 #endif
-            drawing->error_ = TagsParser::parseTransformation( isfData, *drawing, tagIndex );
+            drawing->error_ = TagsParser::parseTransformation( streamData_, *drawing, tagIndex );
             break;
 
           case TAG_TRANSFORM_TRANSLATE:
 #ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "Got tag (@" << place << "): TAG_TRANSFORM_TRANSLATE";
 #endif
-            drawing->error_ = TagsParser::parseTransformation( isfData, *drawing, tagIndex );
+            drawing->error_ = TagsParser::parseTransformation( streamData_, *drawing, tagIndex );
             break;
 
           case TAG_TRANSFORM_SCALE_AND_TRANSLATE:
 #ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "Got tag (@" << place << "): TAG_TRANSFORM_SCALE_AND_TRANSLATE";
 #endif
-            drawing->error_ = TagsParser::parseTransformation( isfData, *drawing, tagIndex );
+            drawing->error_ = TagsParser::parseTransformation( streamData_, *drawing, tagIndex );
             break;
 
           case TAG_TRANSFORM_QUAD:
 #ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "Got tag (@" << place << "): TAG_TRANSFORM_QUAD";
 #endif
-            drawing->error_ = TagsParser::parseTransformation( isfData, *drawing, tagIndex );
+            drawing->error_ = TagsParser::parseTransformation( streamData_, *drawing, tagIndex );
             break;
 
           case TAG_TIDX:
@@ -359,11 +361,12 @@ Drawing &Stream::reader( const QByteArray &rawData, bool decodeFromBase64 )
             qDebug() << "Got tag (@" << place << "): TAG_TIDX";
 #endif
 
-            quint64 value = decodeUInt( isfData );
+            quint64 value = decodeUInt( *streamData_.dataSource );
 
-            if( value < (uint)drawing->transforms_.count() )
+            if( value < (uint)streamData_.transforms.count() )
             {
-              drawing->currentTransform_ = drawing->transforms_[ value ];
+              streamData_.currentTransformsIndex = value;
+
 #ifdef ISFQT_DEBUG_VERBOSE
               qDebug() << "- Next strokes will use transform #" << value;
 #endif
@@ -382,14 +385,14 @@ Drawing &Stream::reader( const QByteArray &rawData, bool decodeFromBase64 )
 #ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "Got tag (@" << place << "): TAG_METRIC_TABLE";
 #endif
-            drawing->error_ = TagsParser::parseMetricTable( isfData, *drawing );
+            drawing->error_ = TagsParser::parseMetricTable( streamData_, *drawing );
             break;
 
           case TAG_METRIC_BLOCK:
 #ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "Got tag (@" << place << "): TAG_METRIC_BLOCK";
 #endif
-            drawing->error_ = TagsParser::parseMetricBlock( isfData, *drawing );
+            drawing->error_ = TagsParser::parseMetricBlock( streamData_, *drawing );
             break;
 
           case TAG_MIDX:
@@ -398,11 +401,12 @@ Drawing &Stream::reader( const QByteArray &rawData, bool decodeFromBase64 )
             qDebug() << "Got tag (@" << place << "): TAG_MIDX";
 #endif
 
-            quint64 value = decodeUInt( isfData );
+            quint64 value = decodeUInt( *streamData_.dataSource );
 
-            if( value < (uint)drawing->metrics_.count() )
+            if( value < (uint)streamData_.metrics.count() )
             {
-              drawing->currentMetrics_ = drawing->metrics_[ value ];
+              streamData_.currentMetricsIndex = value
+;
 #ifdef ISFQT_DEBUG_VERBOSE
               qDebug() << "- Next strokes will use metrics #" << value;
 #endif
@@ -421,21 +425,21 @@ Drawing &Stream::reader( const QByteArray &rawData, bool decodeFromBase64 )
 #ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "Got tag (@" << place << "): TAG_MANTISSA";
 #endif
-            drawing->error_ = TagsParser::parseUnsupported( isfData, "TAG_MANTISSA" );
+            drawing->error_ = TagsParser::parseUnsupported( streamData_, "TAG_MANTISSA" );
             break;
 
           case TAG_PERSISTENT_FORMAT:
 #ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "Got tag (@" << place << "): TAG_PERSISTENT_FORMAT";
 #endif
-            drawing->error_ = TagsParser::parsePersistentFormat( isfData, *drawing );
+            drawing->error_ = TagsParser::parsePersistentFormat( streamData_, *drawing );
             break;
 
           case TAG_HIMETRIC_SIZE:
 #ifdef ISFQT_DEBUG_VERBOSE
             qDebug() << "Got tag (@" << place << "): TAG_HIMETRIC_SIZE";
 #endif
-            drawing->error_ = TagsParser::parseHiMetricSize( isfData, *drawing );
+            drawing->error_ = TagsParser::parseHiMetricSize( streamData_, *drawing );
             break;
 
           case TAG_STROKE_IDS:
@@ -443,7 +447,7 @@ Drawing &Stream::reader( const QByteArray &rawData, bool decodeFromBase64 )
             qDebug() << "Got tag (@" << place << "): TAG_STROKE_IDS";
 #endif
 
-            drawing->error_ = TagsParser::parseUnsupported( isfData, "TAG_STROKE_IDS" );
+            drawing->error_ = TagsParser::parseUnsupported( streamData_, "TAG_STROKE_IDS" );
             break;
 
           default:
@@ -455,11 +459,11 @@ Drawing &Stream::reader( const QByteArray &rawData, bool decodeFromBase64 )
 #ifdef ISFQT_DEBUG_VERBOSE
               qDebug() << "Got tag (@" << place << "): TAG_CUSTOM:" << tagIndex;
 #endif
-              TagsParser::parseCustomTag( isfData, *drawing, tagIndex );
+              TagsParser::parseCustomTag( streamData_, *drawing, tagIndex );
             }
             else
             {
-              TagsParser::parseUnsupported( isfData, "Unknown " + QString::number( tagIndex ) );
+              TagsParser::parseUnsupported( streamData_, "Unknown " + QString::number( tagIndex ) );
             }
             break;
 
@@ -489,6 +493,9 @@ Drawing &Stream::reader( const QByteArray &rawData, bool decodeFromBase64 )
   qDebug();
 #endif
 
+  delete streamData_.dataSource;
+  streamData_.dataSource = 0;
+
   if( drawing->error_ != ISF_ERROR_NONE )
   {
     return *drawing;
@@ -500,7 +507,6 @@ Drawing &Stream::reader( const QByteArray &rawData, bool decodeFromBase64 )
   QSize penSize( drawing->maxPenSize_.toSize() );
   drawing->boundingRect_.adjust( -penSize.width() - 1, -penSize.height() - 1,
                                  +penSize.width() + 1, +penSize.height() + 1 );
-
 
 #ifdef ISFQT_DEBUG_VERBOSE
   qDebug() << "Drawing bounding rectangle:" << drawing->boundingRect_;
@@ -699,41 +705,50 @@ QByteArray Stream::writer( const Drawing &drawing, bool encodeToBase64 )
     return QByteArray();
   }
 
-  DataSource isfData;
+  streamData_.dataSource = new DataSource();
+
+  // Add the initial data
+  TagsWriter::prepare( streamData_, drawing );
 
   // Write the persistent format tag
-  TagsWriter::addPersistentFormat( isfData, drawing );
+  TagsWriter::addPersistentFormat( streamData_, drawing );
 
   // Write the drawing size
-  TagsWriter::addHiMetricSize( isfData, drawing );
+  TagsWriter::addHiMetricSize( streamData_, drawing );
 
   // Write the attributes
-  TagsWriter::addAttributeTable( isfData, drawing );
+  TagsWriter::addAttributeTable( streamData_, drawing );
 
   // Write the metrics
-  TagsWriter::addMetricsTable( isfData, drawing );
+  TagsWriter::addMetricsTable( streamData_, drawing );
 
   // Write the transforms
-  TagsWriter::addTransformationTable( isfData, drawing );
+  TagsWriter::addTransformationTable( streamData_, drawing );
 
   // Write the strokes
-  TagsWriter::addStrokes( isfData, drawing );
+  TagsWriter::addStrokes( streamData_, drawing );
+
+
+  DataSource& dataSource = *streamData_.dataSource;
 
   // Write the stream size (at the start of the stream)
-  encodeUInt( isfData, isfData.size(), true/*prepend*/ );
+  encodeUInt( dataSource, dataSource.size(), true/*prepend*/ );
 
   // Write the version number (at the start of the stream)
-  encodeUInt( isfData, SUPPORTED_ISF_VERSION, true/*prepend*/ );
+  encodeUInt( dataSource, SUPPORTED_ISF_VERSION, true/*prepend*/ );
 
+  QByteArray data( dataSource.data() );
+
+  delete streamData_.dataSource;
 
   // Convert to Base64 if needed
   if( encodeToBase64 )
   {
-    return isfData.data().toBase64();
+    return data.toBase64();
   }
   else
   {
-    return isfData.data();
+    return data;
   }
 }
 
