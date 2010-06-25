@@ -34,7 +34,7 @@ namespace Isf
 
       quint8 index( const QList<qint64> &data );
       bool deflate( QByteArray &encodedData, quint8 index, const QList<qint64> &source );
-      bool inflate( DataSource &source, quint64 length, quint8 index, QList<qint64> &decodedData );
+      bool inflate( DataSource* source, quint64 length, quint8 index, QList<qint64>& decodedData );
 
     }
   }

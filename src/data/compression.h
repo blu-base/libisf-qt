@@ -112,10 +112,10 @@ namespace Isf
     };
 
 
-    bool inflatePacketData( DataSource &source, quint64 length, QList<qint64> &decodedData );
+    bool inflatePacketData( DataSource* source, quint64 length, QList<qint64>& decodedData );
     bool deflatePacketData( QByteArray &destination, const QList<qint64> &decodedData );
 
-    bool inflatePropertyData( DataSource &source, quint64 length, QList<qint64> &decodedData );
+    bool inflatePropertyData( DataSource* source, quint64 length, QList<qint64>& decodedData );
     bool deflatePropertyData( QByteArray &destination, const QList<qint64> &decodedData );
 
   }

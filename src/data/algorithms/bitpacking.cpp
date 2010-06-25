@@ -158,7 +158,7 @@ bool BitPackingAlgorithm::deflate( QByteArray &encodedData, quint8 blockSize, co
  * @param decodedData List where to place decompressed values
  * @return bool
  */
-bool BitPackingAlgorithm::inflate( DataSource &source, quint64 length, quint8 blockSize, QList<qint64> &decodedData )
+bool BitPackingAlgorithm::inflate( DataSource* source, quint64 length, quint8 blockSize, QList<qint64>& decodedData )
 {
   if( blockSize > 64 )
   {
@@ -166,7 +166,7 @@ bool BitPackingAlgorithm::inflate( DataSource &source, quint64 length, quint8 bl
     blockSize = 64; // Fuck it :P
   }
 
-  if( source.atEnd() )
+  if( source->atEnd() )
   {
     qWarning() << "Cannot inflate: no more bits available!";
     return true;
@@ -178,7 +178,7 @@ bool BitPackingAlgorithm::inflate( DataSource &source, quint64 length, quint8 bl
 
   while( index++ < length )
   {
-    value = source.getBits( blockSize );
+    value = source->getBits( blockSize );
 
     // If the mask matches, the sign bit is set, so ORing value and mask will
     // set all leftmost bits to 1, making it a real 64bit signed integer

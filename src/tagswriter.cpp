@@ -46,7 +46,7 @@ using namespace Isf::Compress;
  * @param drawing Drawing from which to obtain the data to write
  * @return IsfError
  */
-IsfError TagsWriter::addPersistentFormat( StreamData& streamData, const Drawing& drawing )
+IsfError TagsWriter::addPersistentFormat( StreamData* streamData, const Drawing& drawing )
 {
   Q_UNUSED( drawing );
 
@@ -57,7 +57,7 @@ IsfError TagsWriter::addPersistentFormat( StreamData& streamData, const Drawing&
   tagContents.prepend( encodeUInt( tagContents.size() ) );
   tagContents.prepend( encodeUInt( TAG_PERSISTENT_FORMAT ) );
 
-  streamData.dataSource->append( tagContents );
+  streamData->dataSource->append( tagContents );
 
 #ifdef ISFQT_DEBUG_VERBOSE
   qDebug() << "- Persistent Format version";
@@ -75,7 +75,7 @@ IsfError TagsWriter::addPersistentFormat( StreamData& streamData, const Drawing&
  * @param drawing Drawing from which to obtain the data to write
  * @return IsfError
  */
-IsfError TagsWriter::addHiMetricSize( StreamData& streamData, const Drawing& drawing )
+IsfError TagsWriter::addHiMetricSize( StreamData* streamData, const Drawing& drawing )
 {
   QByteArray tagContents;
 
@@ -83,9 +83,9 @@ IsfError TagsWriter::addHiMetricSize( StreamData& streamData, const Drawing& dra
   tagContents.append( encodeInt( size.x() ) );
   tagContents.append( encodeInt( size.y() ) );
 
-  encodeUInt( *streamData.dataSource, TAG_HIMETRIC_SIZE );
-  encodeUInt( *streamData.dataSource, tagContents.size() );
-  streamData.dataSource->append( tagContents );
+  encodeUInt( streamData->dataSource, TAG_HIMETRIC_SIZE );
+  encodeUInt( streamData->dataSource, tagContents.size() );
+  streamData->dataSource->append( tagContents );
 
 #ifdef ISFQT_DEBUG_VERBOSE
   qDebug() << "- Added drawing dimensions:" << size;
@@ -106,7 +106,7 @@ IsfError TagsWriter::addHiMetricSize( StreamData& streamData, const Drawing& dra
  * @param drawing Drawing from which to obtain the data to write
  * @return IsfError
  */
-IsfError TagsWriter::addAttributeTable( StreamData& streamData, const Drawing& drawing )
+IsfError TagsWriter::addAttributeTable( StreamData* streamData, const Drawing& drawing )
 {
   QByteArray   blockData;
   QByteArray   tagContents;
@@ -117,22 +117,22 @@ IsfError TagsWriter::addAttributeTable( StreamData& streamData, const Drawing& d
 #endif
 
   // Add default attributes if the drawing didn't contain any
-  if( streamData.attributeSets.isEmpty() )
+  if( streamData->attributeSets.isEmpty() )
   {
 #ifdef ISFQT_DEBUG_VERBOSE
     qDebug() << "- Adding a default attribute set...";
 #endif
     AttributeSet set;
-    streamData.attributeSets.append( set );
+    streamData->attributeSets.append( set );
   }
 #ifdef ISFQT_DEBUG_VERBOSE
   else
   {
-    qDebug() << "- Adding" << streamData.attributeSets.count() << "attributes...";
+    qDebug() << "- Adding" << streamData->attributeSets.count() << "attributes...";
   }
 #endif
 
-  foreach( const AttributeSet set, streamData.attributeSets )
+  foreach( const AttributeSet set, streamData->attributeSets )
   {
     // Add the color to the attribute block
     if( set.color != defaultAttributeSet.color )
@@ -223,7 +223,7 @@ IsfError TagsWriter::addAttributeTable( StreamData& streamData, const Drawing& d
 #endif
   }
 
-  if( streamData.attributeSets.count() > 1 )
+  if( streamData->attributeSets.count() > 1 )
   {
     tagContents.prepend( encodeUInt( tagContents.size() ) );
     tagContents.prepend( encodeUInt( TAG_DRAW_ATTRS_TABLE ) );
@@ -233,7 +233,7 @@ IsfError TagsWriter::addAttributeTable( StreamData& streamData, const Drawing& d
     tagContents.prepend( encodeUInt( TAG_DRAW_ATTRS_BLOCK ) );
   }
 
-  streamData.dataSource->append( tagContents );
+  streamData->dataSource->append( tagContents );
 
   return ISF_ERROR_NONE;
 }
@@ -250,7 +250,7 @@ IsfError TagsWriter::addAttributeTable( StreamData& streamData, const Drawing& d
  * @param drawing Drawing from which to obtain the data to write
  * @return IsfError
  */
-IsfError TagsWriter::addMetricsTable( StreamData& streamData, const Drawing& drawing )
+IsfError TagsWriter::addMetricsTable( StreamData* streamData, const Drawing& drawing )
 {
   QByteArray   metricData;
   QByteArray   metricBlockData;
@@ -259,11 +259,11 @@ IsfError TagsWriter::addMetricsTable( StreamData& streamData, const Drawing& dra
   Metric      *defaultMetric;
 
 #ifdef ISFQT_DEBUG_VERBOSE
-  qDebug() << "- Adding" << streamData.metrics.count() << "metrics...";
+  qDebug() << "- Adding" << streamData->metrics.count() << "metrics...";
   quint8 counter = 0;
 #endif
 
-  foreach( const Metrics *metrics, streamData.metrics )
+  foreach( const Metrics *metrics, streamData->metrics )
   {
     QMapIterator<int,Metric> it( metrics->items );
     while( it.hasNext() )
@@ -309,17 +309,17 @@ IsfError TagsWriter::addMetricsTable( StreamData& streamData, const Drawing& dra
 #endif
   }
 
-  if( streamData.metrics.count() > 1 )
+  if( streamData->metrics.count() > 1 )
   {
     tagData.prepend( encodeUInt( TAG_METRIC_TABLE ) );
   }
-  else if ( streamData.metrics.count() == 1 )
+  else if ( streamData->metrics.count() == 1 )
   {
     tagData.prepend( encodeUInt( TAG_METRIC_BLOCK ) );
   }
   // else: don't do anything.
 
-  streamData.dataSource->append( tagData );
+  streamData->dataSource->append( tagData );
 
   return ISF_ERROR_NONE;
 }
@@ -336,7 +336,7 @@ IsfError TagsWriter::addMetricsTable( StreamData& streamData, const Drawing& dra
  * @param drawing Drawing from which to obtain the data to write
  * @return IsfError
  */
-IsfError TagsWriter::addTransformationTable( StreamData& streamData, const Drawing& drawing )
+IsfError TagsWriter::addTransformationTable( StreamData* streamData, const Drawing& drawing )
 {
   QByteArray blockData;
   QByteArray tagContents;
@@ -353,11 +353,11 @@ IsfError TagsWriter::addTransformationTable( StreamData& streamData, const Drawi
    */
 
 #ifdef ISFQT_DEBUG_VERBOSE
-  qDebug() << "- Adding" << streamData.transforms.count() << "transformations...";
+  qDebug() << "- Adding" << streamData->transforms.count() << "transformations...";
   quint8 counter = 0;
 #endif
 
-  foreach( const QMatrix *trans, streamData.transforms )
+  foreach( const QMatrix *trans, streamData->transforms )
   {
     /*
      * All transforms are written backwards because they're stored my most
@@ -459,7 +459,7 @@ IsfError TagsWriter::addTransformationTable( StreamData& streamData, const Drawi
   }
 
 
-  if ( streamData.transforms.size() == 0 )
+  if ( streamData->transforms.size() == 0 )
   {
 #ifdef ISFQT_DEBUG_VERBOSE
     qDebug() << "- Added default transformation";
@@ -473,13 +473,13 @@ IsfError TagsWriter::addTransformationTable( StreamData& streamData, const Drawi
     tagContents.append( TAG_TRANSFORM_ISOTROPIC_SCALE );
     tagContents.append( encodeFloat( defaultTransform.m11() * HiMetricToPixel ) );
   }
-  else if ( streamData.transforms.size() > 1 )
+  else if ( streamData->transforms.size() > 1 )
   {
     tagContents.prepend( encodeUInt( tagContents.size() ) );
     tagContents.prepend( encodeUInt( TAG_TRANSFORM_TABLE ) );
   }
 
-  streamData.dataSource->append( tagContents );
+  streamData->dataSource->append( tagContents );
 
   return ISF_ERROR_NONE;
 }
@@ -493,7 +493,7 @@ IsfError TagsWriter::addTransformationTable( StreamData& streamData, const Drawi
  * @param drawing Drawing from which to obtain the data to write
  * @return IsfError
  */
-IsfError TagsWriter::addStrokes( StreamData& streamData, const Drawing& drawing )
+IsfError TagsWriter::addStrokes( StreamData* streamData, const Drawing& drawing )
 {
   QByteArray blockData;
   QByteArray tagContents;
@@ -511,13 +511,13 @@ IsfError TagsWriter::addStrokes( StreamData& streamData, const Drawing& drawing 
   foreach( Stroke* stroke, drawing.strokes_ )
   {
     // There is more than one set of metrics, assign each stroke to its own
-    if( streamData.metrics.count() > 1 )
+    if( streamData->metrics.count() > 1 )
     {
       // Make sure that the first strokes use the first metrics list (write a MIDX only
       // when needed)
       if( currentMetrics == 0 )
       {
-        currentMetrics = streamData.metrics.first();
+        currentMetrics = streamData->metrics.first();
       }
 
       // Only write a MIDX if this stroke needs different metrics than the last stroke
@@ -526,12 +526,12 @@ IsfError TagsWriter::addStrokes( StreamData& streamData, const Drawing& drawing 
       {
         currentMetrics = metrics;
         blockData.append( encodeUInt( TAG_MIDX ) );
-        blockData.append( encodeUInt( streamData.metrics.indexOf( metrics ) ) );
+        blockData.append( encodeUInt( streamData->metrics.indexOf( metrics ) ) );
       }
     }
 
     // There is more than one set of attributes, assign each stroke to its own
-    if( streamData.attributeSets.count() > 1 )
+    if( streamData->attributeSets.count() > 1 )
     {
       // Only write a DIDX if this stroke needs a different attribute set than the last stroke
       if( currentAttributeSet.color   != stroke->color()
@@ -543,17 +543,17 @@ IsfError TagsWriter::addStrokes( StreamData& streamData, const Drawing& drawing 
         currentAttributeSet.penSize = stroke->penSize();
 
         blockData.append( encodeUInt( TAG_DIDX ) );
-        blockData.append( encodeUInt( streamData.attributeSets.indexOf( currentAttributeSet ) ) );
+        blockData.append( encodeUInt( streamData->attributeSets.indexOf( currentAttributeSet ) ) );
       }
     }
 
     // Make sure that the first strokes use the first transform (write a TIDX only
     // when needed)
-    if ( streamData.transforms.count() > 0 )
+    if ( streamData->transforms.count() > 0 )
     {
       if( currentTransform == 0 )
       {
-        currentTransform = streamData.transforms.first();
+        currentTransform = streamData->transforms.first();
       }
 
       // Only write a TIDX if this stroke needs a different transform than the last stroke
@@ -561,7 +561,7 @@ IsfError TagsWriter::addStrokes( StreamData& streamData, const Drawing& drawing 
       {
         currentTransform = stroke->transform();
         blockData.append( encodeUInt( TAG_TIDX ) );
-        blockData.append( encodeUInt( streamData.transforms.indexOf( stroke->transform() ) ) );
+        blockData.append( encodeUInt( streamData->transforms.indexOf( stroke->transform() ) ) );
       }
     }
 
@@ -598,7 +598,7 @@ IsfError TagsWriter::addStrokes( StreamData& streamData, const Drawing& drawing 
 #endif
   }
 
-  streamData.dataSource->append( tagContents );
+  streamData->dataSource->append( tagContents );
 
   return ISF_ERROR_NONE;
 }
@@ -612,15 +612,15 @@ IsfError TagsWriter::addStrokes( StreamData& streamData, const Drawing& drawing 
  * @param drawing Drawing from which to obtain the data to write
  * @return IsfError
  */
-IsfError TagsWriter::prepare( StreamData& streamData, const Drawing& drawing )
+IsfError TagsWriter::prepare( StreamData* streamData, const Drawing& drawing )
 {
 #ifdef ISFQT_DEBUG_VERBOSE
   qDebug() << "- Optimizing data...";
 #endif
 
-  streamData.attributeSets.clear();
-  streamData.metrics.clear();
-  streamData.transforms.clear();
+  streamData->attributeSets.clear();
+  streamData->metrics.clear();
+  streamData->transforms.clear();
 
 #ifdef ISFQT_DEBUG_VERBOSE
   qDebug() << "  - " << drawing.strokes_.count() << "strokes to optimize";
@@ -637,17 +637,17 @@ IsfError TagsWriter::prepare( StreamData& streamData, const Drawing& drawing )
     Metrics* metrics = stroke->metrics();
     QMatrix* transform = stroke->transform();
 
-    if( ! streamData.attributeSets.contains( set ) )
+    if( ! streamData->attributeSets.contains( set ) )
     {
-      streamData.attributeSets.append( set );
+      streamData->attributeSets.append( set );
     }
-    if( metrics && ! streamData.metrics.contains( metrics ) )
+    if( metrics && ! streamData->metrics.contains( metrics ) )
     {
-      streamData.metrics.append( metrics );
+      streamData->metrics.append( metrics );
     }
-    if( transform && ! streamData.transforms.contains( transform ) )
+    if( transform && ! streamData->transforms.contains( transform ) )
     {
-      streamData.transforms.append( transform );
+      streamData->transforms.append( transform );
     }
   }
 
@@ -656,13 +656,13 @@ IsfError TagsWriter::prepare( StreamData& streamData, const Drawing& drawing )
 #endif
 
   // Add default elements if the drawing didn't contain any
-  if( streamData.attributeSets.isEmpty() )
+  if( streamData->attributeSets.isEmpty() )
   {
 #ifdef ISFQT_DEBUG_VERBOSE
   qDebug() << "  - Added " << count << "default elements";
 #endif
     AttributeSet set;
-    streamData.attributeSets.append( set );
+    streamData->attributeSets.append( set );
   }
 
 #ifdef ISFQT_DEBUG_VERBOSE

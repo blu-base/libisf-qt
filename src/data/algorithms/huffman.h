@@ -33,12 +33,12 @@ namespace Isf
     {
 
       bool   deflate( QByteArray &encodedData, quint8 index, const QList<qint64> &source );
-      bool   inflate( DataSource &source, quint64 length, quint8 index, QList<qint64> &decodedData );
+      bool   inflate( DataSource* source, quint64 length, quint8 index, QList<qint64>& decodedData );
       quint8 index( const QList<qint64> &data );
 
       // Internal use methods
 
-      bool   deflateValue( DataSource &output, quint8 index, qint64 value );
+      bool   deflateValue( DataSource* output, quint8 index, qint64 value );
 
     }
   }
