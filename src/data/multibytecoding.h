@@ -37,18 +37,18 @@ namespace Isf
   namespace Compress
   {
 
-    quint64    decodeUInt( DataSource &source );
-    qint64     decodeInt( DataSource &source );
-    float      decodeFloat( DataSource &source );
+    quint64    decodeUInt( DataSource* source );
+    qint64     decodeInt( DataSource* source );
+    float      decodeFloat( DataSource* source );
 
     QByteArray encodeUInt( quint64 value );
-    void       encodeUInt( DataSource &source, quint64 value, bool prepend = false );
+    void       encodeUInt( DataSource* source, quint64 value, bool prepend = false );
 
     QByteArray encodeInt( qint64 value );
-    void       encodeInt( DataSource &source, qint64 value, bool prepend = false );
+    void       encodeInt( DataSource* source, qint64 value, bool prepend = false );
 
     QByteArray encodeFloat( float value );
-    void       encodeFloat( DataSource &source, float value, bool prepend = false );
+    void       encodeFloat( DataSource* source, float value, bool prepend = false );
 
     quint8     getMultiByteSize( quint64 value );
     quint8     getMultiByteSize( qint64 value );

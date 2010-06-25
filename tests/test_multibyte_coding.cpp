@@ -138,7 +138,7 @@ void TestMultibyteCoding::unsignedDecode()
   data.append( Q_UINT64_C(0x7D) ); // decimal 125
   data.reset(); // To re-read the appended bytes
 
-  result = Isf::Compress::decodeUInt( data );
+  result = Isf::Compress::decodeUInt( &data );
 
   QVERIFY(result == Q_UINT64_C(0x7D) );
 
@@ -150,7 +150,7 @@ void TestMultibyteCoding::unsignedDecode()
   data.append( Q_UINT64_C(0x01) );
   data.reset(); // To re-read the appended bytes
 
-  result = Isf::Compress::decodeUInt( data );
+  result = Isf::Compress::decodeUInt( &data );
   QVERIFY( result == Q_UINT64_C(0x80) );
 
   data.clear();
@@ -162,7 +162,7 @@ void TestMultibyteCoding::unsignedDecode()
   data.append( Q_UINT64_C(0x03) );
   data.reset(); // To re-read the appended bytes
 
-  result = Isf::Compress::decodeUInt( data );
+  result = Isf::Compress::decodeUInt( &data );
   QVERIFY( result == Q_UINT64_C(0xFFFF) );
 }
 
@@ -189,7 +189,7 @@ void TestMultibyteCoding::signedDecode()
   data.append( (char)((0x0A << 1) | 0x01) );
   data.reset(); // To re-read the appended byte
 
-  result = Isf::Compress::decodeInt( data );
+  result = Isf::Compress::decodeInt( &data );
   QVERIFY( result == Q_INT64_C(-10) );
 
   data.clear();
@@ -200,7 +200,7 @@ void TestMultibyteCoding::signedDecode()
   data.append( Q_INT64_C(0x01) );
   data.reset(); // To re-read the appended byte
 
-  result = Isf::Compress::decodeInt( data );
+  result = Isf::Compress::decodeInt( &data );
   QVERIFY( result == Q_INT64_C(-64) );
 
   data.clear();
@@ -211,7 +211,7 @@ void TestMultibyteCoding::signedDecode()
   data.append( Q_INT64_C(0x01) );
   data.reset(); // To re-read the appended byte
 
-  result = Isf::Compress::decodeInt( data );
+  result = Isf::Compress::decodeInt( &data );
   QVERIFY( result == Q_INT64_C(100) );
 
   data.clear();
@@ -222,7 +222,7 @@ void TestMultibyteCoding::signedDecode()
   data.append( Q_INT64_C(0x07) );
   data.reset(); // To re-read the appended byte
 
-  result = Isf::Compress::decodeInt( data );
+  result = Isf::Compress::decodeInt( &data );
   QVERIFY( result == Q_INT64_C(-500) );
 }
 
@@ -254,7 +254,7 @@ void TestMultibyteCoding::floatDecode()
   data.append( Q_INT64_C(0xC1) );
   data.reset(); // To re-read the appended bytes
 
-  result = Isf::Compress::decodeFloat( data );
+  result = Isf::Compress::decodeFloat( &data );
   QVERIFY( result == -12.345678901f );
 }
 

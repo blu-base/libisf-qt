@@ -40,7 +40,7 @@ using namespace Isf;
  * @param source Data Source where to read bytes from
  * @return quint64
  */
-quint64 Compress::decodeUInt( DataSource &source )
+quint64 Compress::decodeUInt( DataSource* source )
 {
   quint8 byte;       // Current byte
   quint8 flag;       // Used to find out if there are more bytes to convert
@@ -49,7 +49,7 @@ quint64 Compress::decodeUInt( DataSource &source )
 
   do
   {
-    byte   = source.getByte();
+    byte   = source->getByte();
     flag   = byte & 0x80;
     value |= (byte & 0x7F) << count;
     count += 7;
@@ -67,7 +67,7 @@ quint64 Compress::decodeUInt( DataSource &source )
  * @param source Data Source where to read bytes from
  * @return qint64
  */
-qint64 Compress::decodeInt( DataSource &source )
+qint64 Compress::decodeInt( DataSource* source )
 {
   bool isNegative = false;
   qint64 value = decodeUInt( source );
@@ -98,7 +98,7 @@ qint64 Compress::decodeInt( DataSource &source )
  * @param source Data Source where to read bytes from
  * @return float
  */
-float Compress::decodeFloat( DataSource &source )
+float Compress::decodeFloat( DataSource* source )
 {
   qint8 index;
 
@@ -113,14 +113,14 @@ float Compress::decodeFloat( DataSource &source )
   index = 3;
   do
   {
-    data.bytes[ index-- ] = source.getByte();
+    data.bytes[ index-- ] = source->getByte();
   }
   while( index >= 0 );
 #else
   index = 0;
   do
   {
-    data.bytes[ index++ ] = source.getByte();
+    data.bytes[ index++ ] = source->getByte();
   }
   while( index <= 3 );
 #endif
@@ -170,17 +170,17 @@ QByteArray Compress::encodeUInt( quint64 value )
   * @param prepend  False (default value) to append the encoded value to the existing data
   *                 True to prepend the new value to the existing data
   */
-void Compress::encodeUInt( DataSource &source, quint64 value, bool prepend )
+void Compress::encodeUInt( DataSource* source, quint64 value, bool prepend )
 {
   QByteArray result( encodeUInt( value ) );
 
   if( prepend )
   {
-    source.prepend( result );
+    source->prepend( result );
   }
   else
   {
-    source.append( result );
+    source->append( result );
   }
 }
 
@@ -226,17 +226,17 @@ QByteArray Compress::encodeInt( qint64 value )
   * @param prepend  False (default value) to append the encoded value to the existing data
   *                 True to prepend the new value to the existing data
   */
-void Compress::encodeInt( DataSource &source, qint64 value, bool prepend )
+void Compress::encodeInt( DataSource* source, qint64 value, bool prepend )
 {
   QByteArray result( encodeInt( value ) );
 
   if( prepend )
   {
-    source.prepend( result );
+    source->prepend( result );
   }
   else
   {
-    source.append( result );
+    source->append( result );
   }
 }
 
@@ -291,17 +291,17 @@ QByteArray Compress::encodeFloat( float value )
   * @param prepend  False (default value) to append the encoded value to the existing data
   *                 True to prepend the new value to the existing data
   */
-void Compress::encodeFloat( DataSource &source, float value, bool prepend )
+void Compress::encodeFloat( DataSource* source, float value, bool prepend )
 {
   QByteArray result( encodeFloat( value ) );
 
   if( prepend )
   {
-    source.prepend( result );
+    source->prepend( result );
   }
   else
   {
-    source.append( result );
+    source->append( result );
   }
 }
 

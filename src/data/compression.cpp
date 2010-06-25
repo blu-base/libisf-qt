@@ -42,9 +42,9 @@ using namespace Isf;
  * @param decodedData List where to store the decoded values
  * @return bool
  */
-bool Compress::inflatePacketData( DataSource &source, quint64 length, QList<qint64> &decodedData )
+bool Compress::inflatePacketData( DataSource* source, quint64 length, QList<qint64>& decodedData )
 {
-  if( source.atEnd() )
+  if( source->atEnd() )
   {
 #ifdef ISFQT_DEBUG
     qWarning() << "Source was at end!";
@@ -53,7 +53,7 @@ bool Compress::inflatePacketData( DataSource &source, quint64 length, QList<qint
   }
 
   bool    result;
-  uchar   byte          = source.getByte();
+  uchar   byte          = source->getByte();
   qint16  algorithm     = ( byte & AlgorithmMask );
   quint8  algorithmData = 0;
 
@@ -68,7 +68,7 @@ bool Compress::inflatePacketData( DataSource &source, quint64 length, QList<qint
       * We need an ISF stream with such a characteristic to be sure.
       */
     qWarning() << "Unknown decompression method!";
-    qDebug()   << "[Information - type: best, byte:" << QString::number( source.getByte(), 16 ) << "hex]";
+    qDebug()   << "[Information - type: best, byte:" << QString::number( source->getByte(), 16 ) << "hex]";
     return false;
   }
   // Use the "default compression" algorithm, which is Huffman
@@ -137,15 +137,15 @@ bool Compress::inflatePacketData( DataSource &source, quint64 length, QList<qint
       qDebug()   << "[Information - type: unknown, byte:" << QString::number( byte, 16 ) << "hex]";
 
       // Go back to the previous read position
-      source.seekRelative( -1 );
+      source->seekRelative( -1 );
 
       break;
   }
 
   // Discard any partially read bytes
-  if( ! source.atEnd() )
+  if( ! source->atEnd() )
   {
-    source.skipToNextByte();
+    source->skipToNextByte();
   }
 
   return result;
@@ -244,9 +244,9 @@ bool Compress::deflatePacketData( QByteArray &encodedData, const QList<qint64> &
  * @param decodedData List where to store the decoded values
  * @return bool
  */
-bool Compress::inflatePropertyData( DataSource &source, quint64 length, QList<qint64> &decodedData )
+bool Compress::inflatePropertyData( DataSource* source, quint64 length, QList<qint64>& decodedData )
 {
-  if( source.atEnd() )
+  if( source->atEnd() )
   {
 #ifdef ISFQT_DEBUG
     qWarning() << "Source was at end!";
@@ -255,7 +255,7 @@ bool Compress::inflatePropertyData( DataSource &source, quint64 length, QList<qi
   }
 
   bool    result;
-  quint8  byte          = source.getByte();
+  quint8  byte          = source->getByte();
   qint16  algorithm     = ( byte & AlgorithmMask );
   quint8  algorithmData = 0;
 
@@ -270,7 +270,7 @@ bool Compress::inflatePropertyData( DataSource &source, quint64 length, QList<qi
       * We need an ISF stream with such a characteristic to be sure.
       */
     qWarning() << "Unknown decompression method!";
-    qDebug()   << "[Information - type: default, byte:" << QString::number( source.getByte(), 16 ) << "hex]";
+    qDebug()   << "[Information - type: default, byte:" << QString::number( source->getByte(), 16 ) << "hex]";
     return false;
   }
   // Use the "best compression" algorithm, which is Huffman
@@ -379,15 +379,15 @@ bool Compress::inflatePropertyData( DataSource &source, quint64 length, QList<qi
     qDebug()   << "[Information - type: unknown, byte:" << QString::number( byte, 16 ) << "hex]";
 
       // Go back to the previous read position
-      source.seekRelative( -1 );
+      source->seekRelative( -1 );
 
       break;
   }
 
   // Discard any partially read bytes
-  if( ! source.atEnd() )
+  if( ! source->atEnd() )
   {
-    source.skipToNextByte();
+    source->skipToNextByte();
   }
 
   return result;

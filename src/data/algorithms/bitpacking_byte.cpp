@@ -163,7 +163,7 @@ bool BitPackingByteAlgorithm::deflate( QByteArray &encodedData, quint8 index, co
  * @param decodedData List where to place decompressed values
  * @return bool
  */
-bool BitPackingByteAlgorithm::inflate( DataSource &source, quint64 length, quint8 index, QList<qint64> &decodedData )
+bool BitPackingByteAlgorithm::inflate( DataSource* source, quint64 length, quint8 index, QList<qint64>& decodedData )
 {
   if( index > 24 )
   {
@@ -171,7 +171,7 @@ bool BitPackingByteAlgorithm::inflate( DataSource &source, quint64 length, quint
     index = 24; // Fuck it :P
   }
 
-  if( source.atEnd() )
+  if( source->atEnd() )
   {
     qWarning() << "Cannot inflate: no more bits available!";
     return true;
@@ -185,7 +185,7 @@ bool BitPackingByteAlgorithm::inflate( DataSource &source, quint64 length, quint
   quint64 pos = 0;
   while( pos++ < count )
   {
-    quint8 byte = source.getBits( cBits, &ok );
+    quint8 byte = source->getBits( cBits, &ok );
 
     if( ! ok )
     {

@@ -314,7 +314,7 @@ namespace Isf
       static QByteArray  writerPng( const Drawing &drawing, bool encodeToBase64 = false );
 
     private: // Private static properties
-      static StreamData streamData_;
+      static StreamData* streamData_;
   };
 
 }

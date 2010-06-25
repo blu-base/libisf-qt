@@ -95,7 +95,7 @@ bool HuffmanAlgorithm::deflate( QByteArray &encodedData, quint8 index, const QLi
 
   foreach( quint64 value, source )
   {
-    if( ! deflateValue( output, index, value ) )
+    if( ! deflateValue( &output, index, value ) )
     {
 #ifdef ISFQT_DEBUG
       qDebug() << "Deflating failure for value:" << value;
@@ -121,7 +121,7 @@ bool HuffmanAlgorithm::deflate( QByteArray &encodedData, quint8 index, const QLi
  * @param value Value to compress
  * @return bool
  */
-bool HuffmanAlgorithm::deflateValue( DataSource &output, quint8 index, qint64 value )
+bool HuffmanAlgorithm::deflateValue( DataSource* output, quint8 index, qint64 value )
 {
   qint64 temp = value;
   quint8 requiredBits = 0;
@@ -182,8 +182,8 @@ bool HuffmanAlgorithm::deflateValue( DataSource &output, quint8 index, qint64 va
   }
 
   // Add the bits to the data source
-  output.append( bits );
-  output.append( valueBits );
+  output->append( bits );
+  output->append( valueBits );
 
   return true;
 }
@@ -199,7 +199,7 @@ bool HuffmanAlgorithm::deflateValue( DataSource &output, quint8 index, qint64 va
  * @param decodedData List where to place decompressed values
  * @return bool
  */
-bool HuffmanAlgorithm::inflate( DataSource &source, quint64 length, quint8 index, QList<qint64> &decodedData )
+bool HuffmanAlgorithm::inflate( DataSource* source, quint64 length, quint8 index, QList<qint64>& decodedData )
 {
   QVector<int> huffmanBases;
   QVector<int> bitAmounts( HUFFMAN_BASE_SIZE );
@@ -238,7 +238,7 @@ bool HuffmanAlgorithm::inflate( DataSource &source, quint64 length, quint8 index
 
   while( (uint)decodedData.length() < length )
   {
-    bit = source.getBit();
+    bit = source->getBit();
 
     if( bit )
     {
@@ -252,7 +252,7 @@ bool HuffmanAlgorithm::inflate( DataSource &source, quint64 length, quint8 index
     }
     else if( count < (uint)bitAmounts.size() )
     {
-      quint64 offset = source.getBits( bitAmounts[ count ] );
+      quint64 offset = source->getBits( bitAmounts[ count ] );
       bool sign = offset & 0x1;
       offset /= 2;
       value = huffmanBases[ count ] + offset;
