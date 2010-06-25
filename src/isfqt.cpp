@@ -505,11 +505,12 @@ Drawing &Stream::reader( const QByteArray &rawData, bool decodeFromBase64 )
 
   // Adjust the bounding rectangle to include the strokes borders
   QSize penSize( drawing->maxPenSize_.toSize() );
-  drawing->boundingRect_.adjust( -penSize.width() - 1, -penSize.height() - 1,
-                                 +penSize.width() + 1, +penSize.height() + 1 );
+  streamData_.boundingRect.adjust( -penSize.width() - 1, -penSize.height() - 1,
+                                   +penSize.width() + 1, +penSize.height() + 1 );
+  drawing->setBoundingRect( streamData_.boundingRect );
 
 #ifdef ISFQT_DEBUG_VERBOSE
-  qDebug() << "Drawing bounding rectangle:" << drawing->boundingRect_;
+  qDebug() << "Drawing bounding rectangle:" << drawing->boundingRect();
   qDebug() << "Maximum thickness:" << drawing->maxPenSize_;
 #endif
 

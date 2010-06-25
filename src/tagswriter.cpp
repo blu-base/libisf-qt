@@ -79,15 +79,16 @@ IsfError TagsWriter::addHiMetricSize( StreamData& streamData, const Drawing& dra
 {
   QByteArray tagContents;
 
-  tagContents.append( encodeInt( drawing.size().width () ) );
-  tagContents.append( encodeInt( drawing.size().height() ) );
+  QPoint size( drawing.boundingRect().bottomRight() );
+  tagContents.append( encodeInt( size.x() ) );
+  tagContents.append( encodeInt( size.y() ) );
 
   encodeUInt( *streamData.dataSource, TAG_HIMETRIC_SIZE );
   encodeUInt( *streamData.dataSource, tagContents.size() );
   streamData.dataSource->append( tagContents );
 
 #ifdef ISFQT_DEBUG_VERBOSE
-  qDebug() << "- Added drawing dimensions:" << drawing.size_;
+  qDebug() << "- Added drawing dimensions:" << size;
 #endif
 
   return ISF_ERROR_NONE;

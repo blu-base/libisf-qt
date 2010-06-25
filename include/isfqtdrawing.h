@@ -78,6 +78,7 @@ namespace Isf
       qint32                     indexOfStroke( const Stroke* ) const;
       bool                       isNull() const;
       QPixmap                    pixmap( const QColor = Qt::transparent );
+      void                       setBoundingRect( QRect );
       QSize                      size() const;
       Stroke*                    stroke( quint32 );
       Stroke*                    strokeAtPoint( const QPoint& );
@@ -120,8 +121,6 @@ namespace Isf
       quint64                    maxGuid_;
       /// Maximum thickness of the strokes
       QSizeF                     maxPenSize_;
-      /// Pixel size of the drawing
-      QSize                      size_;
       /// List of strokes composing this drawing
       QList<Stroke*>             strokes_;
 

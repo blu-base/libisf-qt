@@ -315,7 +315,7 @@ IsfError TagsParser::parseHiMetricSize( StreamData& streamData, Drawing& drawing
     return ISF_ERROR_INVALID_PAYLOAD;
   }
 
-  if( drawing.size_.isValid() )
+  if( streamData.boundingRect.isValid() )
   {
 #ifdef ISFQT_DEBUG
     qDebug() << "Duplicated TAG_HIMETRIC_SIZE!";
@@ -323,11 +323,14 @@ IsfError TagsParser::parseHiMetricSize( StreamData& streamData, Drawing& drawing
     return ISF_ERROR_INVALID_STREAM;
   }
 
-  drawing.size_.setWidth ( decodeInt( *streamData.dataSource ) );
-  drawing.size_.setHeight( decodeInt( *streamData.dataSource ) );
+
+  streamData.boundingRect = QRect( 0, 0, 0, 0 );
+  streamData.boundingRect.setWidth ( decodeInt( *streamData.dataSource ) );
+  streamData.boundingRect.setHeight( decodeInt( *streamData.dataSource ) );
+
 
 #ifdef ISFQT_DEBUG_VERBOSE
-  qDebug() << "- Drawing dimensions:" << drawing.size_;
+  qDebug() << "- Drawing dimensions:" << drawing.size();
 #endif
 
   return ISF_ERROR_NONE;

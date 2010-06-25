@@ -568,6 +568,20 @@ QPixmap Drawing::pixmap( const QColor backgroundColor )
 
 
 /**
+ * Change the bounding rectangle of the drawing.
+ *
+ * Adding, removing or changing the strokes will change it back to the real rectangle.
+ *
+ * @param newRect the new bounding rectangle
+ */
+void Drawing::setBoundingRect( QRect newRect )
+{
+  boundingRect_ = newRect;
+}
+
+
+
+/**
  * Retrieve a stroke to manipulate.
  *
  * @param index Index of the stroke to get
@@ -750,6 +764,10 @@ bool Drawing::isNull() const
  */
 void Drawing::updateBoundingRect()
 {
+#ifdef ISFQT_DEBUG_VERBOSE
+  QRect oldRect( boundingRect_ );
+#endif
+
   boundingRect_ = QRect();
   foreach( Stroke *stroke, strokes_ )
   {
