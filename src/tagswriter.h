@@ -52,13 +52,13 @@ namespace Isf
   class TagsWriter
   {
     public: // Static public methods
-      static IsfError addPersistentFormat( StreamData* streamData, const Drawing& drawing );
-      static IsfError addHiMetricSize( StreamData* streamData, const Drawing& drawing );
-      static IsfError addAttributeTable( StreamData* streamData, const Drawing& drawing );
-      static IsfError addMetricsTable( StreamData* streamData, const Drawing& drawing );
-      static IsfError addTransformationTable( StreamData* streamData, const Drawing& drawing );
-      static IsfError addStrokes( StreamData* streamData, const Drawing& drawing );
-      static IsfError prepare( StreamData* streamData, const Drawing& drawing );
+      static IsfError addPersistentFormat( StreamData* streamData, const Drawing* drawing );
+      static IsfError addHiMetricSize( StreamData* streamData, const Drawing* drawing );
+      static IsfError addAttributeTable( StreamData* streamData, const Drawing* drawing );
+      static IsfError addMetricsTable( StreamData* streamData, const Drawing* drawing );
+      static IsfError addTransformationTable( StreamData* streamData, const Drawing* drawing );
+      static IsfError addStrokes( StreamData* streamData, const Drawing* drawing );
+      static IsfError prepare( StreamData* streamData, const Drawing* drawing );
   };
 }
 
