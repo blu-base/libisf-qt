@@ -116,7 +116,7 @@ void TestIsfDrawing::createDrawing()
 
 // read some test raw ISF data from a file on the filesystem and
 // return it as a QByteArray.
-void TestIsfDrawing::readTestIsfData( const QString &filename, QByteArray &byteArray )
+void TestIsfDrawing::readTestIsfData( const QString& filename, QByteArray& byteArray )
 {
   QFile file( filename );
   QVERIFY( file.exists() );

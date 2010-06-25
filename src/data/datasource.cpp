@@ -51,7 +51,7 @@ DataSource::DataSource()
  *
  * @param data Byte array to copy and use as data source
  */
-DataSource::DataSource( const QByteArray &data )
+DataSource::DataSource( const QByteArray& data )
 : currentBitIndex_( 8 )
 {
   buffer_.setData( data );
@@ -109,7 +109,7 @@ void DataSource::append( char byte )
  *
  * @param constBits The list of bits to append
  */
-void DataSource::append( const QBitArray &constBits )
+void DataSource::append( const QBitArray& constBits )
 {
   if( constBits.size() == 0 )
   {
@@ -202,7 +202,7 @@ void DataSource::append( const QBitArray &constBits )
  *
  * @param bytes The bytes to append
  */
-void DataSource::append( const QByteArray &bytes )
+void DataSource::append( const QByteArray& bytes )
 {
   bool wasEmpty = ( buffer_.size() == 0 );
 
@@ -274,7 +274,7 @@ void DataSource::clear()
  *
  * @return byte array
  */
-const QByteArray &DataSource::data() const
+const QByteArray& DataSource::data() const
 {
   return buffer_.data();
 }
@@ -328,7 +328,7 @@ quint8 DataSource::getBitIndex()
  * @param ok If set, it will contain whether the call was successful or not.
  * @return bool
  */
-bool DataSource::getBit( bool *ok )
+bool DataSource::getBit( bool* ok )
 {
   if( currentBitIndex_ >= 8 )
   {
@@ -367,7 +367,7 @@ bool DataSource::getBit( bool *ok )
  * @param ok If set, it will contain whether the call was successful or not.
  * @return quint64 with the set of read bits
  */
-quint64 DataSource::getBits( quint8 amount, bool *ok )
+quint64 DataSource::getBits( quint8 amount, bool* ok )
 {
   if( amount > 64 )
   {
@@ -436,7 +436,7 @@ quint64 DataSource::getBits( quint8 amount, bool *ok )
  * @param ok If set, it will contain whether the call was successful or not.
  * @return char
  */
-char DataSource::getByte( bool *ok )
+char DataSource::getByte( bool* ok )
 {
   bool   gotBitOk;
   quint8 pos      = 0;
@@ -480,7 +480,7 @@ char DataSource::getByte( bool *ok )
  * @param ok If set, it will contain whether the call was successful or not.
  * @return byte array of read bytes
  */
-QByteArray DataSource::getBytes( quint8 amount, bool *ok )
+QByteArray DataSource::getBytes( quint8 amount, bool* ok )
 {
   QByteArray bytes;
   bool       gotByteOk;
@@ -600,7 +600,7 @@ void DataSource::prepend( char byte )
  *
  * @param bytes Bytes to add
  */
-void DataSource::prepend( const QByteArray &bytes )
+void DataSource::prepend( const QByteArray& bytes )
 {
   buffer_.buffer().prepend( bytes );
 
@@ -663,7 +663,7 @@ void DataSource::seekRelative( int pos )
  *
  * @param data New array to copy and use as the data source
  */
-void DataSource::setData( const QByteArray &data )
+void DataSource::setData( const QByteArray& data )
 {
   buffer_.close();
   buffer_.setData( data );

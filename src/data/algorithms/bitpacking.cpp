@@ -36,7 +36,7 @@ using namespace Isf::Compress;
  * @param data Data to analyze
  * @return Block size
  */
-quint8 BitPackingAlgorithm::blockSize( const QList<qint64> &data )
+quint8 BitPackingAlgorithm::blockSize( const QList<qint64>& data )
 {
   quint8 blockSize = 0;
   qint64 num;
@@ -78,7 +78,7 @@ quint8 BitPackingAlgorithm::blockSize( const QList<qint64> &data )
  * @param source List of values to compress
  * @return bool
  */
-bool BitPackingAlgorithm::deflate( QByteArray &encodedData, quint8 blockSize, const QList<qint64> &source )
+bool BitPackingAlgorithm::deflate( QByteArray& encodedData, quint8 blockSize, const QList<qint64>& source )
 {
   if( blockSize > 64 )
   {

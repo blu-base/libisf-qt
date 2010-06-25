@@ -31,7 +31,7 @@ using namespace Isf::Compress;
  * @param data Data to transform - the list will be modified.
  * @return bool
  */
-bool Delta::transform( QList<qint64> &data )
+bool Delta::transform( QList<qint64>& data )
 {
   qint64 currentDelta  = 0;
   qint64 previousDelta = 0;
@@ -57,7 +57,7 @@ bool Delta::transform( QList<qint64> &data )
  * @param data Data to transform - the list will be modified.
  * @return bool
  */
-bool Delta::inverseTransform( QList<qint64> &data )
+bool Delta::inverseTransform( QList<qint64>& data )
 {
   qint64 currentDelta  = 0;
   qint64 previousDelta = 0;

@@ -68,7 +68,7 @@ namespace Isf
 
     public: // public constructors
                                  Drawing();
-                                 Drawing( const Drawing & );
+                                 Drawing( const Drawing&  );
                                 ~Drawing();
 
     public: // public state retrieval methods

@@ -67,7 +67,7 @@ const int huffmanBases_[HUFFMAN_BASES_NUM][HUFFMAN_BASE_SIZE] =
  * @param data Data to analyze
  * @return index value
  */
-quint8 HuffmanAlgorithm::index( const QList<qint64> &data )
+quint8 HuffmanAlgorithm::index( const QList<qint64>& data )
 {
   quint8 index = 0;
 
@@ -88,7 +88,7 @@ quint8 HuffmanAlgorithm::index( const QList<qint64> &data )
  * @param source List of values to compress
  * @return bool
  */
-bool HuffmanAlgorithm::deflate( QByteArray &encodedData, quint8 index, const QList<qint64> &source )
+bool HuffmanAlgorithm::deflate( QByteArray& encodedData, quint8 index, const QList<qint64>& source )
 {
   DataSource output( encodedData );
   output.skipToNextByte();

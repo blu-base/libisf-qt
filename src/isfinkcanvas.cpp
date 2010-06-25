@@ -43,7 +43,7 @@ using namespace Isf;
  *
  * @param parent The parent widget.
  */
-InkCanvas:: InkCanvas( QWidget *parent )
+InkCanvas:: InkCanvas( QWidget* parent )
 : QWidget( parent )
 , erasingImage_( false )
 , drawing_( 0 )
@@ -150,9 +150,9 @@ void InkCanvas::clearBuffer()
  * are free to do whatever you like with this pointer.
  *
  * \code
- * InkCanvas *canvas = new InkCanvas( this );
+ * InkCanvas* canvas = new InkCanvas( this );
  *
- * Isf::Drawing *drawing = canvas->drawing();
+ * Isf::Drawing* drawing = canvas->drawing();
  * delete drawing; // bad! deleting an object internal to InkCanvas.
  *
  * canvas->setDrawing( existingIsfDrawingInstance );
@@ -165,7 +165,7 @@ void InkCanvas::clearBuffer()
  * @see setDrawing()
  * @return The current Isf::Drawing instance.
  */
-Isf::Drawing *InkCanvas::drawing()
+Isf::Drawing* InkCanvas::drawing()
 {
   return drawing_;
 }
@@ -181,7 +181,7 @@ Isf::Drawing *InkCanvas::drawing()
  * @see mousePressEvent()
  * @param endPoint Final point of the line
  */
-void InkCanvas::drawLineTo( const QPoint &endPoint )
+void InkCanvas::drawLineTo( const QPoint& endPoint )
 {
   if( drawing_ == 0 )
   {
@@ -190,7 +190,7 @@ void InkCanvas::drawLineTo( const QPoint &endPoint )
   }
 
   // draw the "in progress" strokes on the buffer.
-  QPainter painter( &(bufferPixmap_) );
+  QPainter painter( &bufferPixmap_ );
   painter.setRenderHints( QPainter::Antialiasing | QPainter::SmoothPixmapTransform, true );
 
   QColor color = color_;
@@ -260,7 +260,7 @@ bool InkCanvas::isEmpty()
  * @see mouseReleaseEvent()
  * @param event The mouse button press event
  */
-void InkCanvas::mousePressEvent( QMouseEvent *event )
+void InkCanvas::mousePressEvent( QMouseEvent* event )
 {
   if( drawing_ == 0 )
   {
@@ -279,7 +279,7 @@ void InkCanvas::mousePressEvent( QMouseEvent *event )
   {
     // is there a stroke here?
     QPoint point = event->pos();
-    Stroke *s = drawing_->strokeAtPoint( point );
+    Stroke* s = drawing_->strokeAtPoint( point );
     if ( s != 0 )
     {
       drawing_->deleteStroke( s );
@@ -325,7 +325,7 @@ void InkCanvas::mousePressEvent( QMouseEvent *event )
  * @see mouseReleaseEvent()
  * @param event The mouse move event
  */
-void InkCanvas::mouseMoveEvent( QMouseEvent *event )
+void InkCanvas::mouseMoveEvent( QMouseEvent* event )
 {
   if( ! ( event->buttons() & Qt::LeftButton ) || ! scribbling_ )
   {
@@ -342,7 +342,7 @@ void InkCanvas::mouseMoveEvent( QMouseEvent *event )
   {
     // is there a stroke here?
     QPoint point = event->pos();
-    Stroke *s = drawing_->strokeAtPoint( point );
+    Stroke* s = drawing_->strokeAtPoint( point );
     if ( s != 0 )
     {
       drawing_->deleteStroke( s );
@@ -386,7 +386,7 @@ void InkCanvas::mouseMoveEvent( QMouseEvent *event )
  * @see mouseMoveEvent()
  * @param event The mouse release event
  */
-void InkCanvas::mouseReleaseEvent( QMouseEvent *event )
+void InkCanvas::mouseReleaseEvent( QMouseEvent* event )
 {
   if( drawing_ == 0 )
   {
@@ -460,7 +460,7 @@ void InkCanvas::mouseReleaseEvent( QMouseEvent *event )
  *
  * @param event The paint event from Qt.
  */
-void InkCanvas::paintEvent( QPaintEvent *event )
+void InkCanvas::paintEvent( QPaintEvent* event )
 {
   Q_UNUSED( event );
 
@@ -544,7 +544,7 @@ InkCanvas::PenType InkCanvas::penType()
  *
  * @param event The resizing event.
  */
-void InkCanvas::resizeEvent( QResizeEvent *event )
+void InkCanvas::resizeEvent( QResizeEvent* event )
 {
   // need to resize the buffer pixmap.
   clearBuffer();
@@ -603,7 +603,7 @@ void InkCanvas::setCanvasColor( QColor newColor )
  *
  * @param drawing The new Ink drawing to display.
  */
-void InkCanvas::setDrawing( Isf::Drawing *drawing )
+void InkCanvas::setDrawing( Isf::Drawing* drawing )
 {
   drawing_ = drawing;
 

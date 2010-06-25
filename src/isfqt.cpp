@@ -63,11 +63,11 @@ StreamData* Stream::streamData_( 0 );
  *                         need to be decoded first
  * @return an Isf::Drawing, with null contents on error
  */
-Drawing &Stream::reader( const QByteArray &rawData, bool decodeFromBase64 )
+Drawing& Stream::reader( const QByteArray& rawData, bool decodeFromBase64 )
 {
   // Create a new drawing on the heap to ensure it will keep
   // living after this method returns
-  Drawing *drawing = new Drawing();
+  Drawing* drawing = new Drawing();
 
   ParserState state = ISF_PARSER_START;
 
@@ -538,7 +538,7 @@ Drawing &Stream::reader( const QByteArray &rawData, bool decodeFromBase64 )
  *                         need to be decoded first
  * @return an Isf::Drawing, with null contents on error
  */
-Drawing &Stream::readerGif( const QByteArray &gifRawBytes, bool decodeFromBase64 )
+Drawing& Stream::readerGif( const QByteArray& gifRawBytes, bool decodeFromBase64 )
 {
   QByteArray isfData;
 
@@ -559,7 +559,7 @@ Drawing &Stream::readerGif( const QByteArray &gifRawBytes, bool decodeFromBase64
   gifData.open( QIODevice::ReadOnly );
 
   // Open the gif file
-  GifFileType *gifImage = DGifOpen( (void*)&gifData, GifReadFromByteArray );
+  GifFileType* gifImage = DGifOpen( (void*)&gifData, GifReadFromByteArray );
   if( gifImage != 0 )
   {
     DGifGetComment( gifImage, data?? );
@@ -643,7 +643,7 @@ Drawing &Stream::readerGif( const QByteArray &gifRawBytes, bool decodeFromBase64
  *                         need to be decoded first
  * @return an Isf::Drawing, with null contents on error
  */
-Drawing &Stream::readerPng( const QByteArray &pngRawBytes, bool decodeFromBase64 )
+Drawing& Stream::readerPng( const QByteArray& pngRawBytes, bool decodeFromBase64 )
 {
   QByteArray isfData;
 
@@ -699,7 +699,7 @@ bool Stream::supportsGif()
  *                       encoded with Base64 or not
  * @return Byte array with an ISF data stream
  */
-QByteArray Stream::writer( const Drawing &drawing, bool encodeToBase64 )
+QByteArray Stream::writer( const Drawing& drawing, bool encodeToBase64 )
 {
   if( &drawing == 0 || drawing.isNull() || drawing.error() != ISF_ERROR_NONE )
   {
@@ -777,7 +777,7 @@ QByteArray Stream::writer( const Drawing &drawing, bool encodeToBase64 )
  *                       encoded with Base64 or not
  * @return Byte array with a GIF data stream (optionally encoded with Base64)
  */
-QByteArray Stream::writerGif( const Drawing &drawing, bool encodeToBase64 )
+QByteArray Stream::writerGif( const Drawing& drawing, bool encodeToBase64 )
 {
   QByteArray imageBytes;
 
@@ -798,8 +798,8 @@ QByteArray Stream::writerGif( const Drawing &drawing, bool encodeToBase64 )
 
   // Initialise the gif variables
   QBuffer         gifData;
-  GifFileType    *gifImage  = NULL;
-  ColorMapObject *cmap      = NULL;
+  GifFileType*    gifImage  = NULL;
+  ColorMapObject* cmap      = NULL;
   int             height    = isfImage.height();
   int             width     = isfImage.width();
   int             numColors = 0;
@@ -990,7 +990,7 @@ writeError:
  *                       encoded with Base64 or not
  * @return Byte array with a PNG data stream (optionally encoded with Base64)
  */
-QByteArray Stream::writerPng( const Drawing &drawing, bool encodeToBase64 )
+QByteArray Stream::writerPng( const Drawing& drawing, bool encodeToBase64 )
 {
   Drawing source( drawing );
 

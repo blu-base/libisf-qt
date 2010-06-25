@@ -42,7 +42,7 @@ namespace Isf
    * @class InkCanvas
    * @brief This is a control designed for the drawing and display of Ink.
    *
-   * InkCanvas is used for drawing and displaying Ink. The currently displayed Ink drawing can be retrieved 
+   * InkCanvas is used for drawing and displaying Ink. The currently displayed Ink drawing can be retrieved
    * or set using the drawing() and setDrawing() methods.
    *
    * To set the properties of the current pen, use the setPenColor(), setPenSize() and setPenType() methods.
@@ -51,7 +51,7 @@ namespace Isf
    * Example:
    *
    * \code
-   * InkCanvas *canvas = new Isf::InkCanvas( this );
+   * InkCanvas* canvas = new Isf::InkCanvas( this );
    * canvas->setPenColor( Qt::blue );
    * canvas->setPenSize( 10 );
    *
@@ -62,7 +62,7 @@ namespace Isf
    * // now an eraser will be used and strokes can be erased individually.
    * \endcode
    *
-   * To return the currently displayed Ink as a QImage, use image(). To return the raw ISF data, suitable 
+   * To return the currently displayed Ink as a QImage, use image(). To return the raw ISF data, suitable
    * for saving to disk or sending over a network, use bytes().
    *
    * To write the ISF data directly to a QIODevice, such as a file, use the save() method.
@@ -94,37 +94,37 @@ namespace Isf
       };
 
     public: // public constructors
-                          InkCanvas( QWidget *parent = 0 );
-                        ~InkCanvas();
+                          InkCanvas( QWidget* = 0 );
+                         ~InkCanvas();
 
     public: // public methods
       QByteArray          bytes();
-      Isf::Drawing       *drawing();
+      Isf::Drawing*       drawing();
       QImage              image();
       bool                isEmpty();
       QColor              penColor();
       int                 penSize();
       PenType             penType();
-      void                save( QIODevice &device, bool base64 = false );
-      void                setDrawing( Isf::Drawing *drawing );
+      void                save( QIODevice&, bool = false );
+      void                setDrawing( Isf::Drawing* );
       virtual QSize       sizeHint() const;
 
     public slots:
       void                clear();
-      void                setCanvasColor( QColor newColor );
-      void                setPenColor( QColor newColor );
-      void                setPenSize( int pixels );
-      void                setPenType( PenType type );
+      void                setCanvasColor( QColor );
+      void                setPenColor( QColor );
+      void                setPenSize( int );
+      void                setPenType( PenType );
 
     protected: // protected methods
-      void                mousePressEvent( QMouseEvent *event );
-      void                mouseMoveEvent( QMouseEvent *event );
-      void                mouseReleaseEvent( QMouseEvent *event );
-      void                paintEvent( QPaintEvent *event );
-      void                resizeEvent( QResizeEvent *event );
+      void                mousePressEvent( QMouseEvent* );
+      void                mouseMoveEvent( QMouseEvent* );
+      void                mouseReleaseEvent( QMouseEvent* );
+      void                paintEvent( QPaintEvent* );
+      void                resizeEvent( QResizeEvent* );
 
     private: // private methods
-      void                drawLineTo( const QPoint &endPoint );
+      void                drawLineTo( const QPoint& );
       void                clearBuffer();
       void                updateCursor();
 
@@ -140,7 +140,7 @@ namespace Isf
       /// It's true if the erase brush was selected
       bool                erasingImage_;
       /// Current drawing being manipulated
-      Isf::Drawing       *drawing_;
+      Isf::Drawing*       drawing_;
       /// Initial drawing, can be overridden with drawing_
       Isf::Drawing        initialDrawing_;
       /// Last point where the mouse pointer was released
@@ -152,7 +152,7 @@ namespace Isf
       /// Pen type
       PenType             penType_;
       /// The current stroke being drawn
-      Isf::Stroke         *currentStroke_;
+      Isf::Stroke*        currentStroke_;
       /// The pixmap buffer where in progress strokes are drawn
       QPixmap             bufferPixmap_;
       /// Cache pixmap so the Ink isn't redrawn on every mouse move
@@ -161,7 +161,7 @@ namespace Isf
       bool                drawingDirty_;
 
     signals:
-      /// Emitted when the ink representation is modified (stroke drawn, 
+      /// Emitted when the ink representation is modified (stroke drawn,
       /// stroke deleted, current drawing changed).
       void                inkChanged();
   };

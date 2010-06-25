@@ -130,7 +130,7 @@ class TestDecode : public QMainWindow, private Ui::TestDecode
 
     // read some test raw ISF data from a file on the filesystem and
     // return it as a QByteArray.
-    QByteArray readTestIsfData( const QString &filename )
+    QByteArray readTestIsfData( const QString& filename )
     {
       QFile file( filename );
       if ( !file.exists() )
@@ -154,7 +154,7 @@ class TestDecode : public QMainWindow, private Ui::TestDecode
 
     // read some test raw ISF data from a file on the filesystem and
     // return it as a QByteArray.
-    void saveTestIsfData( const QByteArray &data )
+    void saveTestIsfData( const QByteArray& data )
     {
       static int number = 1;
       QString fileName( "test" + QString::number( number ) + "." );

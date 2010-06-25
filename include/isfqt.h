@@ -253,13 +253,13 @@ namespace Isf
     {
     }
     /// Constructor with point only
-    Point( const QPoint &point )
+    Point( const QPoint& point )
     : position( point )
     , pressureLevel( 0 )
     {
     }
     /// Constructor with point and pressure
-    Point( const QPoint &point, const qint64 pressure )
+    Point( const QPoint& point, const qint64 pressure )
     : position( point )
     , pressureLevel( pressure )
     {
@@ -305,13 +305,13 @@ namespace Isf
 
     public: // Public static methods
 
-      static Drawing    &reader( const QByteArray &isfData, bool decodeFromBase64 = false );
-      static Drawing    &readerGif( const QByteArray &gifRawBytes, bool decodeFromBase64 = false );
-      static Drawing    &readerPng( const QByteArray &pngRawBytes, bool decodeFromBase64 = false );
+      static Drawing    &reader( const QByteArray&, bool = false );
+      static Drawing    &readerGif( const QByteArray&, bool = false );
+      static Drawing    &readerPng( const QByteArray&, bool = false );
       static bool        supportsGif();
-      static QByteArray  writer( const Drawing &drawing, bool encodeToBase64 = false );
-      static QByteArray  writerGif( const Drawing &drawing, bool encodeToBase64 = false );
-      static QByteArray  writerPng( const Drawing &drawing, bool encodeToBase64 = false );
+      static QByteArray  writer( const Drawing&, bool = false );
+      static QByteArray  writerGif( const Drawing&, bool = false );
+      static QByteArray  writerPng( const Drawing&, bool = false );
 
     private: // Private static properties
       static StreamData* streamData_;

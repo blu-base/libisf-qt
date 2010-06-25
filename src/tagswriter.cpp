@@ -201,9 +201,6 @@ IsfError TagsWriter::addAttributeTable( StreamData* streamData, const Drawing& d
       }
 */
 
-      // Add FitToCurve too for now, as a test
-//       flags |= FitToCurve;
-
       // Copy the other flags as they are
       blockData.append( encodeUInt( GUID_DRAWING_FLAGS ) );
       blockData.append( encodeUInt( flags ) );
@@ -256,21 +253,21 @@ IsfError TagsWriter::addMetricsTable( StreamData* streamData, const Drawing& dra
   QByteArray   metricBlockData;
   QByteArray   tagData;
   Metrics      defaultMetrics;
-  Metric      *defaultMetric;
+  Metric*      defaultMetric;
 
 #ifdef ISFQT_DEBUG_VERBOSE
   qDebug() << "- Adding" << streamData->metrics.count() << "metrics...";
   quint8 counter = 0;
 #endif
 
-  foreach( const Metrics *metrics, streamData->metrics )
+  foreach( const Metrics* metrics, streamData->metrics )
   {
     QMapIterator<int,Metric> it( metrics->items );
     while( it.hasNext() )
     {
       it.next();
-      const quint64 &property = it.key  ();
-      const Metric  &metric   = it.value();
+      const quint64& property = it.key  ();
+      const Metric&  metric   = it.value();
 
       // Skip metrics which are set to the default
       defaultMetric = &defaultMetrics.items[ property ];
@@ -357,7 +354,7 @@ IsfError TagsWriter::addTransformationTable( StreamData* streamData, const Drawi
   quint8 counter = 0;
 #endif
 
-  foreach( const QMatrix *trans, streamData->transforms )
+  foreach( const QMatrix* trans, streamData->transforms )
   {
     /*
      * All transforms are written backwards because they're stored my most
@@ -505,8 +502,8 @@ IsfError TagsWriter::addStrokes( StreamData* streamData, const Drawing& drawing 
 
   // Last set of attibutes applied to a stroke
   AttributeSet   currentAttributeSet;
-  const Metrics *currentMetrics   = 0;
-  const QMatrix *currentTransform = 0;
+  const Metrics* currentMetrics   = 0;
+  const QMatrix* currentTransform = 0;
 
   foreach( Stroke* stroke, drawing.strokes_ )
   {
@@ -575,7 +572,7 @@ IsfError TagsWriter::addStrokes( StreamData* streamData, const Drawing& drawing 
     // Write this stroke in the stream
 
     QList<qint64> xPoints, yPoints;
-    foreach( const Point &point, stroke->points() )
+    foreach( const Point& point, stroke->points() )
     {
       xPoints.append( point.position.x() );
       yPoints.append( point.position.y() );

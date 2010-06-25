@@ -28,18 +28,18 @@
 
 
 // Internal helper function to read GIF data from a byte array
-int GifReadFromByteArray( GifFileType *gif, GifByteType* bytes, int size )
+int GifReadFromByteArray( GifFileType* gif, GifByteType* bytes, int size )
 {
-  QBuffer *buffer = (QBuffer*) gif->UserData;
+  QBuffer* buffer = (QBuffer*) gif->UserData;
   return buffer->read( (char*)bytes, size );
 }
 
 
 
 // Internal helper function to write GIF data into a byte array
-int GifWriteToByteArray( GifFileType *gif, const GifByteType* bytes, int size )
+int GifWriteToByteArray( GifFileType* gif, const GifByteType* bytes, int size )
 {
-  QBuffer *buffer = (QBuffer*) gif->UserData;
+  QBuffer* buffer = (QBuffer*) gif->UserData;
   return buffer->write( (char*)bytes, size );
 }
 
