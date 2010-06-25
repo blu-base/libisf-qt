@@ -139,6 +139,7 @@ qint32 Drawing::addStroke( Stroke *newStroke )
 
   isNull_ = false;
   strokes_.append( newStroke );
+  maxPenSize_ = maxPenSize_.width() < newStroke->penSize().width() ? newStroke->penSize() : maxPenSize_;
 
   // This stroke needs to be painted
   changedStrokes_.append( newStroke );
@@ -781,11 +782,17 @@ void Drawing::updateBoundingRect()
     {
       boundingRect_ = boundingRect_.united( rect );
     }
+
+    maxPenSize_ = maxPenSize_.width() < stroke->penSize().width() ? stroke->penSize() : maxPenSize_;
   }
 
   const QSize penSize( maxPenSize_.toSize() );
   boundingRect_.adjust( -penSize.width() - 1, -penSize.height() - 1,
                         +penSize.width() + 1, +penSize.height() + 1 );
+
+#ifdef ISFQT_DEBUG_VERBOSE
+  qDebug() << "Bounding rectangle updated: from" << oldRect << "to" << boundingRect_;
+#endif
 }
 
 
