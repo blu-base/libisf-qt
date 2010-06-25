@@ -31,8 +31,8 @@ namespace Isf
     namespace Delta
     {
 
-      bool transform( QList<qint64> &data );
-      bool inverseTransform( QList<qint64> &data );
+      bool transform( QList<qint64>& data );
+      bool inverseTransform( QList<qint64>& data );
 
     }
   }

@@ -217,9 +217,9 @@ void Stroke::bezierCalculateControlPoints()
 
 
 // Solves the system for the first control points.
-void Stroke::bezierGetFirstControlPoints( double rhs[], double *xOut, int n )
+void Stroke::bezierGetFirstControlPoints( double rhs[], double* xOut, int n )
 {
-  double *x = xOut;   // solution vector.
+  double* x = xOut;   // solution vector.
   double tmp[n]; // temp workspace.
 
   double b = 2.0;

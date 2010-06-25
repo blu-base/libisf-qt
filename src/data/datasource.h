@@ -49,30 +49,30 @@ namespace Isf
 
       public: // Public constructors
                           DataSource();
-                          DataSource( const QByteArray &data );
+                          DataSource( const QByteArray& data );
                          ~DataSource();
 
       public: // Public status retrieval methods
         bool              atEnd( bool considerBits = false ) const;
-        const QByteArray &data() const;
+        const QByteArray& data() const;
         qint64            pos() const;
         qint64            size() const;
 
       public: // Public data manipulation methods
         void              append( char byte );
-        void              append( const QBitArray &bits );
-        void              append( const QByteArray &bytes );
+        void              append( const QBitArray& bits );
+        void              append( const QByteArray& bytes );
         void              clear();
         void              flush();
-        bool              getBit( bool *ok = 0 );
-        quint64           getBits( quint8 amount, bool *ok = 0 );
+        bool              getBit( bool* ok = 0 );
+        quint64           getBits( quint8 amount, bool* ok = 0 );
         quint8            getBitIndex();
-        char              getByte( bool *ok = 0 );
-        QByteArray        getBytes( quint8 amount, bool *ok = 0 );
+        char              getByte( bool* ok = 0 );
+        QByteArray        getBytes( quint8 amount, bool* ok = 0 );
         void              prepend( char byte );
-        void              prepend( const QByteArray &bytes );
+        void              prepend( const QByteArray& bytes );
         void              reset();
-        void              setData( const QByteArray &data );
+        void              setData( const QByteArray& data );
         void              seekRelative( int pos );
         void              skipToNextByte();
         void              skipToPrevByte();

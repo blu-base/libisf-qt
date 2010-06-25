@@ -50,7 +50,7 @@ using namespace Isf::Compress;
  * @param tagName Name of the tag if known, index number if not
  * @return IsfError
  */
-IsfError TagsParser::parseUnsupported( StreamData* streamData, const QString &tagName )
+IsfError TagsParser::parseUnsupported( StreamData* streamData, const QString& tagName )
 {
   // Unsupported content
   analyzePayload( streamData, tagName + " (Unsupported)" );
@@ -635,7 +635,7 @@ IsfError TagsParser::parseMetricBlock( StreamData* streamData, Drawing& drawing 
     return ISF_ERROR_INVALID_PAYLOAD;
   }
 
-  Metrics *metricsList = new Metrics();
+  Metrics* metricsList = new Metrics();
   qint64 payloadEnd = dataSource->pos() + payloadSize;
   while( dataSource->pos() < payloadEnd && ! dataSource->atEnd() )
   {
@@ -715,7 +715,7 @@ IsfError TagsParser::parseMetricBlock( StreamData* streamData, Drawing& drawing 
   // set this once when we get the first METRIC_BLOCK. then,
   // everytime we get a MIDX we can update it. if we don't do this
   // then the first stroke will have the same metrics as the last stroke.
-//   Metrics *savedMetrics = streamData->metrics.last();
+//   Metrics* savedMetrics = streamData->metrics.last();
 //   if ( drawing.currentMetrics_ == &drawing.defaultMetrics_ )
 //   {
 //     drawing.currentMetrics_ = savedMetrics;
@@ -771,7 +771,7 @@ IsfError TagsParser::parseTransformationTable( StreamData* streamData, Drawing& 
  */
 IsfError TagsParser::parseTransformation( StreamData* streamData, Drawing& drawing, quint64 transformType )
 {
-  QMatrix *transform = new QMatrix();
+  QMatrix* transform = new QMatrix();
   DataSource* dataSource = streamData->dataSource;
 
   /*
@@ -984,7 +984,7 @@ IsfError TagsParser::parseStroke( StreamData* streamData, Drawing& drawing )
 
   // Add a new stroke
   drawing.strokes_.append( new Stroke() );
-  Stroke *stroke = drawing.strokes_.last();
+  Stroke* stroke = drawing.strokes_.last();
 
   // Apply the stroke style, transforms and metrics
   if( streamData->attributeSets.count() )
@@ -1087,7 +1087,7 @@ IsfError TagsParser::parseStrokeDescBlock( StreamData* streamData, Drawing& draw
 #endif
 
   streamData->strokeInfos.append( new StrokeInfo() );
-  StrokeInfo *info = streamData->strokeInfos.last();
+  StrokeInfo* info = streamData->strokeInfos.last();
 
   // set this once when we get the first TAG_STROKE_DESC_BLOCK. then,
   // everytime we get a SIDX we can update it. if we don't do this
@@ -1203,7 +1203,7 @@ IsfError TagsParser::parseStrokeDescTable( StreamData* streamData, Drawing& draw
  * @param tagName Name of the tag if known, index number if not
  * @return Byte array with the contents of the tag
  */
-QByteArray TagsParser::analyzePayload( StreamData* streamData, const QString &tagName )
+QByteArray TagsParser::analyzePayload( StreamData* streamData, const QString& tagName )
 {
   quint64 payloadSize = decodeUInt( streamData->dataSource );
 
@@ -1224,7 +1224,7 @@ QByteArray TagsParser::analyzePayload( StreamData* streamData, const QString &ta
  * @param message Message to show as label for the printed out data
  * @return Byte array with the contents of the tag
  */
-QByteArray TagsParser::analyzePayload( StreamData* streamData, const quint64 payloadSize, const QString &message )
+QByteArray TagsParser::analyzePayload( StreamData* streamData, const quint64 payloadSize, const QString& message )
 {
   QByteArray result;
   QByteArray output;

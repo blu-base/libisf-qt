@@ -33,7 +33,7 @@ using namespace Isf::Compress;
  * @param data Data to analyze
  * @return Index value
  */
-quint8 BitPackingByteAlgorithm::index( const QList<qint64> &data )
+quint8 BitPackingByteAlgorithm::index( const QList<qint64>& data )
 {
   Q_UNUSED( data );
 
@@ -78,7 +78,7 @@ quint8 BitPackingByteAlgorithm::index( const QList<qint64> &data )
  * @param source List of values to compress
  * @return bool
  */
-bool BitPackingByteAlgorithm::deflate( QByteArray &encodedData, quint8 index, const QList<qint64> &source )
+bool BitPackingByteAlgorithm::deflate( QByteArray& encodedData, quint8 index, const QList<qint64>& source )
 {
   Q_UNUSED( encodedData );
   Q_UNUSED( index );

@@ -163,7 +163,7 @@ bool Compress::inflatePacketData( DataSource* source, quint64 length, QList<qint
  * @param source List of values to compress
  * @return bool
  */
-bool Compress::deflatePacketData( QByteArray &encodedData, const QList<qint64> &source )
+bool Compress::deflatePacketData( QByteArray& encodedData, const QList<qint64>& source )
 {
   bool result;
 
@@ -406,7 +406,7 @@ bool Compress::inflatePropertyData( DataSource* source, quint64 length, QList<qi
  * @param source List of values to compress
  * @return bool
  */
-bool Compress::deflatePropertyData( QByteArray &encodedData, const QList<qint64> &source )
+bool Compress::deflatePropertyData( QByteArray& encodedData, const QList<qint64>& source )
 {
   Q_UNUSED( encodedData );
   Q_UNUSED( source );

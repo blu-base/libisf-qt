@@ -67,7 +67,7 @@ Drawing::Drawing()
  *
  * @param other The instance to duplicate.
  */
-Drawing::Drawing( const Drawing &other )
+Drawing::Drawing( const Drawing& other )
 : boundingRect_( other.boundingRect_ )
 , canvas_( other.canvas_ )
 , error_( other.error_ )
@@ -83,9 +83,9 @@ Drawing::Drawing( const Drawing &other )
 #endif
 
   // Clone the stroke objects
-  foreach( Stroke *stroke, other.strokes_ )
+  foreach( Stroke* stroke, other.strokes_ )
   {
-    Stroke *newStroke = new Stroke( *stroke );
+    Stroke* newStroke = new Stroke( *stroke );
     strokes_.append( newStroke );
   }
 }
@@ -129,7 +129,7 @@ qint32 Drawing::addStroke( PointList points )
  * @param newStroke The stroke to add
  * @return Index of the new stroke or -1 on failure
  */
-qint32 Drawing::addStroke( Stroke *newStroke )
+qint32 Drawing::addStroke( Stroke* newStroke )
 {
   if( newStroke == 0 )
   {
@@ -209,7 +209,7 @@ bool Drawing::deleteStroke( quint32 index )
     return false;
   }
 
-  Stroke *victim = strokes_.takeAt( index );
+  Stroke* victim = strokes_.takeAt( index );
 
   // make sure this goes from the changedStrokes_ list too.
   changedStrokes_.removeAll( victim );
@@ -231,7 +231,7 @@ bool Drawing::deleteStroke( quint32 index )
  * @param stroke The stroke to remove.
  * @return bool
  */
-bool Drawing::deleteStroke( Stroke *stroke )
+bool Drawing::deleteStroke( Stroke* stroke )
 {
   if ( ! strokes_.contains( stroke ) )
   {
@@ -393,7 +393,7 @@ QPixmap Drawing::pixmap( const QColor backgroundColor )
   QMatrix*     currentTransform  = 0;
 
   int index = 0;
-  foreach( Stroke *stroke, strokes )
+  foreach( Stroke* stroke, strokes )
   {
     if( currentAttributes.color   != stroke->color()
     ||  currentAttributes.flags   != stroke->flags()
@@ -518,7 +518,7 @@ QSize Drawing::size() const
  * @param index Index of the stroke to get
  * @return Stroke or 0 if not found
  */
-Stroke *Drawing::stroke( quint32 index )
+Stroke* Drawing::stroke( quint32 index )
 {
   if( (qint64)index >= strokes_.count() )
   {
@@ -542,7 +542,7 @@ Stroke *Drawing::stroke( quint32 index )
  * @param point Point to check
  * @return A Stroke instance or NULL if no Stroke passes through that point.
  */
-Stroke *Drawing::strokeAtPoint( const QPoint &point )
+Stroke* Drawing::strokeAtPoint( const QPoint& point )
 {
   /*
   Here's how this algorithm works:
@@ -566,12 +566,12 @@ Stroke *Drawing::strokeAtPoint( const QPoint &point )
                      thus height = ( 2 * area ) / base.
   */
 
-  QListIterator<Stroke *> i( strokes_ );
+  QListIterator<Stroke* > i( strokes_ );
   i.toBack();
 
   while( i.hasPrevious() )
   {
-    Stroke *s = i.previous();
+    Stroke* s = i.previous();
 
     // skip strokes where we're not near.
     if ( ! s->boundingRect().contains( point ) )
@@ -605,7 +605,7 @@ Stroke *Drawing::strokeAtPoint( const QPoint &point )
 
     // special case: a single point (sometimes it'll appear as a single point but
     // be made up of two).
-    const PointList &points( s->points() );
+    const PointList& points( s->points() );
     if( points.size() == 1 || points.size() == 2 )
     {
       QLineF dist = QLineF( QPointF( points.at(0).position ), QPointF( point ) );
@@ -688,7 +688,7 @@ void Drawing::updateBoundingRect()
 #endif
 
   boundingRect_ = QRect();
-  foreach( Stroke *stroke, strokes_ )
+  foreach( Stroke* stroke, strokes_ )
   {
     const QRect rect( stroke->boundingRect() );
     QMatrix* transform = stroke->transform();

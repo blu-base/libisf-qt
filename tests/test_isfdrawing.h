@@ -23,7 +23,7 @@ class TestIsfDrawing : public QObject
 Q_OBJECT
   public:
     TestIsfDrawing();
-    void readTestIsfData( const QString &filename, QByteArray &byteArray );
+    void readTestIsfData( const QString& filename, QByteArray& byteArray );
 
   private slots:
     void emptyConstructor_NullDrawing();
