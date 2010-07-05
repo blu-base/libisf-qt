@@ -181,11 +181,7 @@ Isf::Drawing* InkCanvas::drawing()
  */
 void InkCanvas::drawLineTo( const QPoint& endPoint )
 {
-  if( drawing_ == 0 )
-  {
-    qWarning() << "Uninitialized usage of InkCanvas!";
-    return;
-  }
+  Q_ASSERT_X( drawing_, "drawLineTo", "Drawing is null" );
 
   // draw the "in progress" strokes on the buffer.
   QPainter painter( &bufferPixmap_ );
@@ -260,11 +256,7 @@ bool InkCanvas::isEmpty()
  */
 void InkCanvas::mousePressEvent( QMouseEvent* event )
 {
-  if( drawing_ == 0 )
-  {
-    qWarning() << "Uninitialized usage of InkCanvas!";
-    return;
-  }
+  Q_ASSERT_X( drawing_, "mousePressEvent", "Drawing is null" );
 
   if( event->button() != Qt::LeftButton )
   {
@@ -330,11 +322,7 @@ void InkCanvas::mouseMoveEvent( QMouseEvent* event )
     return;
   }
 
-  if( drawing_ == 0 )
-  {
-    qWarning() << "Uninitialized usage of InkCanvas!";
-    return;
-  }
+  Q_ASSERT_X( drawing_, "mouseMoveEvent", "Drawing is null" );
 
   if ( penType_ == EraserPen )
   {
@@ -361,13 +349,7 @@ void InkCanvas::mouseMoveEvent( QMouseEvent* event )
 
   drawLineTo( position );
 
-  if( currentStroke_ == 0 )
-  {
-#ifdef KMESSDEBUG_INKEDIT_GENERAL
-    qWarning() << "The stroke isn't ready!";
-#endif
-    return;
-  }
+  Q_ASSERT_X( currentStroke_, "mouseMoveEvent", "currentStroke_ is null" );
 
   // Add the new point to the stroke
   currentStroke_->addPoint( lastPoint_ );
@@ -386,11 +368,7 @@ void InkCanvas::mouseMoveEvent( QMouseEvent* event )
  */
 void InkCanvas::mouseReleaseEvent( QMouseEvent* event )
 {
-  if( drawing_ == 0 )
-  {
-    qWarning() << "Uninitialized usage of InkCanvas!";
-    return;
-  }
+  Q_ASSERT_X( drawing_, "mouseReleaseEvent", "Drawing is null" );
 
   if( event->button() != Qt::LeftButton || ! scribbling_ )
   {
@@ -413,13 +391,7 @@ void InkCanvas::mouseReleaseEvent( QMouseEvent* event )
   scribbling_ = false;
   emit inkChanged();
 
-  if( ! currentStroke_ )
-  {
-#ifdef KMESSDEBUG_INKEDIT_GENERAL
-    qWarning() << "The stroke isn't ready!";
-#endif
-    return;
-  }
+  Q_ASSERT_X( currentStroke_, "mouseReleaseEvent", "currentStroke_ is null" );
 
 #ifdef KMESSDEBUG_INKEDIT_GENERAL
   qDebug() << "Finishing up stroke";
@@ -464,11 +436,7 @@ void InkCanvas::paintEvent( QPaintEvent* event )
 
   QPainter painter( this );
 
-  if( drawing_ == 0 )
-  {
-    qWarning() << "Uninitialized usage of InkCanvas!";
-    return;
-  }
+  Q_ASSERT_X( drawing_, "paintEvent", "Drawing is null" );
 
   // draw the ISF first, then the buffer over the top.
   // buffer has a transparent background.
