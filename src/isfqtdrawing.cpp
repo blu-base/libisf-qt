@@ -271,7 +271,25 @@ qint32 Drawing::indexOfStroke( const Stroke* stroke ) const
 /**
  * Return whether this drawing is empty.
  *
- * @return True if this is an empty (null) Drawing, false otherwise.
+ * A Drawing is empty when there are no strokes in it.
+ *
+ * @return True if this is an empty Drawing, false otherwise.
+ */
+bool Drawing::isEmpty() const
+{
+  return strokes_.empty();
+}
+
+
+
+/**
+ * Return whether this drawing is null.
+ *
+ * A Drawing is null when there are no strokes, attributes or anything in it,
+ * for example when it has just been initialized, cleared, or when a copy from
+ * another drawing fails.
+ *
+ * @return True if this is an null Drawing, false otherwise.
  */
 bool Drawing::isNull() const
 {
@@ -675,9 +693,6 @@ const QList<Stroke*> Drawing::strokes()
 
 /**
  * Update the bounding rectangle of the drawing.
- *
- * The bounding rectangle (or bounding box) is a QRect large enough (and as
- * small as) to hold all of the strokes in this Drawing instance.
  */
 void Drawing::updateBoundingRect()
 {

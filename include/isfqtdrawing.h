@@ -74,6 +74,7 @@ namespace Isf
       void                       clear();
       IsfError                   error() const;
       qint32                     indexOfStroke( const Stroke* ) const;
+      bool                       isEmpty() const;
       bool                       isNull() const;
       QPixmap                    pixmap( const QColor = Qt::transparent );
       void                       setBoundingRect( QRect );
