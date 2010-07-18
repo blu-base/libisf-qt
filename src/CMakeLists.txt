@@ -25,6 +25,7 @@ SET( ISFQT_PUBLIC_HEADERS
      ../include/IsfQtDrawing
      ../include/IsfInkCanvas
      ../include/IsfQtStroke
+     ../include/IsfQt
    )
 
 SET( ISFQT_LIBS
