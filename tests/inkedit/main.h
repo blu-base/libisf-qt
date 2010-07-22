@@ -40,19 +40,20 @@
 class TestInkEdit : public QWidget, public Ui::TestInkEdit
 {
   Q_OBJECT
-  
+
   public:
-    
+
     TestInkEdit();
     ~TestInkEdit();
-    
+
   public slots:
-    
+
     void saveInk();
     void loadInk();
     void clearInk();
     void penTypeChanged( QAbstractButton *button );
     void chooseColor();
+    void inkChanged();
 
 };
 

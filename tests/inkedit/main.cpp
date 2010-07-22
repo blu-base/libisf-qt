@@ -33,6 +33,7 @@
 #include <QDataStream>
 #include <QTextStream>
 #include <QFile>
+#include <QTimer>
 
 #include <IsfInkCanvas>
 
@@ -46,22 +47,24 @@ TestInkEdit::TestInkEdit()
   connect( cmdSave_, SIGNAL(clicked()), this, SLOT( saveInk() ) );
   connect( cmdLoad_, SIGNAL(clicked()), this, SLOT( loadInk() ) );
   connect( cmdClear_, SIGNAL(clicked()), this, SLOT( clearInk() )  );
-  
+
   connect( cmdStrokeColor_, SIGNAL(clicked()), this, SLOT( chooseColor() )  );
   connect( cmdCanvasColor_, SIGNAL(clicked()), this, SLOT( chooseColor() )  );
-  
+
+  connect( editor_, SIGNAL(inkChanged()), this, SLOT( inkChanged() )  );
+
   QButtonGroup *grp = new QButtonGroup( this );
   grp->addButton( rbDrawing_ );
   grp->addButton( rbEraser_ );
-  
+
   connect( grp, SIGNAL( buttonClicked( QAbstractButton * ) ), this, SLOT( penTypeChanged( QAbstractButton * ) ) );
-  
+
   connect( spinWidth_, SIGNAL( valueChanged( int ) ), editor_, SLOT( setPenSize( int ) ) );
 
   editor_->setPenSize( spinWidth_->value() );
   /*
   setWindowTitle("Ink Edit Test");
-  
+
   editor_ = new Isf::InkEdit();
   editor_->setSizePolicy( QSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum ) );
 
@@ -72,29 +75,29 @@ TestInkEdit::TestInkEdit()
   cmdSave_ = new QPushButton();
   cmdSave_->setText( "Save Ink" );
   connect( cmdSave_, SIGNAL(clicked()), this, SLOT( saveInk() ) );
-  
+
   cmdLoad_ = new QPushButton();
   cmdLoad_->setText( "Load Ink" );
   connect( cmdLoad_, SIGNAL(clicked()), this, SLOT( loadInk() ) );
-  
+
   QPushButton *cmdClear_ = new QPushButton();
   cmdClear_->setText( "Clear Ink" );
   connect( cmdClear_, SIGNAL(clicked()), this, SLOT( clearInk() )  );
 
   QVBoxLayout *layout = new QVBoxLayout();
   QHBoxLayout *strokeBtnLayout = new QHBoxLayout();
-  
+
   layout->addWidget( sayLabel_ );
 
   layout->addWidget( editor_ );
-  
+
   QHBoxLayout *ctlBtnLayout = new QHBoxLayout();
   ctlBtnLayout->addWidget(cmdSave_);
   ctlBtnLayout->addWidget(cmdLoad_);
   ctlBtnLayout->addWidget(cmdClear_);
 
   layout->addLayout( ctlBtnLayout );
-  
+
   setLayout( layout );
   */
 }
@@ -135,7 +138,7 @@ void TestInkEdit::saveInk()
 {
   QString filter;
   QString saveFile = QFileDialog::getSaveFileName( this, "Save Ink", QString(), "Raw ISF (*.isf);;base64-encoded ISF (*.isf64)", &filter );
-  if ( saveFile != QString() ) 
+  if ( saveFile != QString() )
   {
     QFile file(saveFile);
     file.open(QIODevice::WriteOnly);
@@ -148,18 +151,18 @@ void TestInkEdit::saveInk()
     {
       editor_->save( file );
     }
-    
+
     file.close();
-    
+
     QMessageBox::information(0, "Save complete", "Saved to " + saveFile );
   }
 }
 
-void TestInkEdit::loadInk() 
+void TestInkEdit::loadInk()
 {
   QString filter;
   QString filename = QFileDialog::getOpenFileName( this, "Open Ink", QString(), "Raw ISF (*.isf);;base64-encoded ISF (*.isf64)", &filter );
-  if ( ! filename.isEmpty() ) 
+  if ( ! filename.isEmpty() )
   {
     QFile file(filename);
     file.open(QIODevice::ReadOnly);
@@ -170,7 +173,7 @@ void TestInkEdit::loadInk()
 
     // got some ink.
     Isf::Drawing *drawing = &Isf::Stream::reader(data);
-    
+
     editor_->setDrawing( drawing );
 
     editor_->updateGeometry();
@@ -182,12 +185,20 @@ void TestInkEdit::clearInk()
   editor_->clear();
 }
 
+void TestInkEdit::inkChanged()
+{
+  emptyDrawingCheckbox_->setChecked( editor_->isEmpty() );
+
+  statusLabel_->setText( "Drawing changed!" );
+  QTimer::singleShot( 3000, statusLabel_, SLOT(clear()) );
+}
+
 int main( int argc, char **argv )
 {
   QApplication app( argc, argv );
 
   TestInkEdit edit;
   edit.show();
-  
+
   return app.exec();
 }
