@@ -1,6 +1,9 @@
 2010-07-22 (Valerio)
  * Improved the InkEdit text - added a checkbox to show the usage of Canvas::isEmpty() and a label
    to show usage of the Canvas::inkChanged() signal.
+ * Fixed inkChanged() signal emission in Canvas: it was emitted too early, when the drawing was not
+   updated yet: slots connected to inkChanged() could then call isEmpty() and get a true return value,
+   even if the drawing wasn't empty.
 
 2010-06-27 (Adam)
  * Use Q_ASSERT_X instead of qWarning where appropriate.

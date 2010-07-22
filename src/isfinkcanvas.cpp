@@ -388,9 +388,6 @@ void InkCanvas::mouseReleaseEvent( QMouseEvent* event )
     drawLineTo( position );
   }
 
-  scribbling_ = false;
-  emit inkChanged();
-
   Q_ASSERT_X( currentStroke_, "mouseReleaseEvent", "currentStroke_ is null" );
 
 #ifdef KMESSDEBUG_INKEDIT_GENERAL
@@ -415,6 +412,9 @@ void InkCanvas::mouseReleaseEvent( QMouseEvent* event )
 
   // update
   update();
+
+  scribbling_ = false;
+  emit inkChanged();
 }
 
 
