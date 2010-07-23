@@ -42,6 +42,16 @@ If everything went right again, install it:
 $ make install
 Aaand now you're set. :)
 
+LibISF-Qt natively supports being bundled into other applications.
+Bundling means that the library does not get installed system-wide
+along with your application, but instead it gets statically linked
+into the application.
+The idea is that you copy the Isf-Qt source tree (with an SVN export
+or a Git submodule) into your project's tree, and then set up your
+CMake listfile to add this library as a subdirectory:
+> SET( ISFQT_IS_BUNDLED TRUE )
+> ADD_SUBDIRECTORY( contrib/isf-qt )
+And again, you're done!
 
 
 Documentation:
