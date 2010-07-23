@@ -51,10 +51,18 @@ Stroke::Stroke()
  */
 Stroke::Stroke( const Stroke& other )
 {
+  bezierControlPoints1_ = other.bezierControlPoints1_;
+  bezierControlPoints2_ = other.bezierControlPoints2_;
+  bezierKnots_ = other.bezierKnots_;
+
   boundingRect_ = other.boundingRect_;
+  color_ = other.color_;
   finalized_ = other.finalized_;
-  points_ = other.points_;
+  flags_ = other.flags_;
+  hasPressureData_ = other.hasPressureData_;
   metrics_ = other.metrics_;
+  penSize_ = other.penSize_;
+  points_ = other.points_;
   transform_ = other.transform_;
 }
 
