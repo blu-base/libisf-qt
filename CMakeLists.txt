@@ -33,7 +33,7 @@ IF( NOT ISFQT_IS_BUNDLED )
 ENDIF()
 
 # Define the library version number
-SET( ISFQT_VERSION "0.9" )
+SET( ISFQT_VERSION "1.0dev" )
 
 
 #### Inclusions ####

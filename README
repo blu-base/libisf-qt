@@ -5,9 +5,16 @@ About LibISF-Qt:
 LibISF-Qt is a Qt4 library made to encode and decode Microsoft's
 Ink Serialized Format (ISF) files.
 
-Q. What the hell is this?
-A. It's a library, written in C++/Qt4, to read and write ISF
-   image files.
+Q. What is ISF?
+A. Ink Serialized Format is an open specification initially
+   made by Microsoft, and then freed up with their "Open
+   Specification Promise" initiative. ISF is a file format
+   made to store handwriting very efficiently: an ISF file
+   with a somewhat complex handwritten drawing takes less than
+   1000 bytes. ISF supports metrics to adapt drawings to
+   different form factors, bezier smoothing of drawn strokes,
+   coloring, stroke size varying by pen pressure, linking
+   in static data, and more.
 
 Q. How does this library differ from aMSN's or Emesene's?
 A. It's written with Qt, which makes it easily portable on

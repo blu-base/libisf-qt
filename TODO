@@ -14,7 +14,7 @@ OUTSTANDING
 - Read and write user-defined custom tags
 - Interpret, use and write pressure information
 - Associating text recognized by OCR to the drawn strokes
-- Modify strokes
+- Alter stroke points
 
 DONE
 ----
@@ -38,4 +38,5 @@ DONE
 - Add new strokes to an IsfDrawing
 - Stroke attributes: width, colour, pressure
 - Export IsfDrawing to raw-isf, isf-base64 and fortified-gif
+- Export IsfDrawing to PNG
 - Delete strokes
