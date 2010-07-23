@@ -106,6 +106,8 @@ IsfError TagsWriter::addHiMetricSize( StreamData* streamData, const Drawing* dra
  */
 IsfError TagsWriter::addAttributeTable( StreamData* streamData, const Drawing* drawing )
 {
+  Q_UNUSED( drawing );
+
   QByteArray   blockData;
   QByteArray   tagContents;
   AttributeSet defaultAttributeSet;
@@ -247,6 +249,8 @@ IsfError TagsWriter::addAttributeTable( StreamData* streamData, const Drawing* d
  */
 IsfError TagsWriter::addMetricsTable( StreamData* streamData, const Drawing* drawing )
 {
+  Q_UNUSED( drawing );
+
   QByteArray   metricData;
   QByteArray   metricBlockData;
   QByteArray   tagData;
@@ -333,6 +337,8 @@ IsfError TagsWriter::addMetricsTable( StreamData* streamData, const Drawing* dra
  */
 IsfError TagsWriter::addTransformationTable( StreamData* streamData, const Drawing* drawing )
 {
+  Q_UNUSED( drawing );
+
   QByteArray blockData;
   QByteArray tagContents;
   quint64    transformTag;

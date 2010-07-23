@@ -1103,6 +1103,8 @@ IsfError TagsParser::parseTransformationTable( StreamData* streamData, Drawing* 
  */
 IsfError TagsParser::parseTransformation( StreamData* streamData, Drawing* drawing, quint64 transformType )
 {
+  Q_UNUSED( drawing );
+
   QMatrix* transform = new QMatrix();
   DataSource* dataSource = streamData->dataSource;
 
@@ -1403,6 +1405,8 @@ IsfError TagsParser::parseStroke( StreamData* streamData, Drawing* drawing )
  */
 IsfError TagsParser::parseStrokeDescBlock( StreamData* streamData, Drawing* drawing )
 {
+  Q_UNUSED( drawing );
+
   DataSource* dataSource = streamData->dataSource;
   quint64 payloadSize = decodeUInt( dataSource );
 

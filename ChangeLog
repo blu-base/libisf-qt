@@ -1,3 +1,7 @@
+2010-07-23 (Valerio)
+ * Fixed the copy constructor in Stroke, it was not copying all the necessary properties.
+ * Fixed some compiler warnings.
+
 2010-07-22 (Valerio)
  * Improved the InkEdit text - added a checkbox to show the usage of Canvas::isEmpty() and a label
    to show usage of the Canvas::inkChanged() signal.
