@@ -973,11 +973,11 @@ IsfError TagsParser::parseMetricBlock( StreamData* streamData, Drawing* drawing 
   qint64 payloadEnd = dataSource->pos() + payloadSize;
   while( dataSource->pos() < payloadEnd && ! dataSource->atEnd() )
   {
-#ifdef ISFQT_DEBUG
     quint64 property = Isf::Compress::decodeUInt( dataSource );
-#endif
 
+#ifdef ISFQT_DEBUG
     qint64 initialPos = dataSource->pos();
+#endif
     payloadSize = Isf::Compress::decodeUInt( dataSource );
 
     // Two multibyte signed ints, one byte, one float: minimum 7 bytes
