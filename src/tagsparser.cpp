@@ -637,6 +637,8 @@ IsfError TagsParser::parsePersistentFormat( StreamData* streamData, Drawing* dra
  */
 IsfError TagsParser::parseHiMetricSize( StreamData* streamData, Drawing* drawing )
 {
+  Q_UNUSED( drawing );
+
   quint64 payloadSize = decodeUInt( streamData->dataSource );
 
   if( payloadSize == 0 )
@@ -971,7 +973,9 @@ IsfError TagsParser::parseMetricBlock( StreamData* streamData, Drawing* drawing 
   qint64 payloadEnd = dataSource->pos() + payloadSize;
   while( dataSource->pos() < payloadEnd && ! dataSource->atEnd() )
   {
+#ifdef ISFQT_DEBUG
     quint64 property = Isf::Compress::decodeUInt( dataSource );
+#endif
 
     qint64 initialPos = dataSource->pos();
     payloadSize = Isf::Compress::decodeUInt( dataSource );

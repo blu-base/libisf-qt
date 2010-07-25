@@ -52,7 +52,7 @@ bool Compress::inflatePacketData( DataSource* source, quint64 length, QList<qint
     return false;
   }
 
-  bool    result;
+  bool    result = false;
   uchar   byte          = source->getByte();
   qint16  algorithm     = ( byte & AlgorithmMask );
   quint8  algorithmData = 0;
