@@ -547,133 +547,49 @@ Stroke* Drawing::stroke( quint32 index )
 
 
 /**
- * Return the Stroke under a certain point.
- *
- * Given a QPoint, return the Stroke object that passes through there.
- * If no stroke passes through that point, returns NULL.
- *
- * If multiple Strokes pass through that point the most recently drawn stroke
- * will be returned.
- *
- * @param point Point to check
- * @return A Stroke instance or NULL if no Stroke passes through that point.
+ * Returns whatever stroke is located within a 5 pixel radius of point.
+ * 
+ * Only returns the first matching stroke (in order of drawing). If no stroke
+ * falls within the search area, returns NULL.
+ * 
+ * @param point Search point. The most recently drawn stroke within 5 pixels of this point is returned, or NULL if no stroke is here.
  */
 Stroke* Drawing::strokeAtPoint( const QPoint& point )
 {
-  /*
-  Here's how this algorithm works:
-
-  1) Iterate through strokes in reverse order.
-  2) For each stroke, check if the bounding rectangle contains the point where the cursor is.
-     If not, continue to the next stroke. Prevents us checking all the strokes.
-  3) Next, iterate through each pair of points in the stroke. If both of the points fall outside
-     of the searching rectangle around the cursor, skip. Saves us checking hundreds of points when
-     only a few will do.
-  4) a) For each pair of strokes, form a triangle whose points are defined by the two points for the
-        line segment, plus the cursor position.
-     b) Calculate the height of this triangle. To do so, use Heron's Formula plus the formula for the
-        area of any triangle.
-     c) If the cursor is touching the drawn stroke, the height should be less than or equal to the
-        half-width of the pen that drew the stroke.
-
-    For reference (triangle sides a, b, c, height h)
-    Heron's Formula: area = sqrt(s * (s - a) * (s - b) * (s - c) ), where s = semiperimeter = 0.5*(a+b+c)
-                     area = 0.5*base*height;
-                     thus height = ( 2 * area ) / base.
-  */
-
-  QListIterator<Stroke* > i( strokes_ );
+  QListIterator<Stroke*> i( strokes_ );
   i.toBack();
-
+  
+  double radiusSquared = 5*5;
+  QRect searchRect( point, QSize( 5, 5 ) );
+  
   while( i.hasPrevious() )
   {
-    Stroke* s = i.previous();
-
-    // skip strokes where we're not near.
-    if ( ! s->boundingRect().contains( point ) )
+    Stroke *s = i.previous();
+    
+    if ( ! s->boundingRect().intersects( searchRect ) )
     {
       continue;
     }
-
-    // what's the pen size of this stroke? That way we have a "fudge factor"
-    float penSize = s->penSize().width();
-    float penHalfSize = penSize / 2;
-    float penHalfSizeFixed = penHalfSize * 1.25;
-
-    // only want points that fall near the cursor. prevents searching unnecessary points.
-    QRect searchRect;
-
-    // search rect must accommodate pen size.
-    // the large the pen size, the bigger our search area has to be.
-    //
-    // minimum search area of 10x10 pixels.
-    if ( penHalfSize > 5 )
-    {
-      // 25% extra room to move.
-      searchRect = QRect( point.x() - penHalfSizeFixed,
-                          point.y() - penHalfSizeFixed,
-                          penHalfSizeFixed, penHalfSizeFixed );
-    }
-    else
-    {
-      searchRect = QRect( point.x() - 5, point.y() - 5, 10, 10 );
-    }
-
-    // special case: a single point (sometimes it'll appear as a single point but
-    // be made up of two).
+    
     const PointList& points( s->points() );
-    if( points.size() == 1 || points.size() == 2 )
-    {
-      QLineF dist = QLineF( QPointF( points.at(0).position ), QPointF( point ) );
-      if( dist.length() <= penHalfSizeFixed )
-      {
-        return s;
-      }
-
-      continue;
-    }
-
-    // multiple points.
-    for( int j = 0; j < points.size() - 1; j++)
+    
+    for( int j = 0; j < points.size(); j++)
     {
       QPoint p1 = points.at(j).position;
-      QPoint p2 = points.at(j+1).position;
+      QPoint p2 = point;
 
-      if( ! searchRect.contains( p1 ) && ! searchRect.contains( p2 ) )
+      double d1 = p1.x() - p2.x();
+      double d2 = p1.y() - p2.y();
+      double dist = d1*d1 + d2*d2;
+
+      if ( dist <= radiusSquared )
       {
-        continue;
-      }
-
-      QPointF cursorPos = QPointF( point );
-      QLineF base = QLineF( QPointF( p1 ), QPointF( p2 ) );
-      QLineF lineA = QLineF( QPointF( p1 ), cursorPos );
-      QLineF lineC = QLineF( QPointF( p2 ), cursorPos );
-
-      // picture a triangle made up of the two points for the line segment, plus the
-      // cursor position. The height of the triangle is the distance from the cursor point
-      // to the line segment. If the cursor lies on the line, then the height should be less than
-      // or equal to the half-width of the pen that drew the line.
-      //
-      // so, use Heron's Formula to get the area, plus A=0.5*base*height, re-arrange to get height.
-      //
-      // easy!
-      float sp = 0.5 * ( lineA.length() + base.length() + lineC.length() );
-      float a = lineA.length();
-      float b = base.length();
-      float c = lineC.length();
-      float area = sqrt( sp * (sp - a) * (sp - b) * (sp - c) );
-
-      float height = ( 2 * area ) / b;
-
-      if ( height <= penHalfSizeFixed )
-      {
-        // got one
         return s;
       }
     }
   }
-
-  return 0;
+  
+  return NULL;
 }
 
 

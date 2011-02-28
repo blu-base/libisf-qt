@@ -1,5 +1,8 @@
 2011-02-28 (Adam)
  * Improve drawing performance - removed an unnecessary update() call in InkCanvas
+ * Improve IsfQtDrawing::strokeAtPoint - simplified the algorithm.
+ * IsfQt: let the drawing instance calculate its own bounding rect. It takes into account
+   stroke size differences.
 
 2010-07-23 (Valerio)
  * Fixed the copy constructor in Stroke, it was not copying all the necessary properties.
