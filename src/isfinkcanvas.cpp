@@ -206,9 +206,7 @@ void InkCanvas::drawLineTo( const QPoint& endPoint )
     painter.drawLine( lastPoint_, endPoint );
   }
 
-  int rad = (1 / 2) + 2;
-  update( QRect( lastPoint_, endPoint ).normalized()
-          .adjusted( -rad, -rad, +rad, +rad ) );
+  update( QRect( lastPoint_, endPoint ).normalized().adjusted( -penSize_, -penSize_, penSize_, penSize_ ) );
 
   lastPoint_ = endPoint;
 }
