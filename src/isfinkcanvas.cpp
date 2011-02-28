@@ -328,10 +328,9 @@ void InkCanvas::mouseMoveEvent( QMouseEvent* event )
     Stroke* s = drawing_->strokeAtPoint( point );
     if ( s != 0 )
     {
-      QRect boundingRect = s->boundingRect();
       drawing_->deleteStroke( s );
       drawingDirty_ = true;
-      update( boundingRect );
+      update();
     }
 
     return;
