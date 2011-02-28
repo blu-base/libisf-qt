@@ -1,3 +1,6 @@
+2011-02-28 (Adam)
+ * Improve drawing performance - removed an unnecessary update() call in InkCanvas
+
 2010-07-23 (Valerio)
  * Fixed the copy constructor in Stroke, it was not copying all the necessary properties.
  * Fixed some compiler warnings.

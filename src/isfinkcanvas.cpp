@@ -211,9 +211,6 @@ void InkCanvas::drawLineTo( const QPoint& endPoint )
           .adjusted( -rad, -rad, +rad, +rad ) );
 
   lastPoint_ = endPoint;
-
-  // Refresh the widget with the new stroke
-  update();
 }
 
 
@@ -331,9 +328,10 @@ void InkCanvas::mouseMoveEvent( QMouseEvent* event )
     Stroke* s = drawing_->strokeAtPoint( point );
     if ( s != 0 )
     {
+      QRect boundingRect = s->boundingRect();
       drawing_->deleteStroke( s );
       drawingDirty_ = true;
-      update();
+      update( boundingRect );
     }
 
     return;
