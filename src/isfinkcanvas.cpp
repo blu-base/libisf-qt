@@ -46,6 +46,7 @@ InkCanvas:: InkCanvas( QWidget* parent )
 , erasingImage_( false )
 , drawing_( 0 )
 , scribbling_( false )
+, penType_( DrawingPen )
 , currentStroke_( 0 )
 , drawingDirty_( true )
 {
