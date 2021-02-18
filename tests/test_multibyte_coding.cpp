@@ -84,10 +84,10 @@ void TestMultibyteCoding::testDataSource()
   data.append( string1 );
   data.reset(); // To re-read the appended string
 
-  QByteArray string2;
+  QByteArray string2(string1.size(), '\0');
   for( int i = 0; i < string1.size(); ++i )
   {
-    string2[ i ] = data.getByte( &ok );
+    string2[i] = data.getByte( &ok );
     QVERIFY( ok );
   }
 
@@ -130,7 +130,7 @@ void TestMultibyteCoding::unsignedEncode()
 
 void TestMultibyteCoding::unsignedDecode()
 {
-  quint64 result;
+  quint64 result = 0;
 
   // test decoding a value that should only get encoded into
   // a single byte.
