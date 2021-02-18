@@ -34,6 +34,7 @@
 #include <QTextStream>
 #include <QFile>
 #include <QTimer>
+#include <QButtonGroup>
 
 #include <IsfInkCanvas>
 
