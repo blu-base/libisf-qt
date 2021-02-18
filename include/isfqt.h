@@ -136,8 +136,8 @@ namespace Isf
   , IsHighlighter  = 0x0100  ///< This stroke is an highlighter stroke
   , IsRectangle    = 0x0200  ///< Meaning unknown
   };
-  Q_DECLARE_FLAGS( StrokeFlags, StrokeFlag );
-  Q_DECLARE_OPERATORS_FOR_FLAGS( StrokeFlags );
+  Q_DECLARE_FLAGS( StrokeFlags, StrokeFlag )
+  Q_DECLARE_OPERATORS_FOR_FLAGS( StrokeFlags )
 
 
 
