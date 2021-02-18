@@ -77,7 +77,7 @@ Stroke::~Stroke()
 
 
 
-void Stroke::addPoint( Point point )
+void Stroke::addPoint( const Point& point )
 {
   // Avoid splitting up the logic
   addPoints( PointList() << point );
@@ -85,7 +85,7 @@ void Stroke::addPoint( Point point )
 
 
 
-void Stroke::addPoints( PointList points )
+void Stroke::addPoints( const PointList& points )
 {
   points_.append( points );
 
@@ -135,7 +135,7 @@ void Stroke::bezierCalculateControlPoints()
 
   /////////////////////////////////////////////////////////////////////////////
 
-  if( bezierKnots_.size() == 0 )
+  if( bezierKnots_.empty())
   {
     return;
   }
@@ -169,50 +169,53 @@ void Stroke::bezierCalculateControlPoints()
   }
 
   // right hand side vector.
-  double rhs[n];
+  std::vector<double> rhs;
+  rhs.resize(n);
 
   // set RHS x values
   for( int i = 1; i < n-1; i++ )
   {
-    rhs[i] = 4 * bezierKnots_[i].x() + 2 * bezierKnots_[i+1].x();
+    rhs.at(i) = 4 * bezierKnots_.at(i).x() + 2 * bezierKnots_.at(i+1).x();
   }
 
-  rhs[0] = bezierKnots_[0].x() + 2 * bezierKnots_[1].x();
-  rhs[n-1] = ( 8 * bezierKnots_[n-1].x() + bezierKnots_[n].x() ) / 2.0;
+  rhs.at(0) = bezierKnots_.at(0).x() + 2 * bezierKnots_.at(1).x();
+  rhs.at(n-1) = ( 8 * bezierKnots_.at(n-1).x() + bezierKnots_.at(n).x() ) / 2.0;
 
   // get the first ctl points x values.
-  double x[n];
-  bezierGetFirstControlPoints( rhs, x, n );
+  std::vector<double> x;
+  x.resize(n);
+  bezierGetFirstControlPoints( rhs, &x, n );
 
 
   // now set RHS y-values.
   for(int i = 1; i < n-1; i++ )
   {
-    rhs[i] = 4 * bezierKnots_[i].y() + 2 * bezierKnots_[i+1].y();
+    rhs.at(i) = 4 * bezierKnots_[i].y() + 2 * bezierKnots_[i+1].y();
   }
 
-  rhs[0] = bezierKnots_[0].y() + 2 * bezierKnots_[1].y();
-  rhs[n-1] = ( 8 * bezierKnots_[n-1].y() + bezierKnots_[n].y() ) / 2.0;
+  rhs.at(0) = bezierKnots_.at(0).y() + 2 * bezierKnots_.at(1).y();
+  rhs.at(n-1) = ( 8 * bezierKnots_.at(n-1).y() + bezierKnots_.at(n).y() ) / 2.0;
 
-  double y[n];
-  bezierGetFirstControlPoints( rhs, y, n );
+  std::vector<double> y;
+  y.resize(n);
+  bezierGetFirstControlPoints( rhs, &y, n );
 
   // now fill the output QList.
   for( int i = 0; i < n; i++ )
   {
-    QPointF cp1( x[i], y[i] );
+    QPointF cp1( x.at(i), y.at(i) );
     QPointF cp2;
 
     // second ctl point
     if ( i < n-1 )
     {
-      cp2 = QPointF( 2 * bezierKnots_[i+1].x() - x[i+1],
-                     2 * bezierKnots_[i+1].y() - y[i+1] );
+      cp2 = QPointF( 2 * bezierKnots_.at(i+1).x() - x.at(i+1),
+                    2 * bezierKnots_.at(i+1).y() - y.at(i+1) );
     }
     else
     {
-      cp2 = QPointF( ( bezierKnots_[n].x() + x[n-1] ) / 2,
-                     ( bezierKnots_[n].y() + y[n-1] ) / 2 );
+      cp2 = QPointF( ( bezierKnots_.at(n).x() + x.at(n-1) ) / 2,
+                    ( bezierKnots_.at(n).y() + y.at(n-1) ) / 2 );
     }
 
     bezierControlPoints1_.append( cp1 );
@@ -223,23 +226,27 @@ void Stroke::bezierCalculateControlPoints()
 
 
 // Solves the system for the first control points.
-void Stroke::bezierGetFirstControlPoints( double rhs[], double* xOut, int n )
+void Stroke::bezierGetFirstControlPoints( const std::vector<double>& rhs, std::vector<double>* xOut, int n )
 {
-  double* x = xOut;   // solution vector.
-  double tmp[n]; // temp workspace.
+  std::vector<double>* x = xOut; // solution vector.
+  x->resize(n);
+
+  std::vector<double> tmp;// temp workspace.
+  tmp.resize(n);
+
 
   double b = 2.0;
-  x[0] = rhs[0] / b;
+  x->at(0) = rhs.at(0) / b;
   for( int i = 1; i < n; i++ ) // decomposition and forward substitution
   {
-    tmp[i] = 1 / b;
-    b = ( i < n - 1 ? 4.0 : 3.5 ) - tmp[i];
-    x[i] = (rhs[i] - x[i-1]) / b;
+    tmp.at(i) = 1 / b;
+    b = ( i < n - 1 ? 4.0 : 3.5 ) - tmp.at(i);
+    x->at(i) = (rhs.at(i) - x->at(i-1)) / b;
   }
 
   for( int i = 1; i < n; i++ )
   {
-    x[n-i-1] -= tmp[n-i] * x[n-i]; // back substitution.
+    x->at(n-i-1) -= tmp.at(n-i) * x->at(n-i); // back substitution.
   }
 
   // results are in xOut.

@@ -58,8 +58,8 @@ namespace Isf
       Stroke( const Stroke& );
      ~Stroke();
 
-      void          addPoint( Point );
-      void          addPoints( PointList );
+      void          addPoint(const Point& );
+      void          addPoints(const PointList& );
       QRect         boundingRect() const;
       QColor        color() const;
       void          finalize();
@@ -79,7 +79,7 @@ namespace Isf
 
     private:
       void          bezierCalculateControlPoints();
-      void          bezierGetFirstControlPoints( double[], double*, int );
+      void          bezierGetFirstControlPoints(const std::vector<double>&, std::vector<double>*, int );
 
     private:
       /// Bezier data
