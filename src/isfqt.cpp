@@ -489,21 +489,21 @@ QByteArray Stream::writerGif( const Drawing& drawing, bool encodeToBase64 )
   }
 
   // Create the color map
-  numColors = ( isfImage.numColors() << 2 );
+  numColors = ( isfImage.colorCount() << 2 );
   if( numColors > 256 )
   {
     numColors = 256;
   }
 
   cmap = MakeMapObject( numColors, NULL );
-  if( cmap == 0 && isfImage.numColors() > 1 )
+  if( cmap == 0 && isfImage.colorCount() > 1 )
   {
-    qWarning() << "Couldn't create map object for gif conversion (colors:" << isfImage.numColors() << ")!";
+    qWarning() << "Couldn't create map object for gif conversion (colors:" << isfImage.colorCount() << ")!";
     goto writeError;
   }
 
   // Fill in the color map with the colors in the image color table
-  for( int i = 0; i < isfImage.numColors(); ++i )
+  for( int i = 0; i < isfImage.colorCount(); ++i )
   {
     const QRgb &color( isfImage.color( i ) );
     cmap->Colors[i].Red   = qRed  ( color );
