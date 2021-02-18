@@ -333,7 +333,7 @@ Drawing& Stream::readerPng( const QByteArray& pngRawBytes, bool decodeFromBase64
 #ifdef ISFQT_DEBUG_VERBOSE
     qDebug() << "Picture data is valid: checking for the ISF data tag...";
 #endif
-    isfData = imageData.text( "application/x-ms-ink" ).toAscii();
+    isfData = imageData.text( "application/x-ms-ink" ).toLatin1();
 
     if( ! isfData.isEmpty() )
     {
