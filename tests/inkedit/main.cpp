@@ -45,67 +45,27 @@ using namespace Isf;
 TestInkEdit::TestInkEdit()
 {
   setupUi( this );
-  connect( cmdSave_, SIGNAL(clicked()), this, SLOT( saveInk() ) );
-  connect( cmdLoad_, SIGNAL(clicked()), this, SLOT( loadInk() ) );
-  connect( cmdClear_, SIGNAL(clicked()), this, SLOT( clearInk() )  );
+  connect(cmdSave_, &QPushButton::clicked, this, &TestInkEdit::saveInk);
+  connect(cmdLoad_, &QPushButton::clicked, this, &TestInkEdit::loadInk);
+  connect(cmdClear_, &QPushButton::clicked, this, &TestInkEdit::clearInk);
 
-  connect( cmdStrokeColor_, SIGNAL(clicked()), this, SLOT( chooseColor() )  );
-  connect( cmdCanvasColor_, SIGNAL(clicked()), this, SLOT( chooseColor() )  );
+  connect(cmdStrokeColor_, &QPushButton::clicked, this, &TestInkEdit::chooseColor);
+  connect(cmdCanvasColor_, &QPushButton::clicked, this, &TestInkEdit::chooseColor);
 
-  connect( editor_, SIGNAL(inkChanged()), this, SLOT( inkChanged() )  );
+  connect(editor_, &InkCanvas::inkChanged, this, &TestInkEdit::inkChanged);
 
-  QButtonGroup *grp = new QButtonGroup( this );
+  auto *grp = new QButtonGroup( this );
   grp->addButton( rbDrawing_ );
   grp->addButton( rbEraser_ );
 
-  connect( grp, SIGNAL( buttonClicked( QAbstractButton * ) ), this, SLOT( penTypeChanged( QAbstractButton * ) ) );
+  connect(grp, QOverload<QAbstractButton*>::of(&QButtonGroup::buttonClicked), this, &TestInkEdit::penTypeChanged);
 
-  connect( spinWidth_, SIGNAL( valueChanged( int ) ), editor_, SLOT( setPenSize( int ) ) );
+  connect(spinWidth_, QOverload<int>::of(&QSpinBox::valueChanged), editor_, &InkCanvas::setPenSize);
 
   editor_->setPenSize( spinWidth_->value() );
-  /*
-  setWindowTitle("Ink Edit Test");
-
-  editor_ = new Isf::InkEdit();
-  editor_->setSizePolicy( QSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum ) );
-
-  sayLabel_ = new QLabel();
-  sayLabel_->setText( "Draw something!" );
-  sayLabel_->setSizePolicy(QSizePolicy( QSizePolicy::Expanding, QSizePolicy::Fixed ) );
-
-  cmdSave_ = new QPushButton();
-  cmdSave_->setText( "Save Ink" );
-  connect( cmdSave_, SIGNAL(clicked()), this, SLOT( saveInk() ) );
-
-  cmdLoad_ = new QPushButton();
-  cmdLoad_->setText( "Load Ink" );
-  connect( cmdLoad_, SIGNAL(clicked()), this, SLOT( loadInk() ) );
-
-  QPushButton *cmdClear_ = new QPushButton();
-  cmdClear_->setText( "Clear Ink" );
-  connect( cmdClear_, SIGNAL(clicked()), this, SLOT( clearInk() )  );
-
-  QVBoxLayout *layout = new QVBoxLayout();
-  QHBoxLayout *strokeBtnLayout = new QHBoxLayout();
-
-  layout->addWidget( sayLabel_ );
-
-  layout->addWidget( editor_ );
-
-  QHBoxLayout *ctlBtnLayout = new QHBoxLayout();
-  ctlBtnLayout->addWidget(cmdSave_);
-  ctlBtnLayout->addWidget(cmdLoad_);
-  ctlBtnLayout->addWidget(cmdClear_);
-
-  layout->addLayout( ctlBtnLayout );
-
-  setLayout( layout );
-  */
 }
 
-TestInkEdit::~TestInkEdit()
-{
-}
+TestInkEdit::~TestInkEdit() = default;
 
 
 void TestInkEdit::chooseColor()
@@ -155,7 +115,7 @@ void TestInkEdit::saveInk()
 
     file.close();
 
-    QMessageBox::information(0, "Save complete", "Saved to " + saveFile );
+    QMessageBox::information(nullptr, "Save complete", "Saved to " + saveFile );
   }
 }
 
@@ -191,14 +151,14 @@ void TestInkEdit::inkChanged()
   emptyDrawingCheckbox_->setChecked( editor_->isEmpty() );
 
   statusLabel_->setText( "Drawing changed!" );
-  QTimer::singleShot( 3000, statusLabel_, SLOT(clear()) );
+  QTimer::singleShot( 3000, statusLabel_, &QLabel::clear );
 }
 
 int main( int argc, char **argv )
 {
   QApplication app( argc, argv );
 
-  TestInkEdit edit;
+  TestInkEdit edit{};
   edit.show();
 
   return app.exec();
