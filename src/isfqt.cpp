@@ -47,7 +47,7 @@ using namespace Compress;
 
 
 // Initialization of static properties
-StreamData* Stream::streamData_( 0 );
+StreamData* Stream::streamData_( nullptr );
 
 
 
@@ -415,17 +415,16 @@ QByteArray Stream::writer( const Drawing& drawing, bool encodeToBase64 )
 
   delete streamData_->dataSource;
   delete streamData_;
-  streamData_ = 0;
+  streamData_ = nullptr;
 
   // Convert to Base64 if needed
   if( encodeToBase64 )
   {
     return data.toBase64();
   }
-  else
-  {
+
     return data;
-  }
+
 }
 
 
