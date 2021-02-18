@@ -164,7 +164,6 @@ Drawing& Stream::reader( const QByteArray& rawData, bool decodeFromBase64 )
       case ISF_PARSER_FINISH:
         break;
 
-      break;
     }
   }
 
