@@ -16,18 +16,15 @@ set( TEST_INKEDIT_MOC_HEADERS
 set( TEST_INKEDIT_UI 
     testinkedit.ui
    )
-   
-find_package( Qt4 REQUIRED )
-include( ${QT_USE_FILE} )
-include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
 
-qt4_wrap_cpp( TEST_INKEDIT_MOC_SOURCES ${TEST_INKEDIT_MOC_HEADERS} )
-qt4_wrap_ui( TEST_INKEDIT_UI_HEADERS ${TEST_INKEDIT_UI} )
+qt5_wrap_cpp( TEST_INKEDIT_MOC_SOURCES ${TEST_INKEDIT_MOC_HEADERS} )
+qt5_wrap_ui( TEST_INKEDIT_UI_HEADERS ${TEST_INKEDIT_UI} )
 
 add_executable( test_inkedit
                 ${TEST_INKEDIT_MOC_SOURCES}
                 ${TEST_INKEDIT_SOURCES}
                 ${TEST_INKEDIT_UI_HEADERS}
               )
+target_include_directories( test_inkedit PRIVATE ${CMAKE_CURRENT_BINARY_DIR} )
 
-target_link_libraries( test_inkedit ${QT_QTGUI_LIBRARY} isf-qt )
+target_link_libraries( test_inkedit Qt5::Core Qt5::Gui Qt5::Widgets isf-qt )

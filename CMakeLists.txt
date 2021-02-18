@@ -1,6 +1,7 @@
-PROJECT( isf-qt )
-CMAKE_MINIMUM_REQUIRED( VERSION 2.6 )
+PROJECT( isf-qt LANGUAGES CXX)
+CMAKE_MINIMUM_REQUIRED( VERSION 3.5 )
 
+include(FeatureSummary)
 
 #### Main switches ####
 
@@ -38,13 +39,29 @@ SET( ISFQT_VERSION "1.0dev" )
 
 #### Inclusions ####
 
-FIND_PACKAGE( Qt4 REQUIRED )
+
+message(STATUS "Using CMake version: ${CMAKE_VERSION}")
+
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
+
+if(CMAKE_VERSION VERSION_LESS "3.7.0")
+    set(CMAKE_INCLUDE_CURRENT_DIR ON)
+endif()
+
+find_package(Qt5 COMPONENTS Core Gui Widgets REQUIRED)
+
+#### libgif ####################################################################
 
 OPTION( WANT_GIF "Enable support for reading and writing Fortified-GIF images" ON )
 IF( WANT_GIF )
   MESSAGE( "-- Looking for GifLib" )
 
-  # Apparently, the KDE CMake macros unset a check which is required by giflib.
+  # Apparently, the KDE CMak  e macros unset a check which is required by giflib.
   IF( KDE4_FOUND )
     INCLUDE( "cmake/giflib_hack.cmake" )
   ENDIF( KDE4_FOUND )
@@ -75,6 +92,9 @@ ELSE()
   SET( GIF_ENABLED 0 )
 ENDIF()
 
+########## Feature summary #####################################################
+feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES 
+    FATAL_ON_MISSING_REQUIRED_PACKAGES)
 
 #### Compilation ####
 
@@ -92,6 +112,15 @@ IF( NOT ISFQT_DEBUG_OUTPUT STREQUAL "1" AND NOT ISFQT_DEBUG_OUTPUT STREQUAL "0" 
 ENDIF()
 
 
+#### Global compile warning settings ###########################################
+
+if(MSVC)
+    add_compile_options(/W3 )
+else()
+    add_compile_options(-W -Wall -Wextra -pedantic)
+endif()
+
+################################################################################
 
 INCLUDE_DIRECTORIES( ${CMAKE_CURRENT_BINARY_DIR} src include )
 

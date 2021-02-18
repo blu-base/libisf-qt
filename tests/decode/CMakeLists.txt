@@ -17,12 +17,8 @@ set( TEST_DECODE_UI
      testdecode.ui
 )
 
-find_package( Qt4 REQUIRED )
-include( ${QT_USE_FILE} )
-include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
-
-qt4_wrap_ui( TEST_DECODE_UI_HEADERS ${TEST_DECODE_UI} )
-qt4_wrap_cpp( TEST_DECODE_MOC_SOURCES ${TEST_DECODE_MOC_HEADERS} )
+qt5_wrap_ui( TEST_DECODE_UI_HEADERS ${TEST_DECODE_UI} )
+qt5_wrap_cpp( TEST_DECODE_MOC_SOURCES ${TEST_DECODE_MOC_HEADERS} )
 
 add_executable( test_decode
                 ${TEST_DECODE_MOC_SOURCES}
@@ -30,4 +26,6 @@ add_executable( test_decode
                 ${TEST_DECODE_UI_HEADERS}
               )
 
-target_link_libraries( test_decode ${QT_QTGUI_LIBRARY} isf-qt )
+target_include_directories( test_decode PRIVATE ${CMAKE_CURRENT_BINARY_DIR} )
+
+target_link_libraries( test_decode Qt5::Gui isf-qt )
