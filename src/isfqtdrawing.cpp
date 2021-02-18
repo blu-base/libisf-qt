@@ -31,6 +31,7 @@
 
 #include <QPainter>
 #include <QPixmap>
+#include <QPainterPath>
 
 #include <cmath>
 
