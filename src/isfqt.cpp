@@ -477,6 +477,28 @@ QByteArray Stream::writerGif( const Drawing& drawing, bool encodeToBase64 )
   bool            gifError  = true;
   int             errorCode = 0;
 
+
+  auto writeError = [&]() {
+    // Clean up the GIF converter etc
+    EGifCloseFile(gifImage, &errorCode);
+    GifFreeMapObject(cmap);
+    gifData.close();
+
+    if (gifError) {
+      qWarning() << "GIF error code:" << GifErrorString(errorCode);
+    }
+    else {
+      // Return the GIF data
+      imageBytes = gifData.data();
+
+#ifdef ISFQT_DEBUG_VERBOSE
+      qDebug() << "Converted a" << isfData.size()
+               << "bytes Ink to GIF:" << isfImage.height() << "x"
+               << isfImage.width() << "->" << imageBytes.size() << "bytes";
+#endif
+    }
+  };
+
   // Convert the image to GIF using libgif
 
   // Open the gif file
@@ -485,7 +507,7 @@ QByteArray Stream::writerGif( const Drawing& drawing, bool encodeToBase64 )
   if( gifImage == 0 )
   {
     qWarning() << "Couldn't initialize gif library!";
-    goto writeError;
+    writeError();
   }
 
   // Create the color map
@@ -499,7 +521,7 @@ QByteArray Stream::writerGif( const Drawing& drawing, bool encodeToBase64 )
   if( cmap == 0 && isfImage.colorCount() > 1 )
   {
     qWarning() << "Couldn't create map object for gif conversion (colors:" << isfImage.colorCount() << ")!";
-    goto writeError;
+    writeError();
   }
 
   // Fill in the color map with the colors in the image color table
@@ -515,14 +537,14 @@ QByteArray Stream::writerGif( const Drawing& drawing, bool encodeToBase64 )
   if( EGifPutScreenDesc( gifImage, width, height, 8, 0, cmap ) == GIF_ERROR )
   {
     qWarning() << "EGifPutScreenDesc() failed!";
-    goto writeError;
+    writeError();
   }
 
   // Save the image format
   if( EGifPutImageDesc( gifImage, 0, 0, width, height, 0, nullptr ) == GIF_ERROR )
   {
     qWarning() << "EGifPutImageDesc() failed!";
-    goto writeError;
+    writeError();
   }
 
 
@@ -541,7 +563,7 @@ QByteArray Stream::writerGif( const Drawing& drawing, bool encodeToBase64 )
                  << "(height:" << isfImage.height()
                  << ", width:" << isfImage.width()
                  << ", bytesperline:" << isfImage.bytesPerLine() << ")";
-      goto writeError;
+      writeError();
     }
   }
 
@@ -571,7 +593,7 @@ QByteArray Stream::writerGif( const Drawing& drawing, bool encodeToBase64 )
     if( EGifPutExtensionLeader( gifImage, COMMENT_EXT_FUNC_CODE ) == GIF_ERROR )
     {
       qWarning() << "EGifPutExtensionFirst failed!";
-      goto writeError;
+      writeError();
     }
 
     // The first MAX_GIF_BYTE bytes have been written already
@@ -585,7 +607,7 @@ QByteArray Stream::writerGif( const Drawing& drawing, bool encodeToBase64 )
       if( EGifPutExtensionBlock( gifImage, MAX_GIF_BYTE, isfData.mid( pos, MAX_GIF_BYTE ).data() ) == GIF_ERROR )
       {
         qWarning() << "EGifPutExtensionNext failed!";
-        goto writeError;
+        writeError();
       }
 
       pos += MAX_GIF_BYTE;
@@ -596,31 +618,13 @@ QByteArray Stream::writerGif( const Drawing& drawing, bool encodeToBase64 )
     if( EGifPutExtensionTrailer( gifImage ) == GIF_ERROR )
     {
       qWarning() << "EGifPutExtensionLast (n) failed!";
-      goto writeError;
+      writeError();
     }
   }
 
   gifError = false;
 
-writeError:
-  // Clean up the GIF converter etc
-  EGifCloseFile( gifImage, &errorCode);
-  GifFreeMapObject( cmap );
-  gifData.close();
-
-  if( gifError )
-  {
-    qWarning() << "GIF error code:" <<  GifErrorString(errorCode);
-  }
-  else
-  {
-    // Return the GIF data
-    imageBytes = gifData.data();
-
-#ifdef ISFQT_DEBUG_VERBOSE
-    qDebug() << "Converted a" << isfData.size() << "bytes Ink to GIF:" << isfImage.height() << "x" << isfImage.width() << "->" << imageBytes.size() << "bytes";
-#endif
-  }
+  writeError();
 
 #endif // ISFQT_GIF_ENABLED == 1
 
