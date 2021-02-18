@@ -475,12 +475,13 @@ QByteArray Stream::writerGif( const Drawing& drawing, bool encodeToBase64 )
   int             width     = isfImage.width();
   int             numColors = 0;
   bool            gifError  = true;
+  int             errorCode = 0;
 
   // Convert the image to GIF using libgif
 
   // Open the gif file
   gifData.open( QIODevice::WriteOnly );
-  gifImage = EGifOpen( (void*)&gifData, GifWriteToByteArray );
+  gifImage = EGifOpen( (void*)&gifData, GifWriteToByteArray, &errorCode );
   if( gifImage == 0 )
   {
     qWarning() << "Couldn't initialize gif library!";
@@ -494,7 +495,7 @@ QByteArray Stream::writerGif( const Drawing& drawing, bool encodeToBase64 )
     numColors = 256;
   }
 
-  cmap = MakeMapObject( numColors, nullptr );
+  cmap = GifMakeMapObject( numColors, nullptr );
   if( cmap == 0 && isfImage.colorCount() > 1 )
   {
     qWarning() << "Couldn't create map object for gif conversion (colors:" << isfImage.colorCount() << ")!";
@@ -567,7 +568,7 @@ QByteArray Stream::writerGif( const Drawing& drawing, bool encodeToBase64 )
   else
   {
     // Write the extension
-    if( EGifPutExtensionFirst( gifImage, COMMENT_EXT_FUNC_CODE, MAX_GIF_BYTE, isfData.left( MAX_GIF_BYTE ).data() ) == GIF_ERROR )
+    if( EGifPutExtensionLeader( gifImage, COMMENT_EXT_FUNC_CODE ) == GIF_ERROR )
     {
       qWarning() << "EGifPutExtensionFirst failed!";
       goto writeError;
@@ -581,7 +582,7 @@ QByteArray Stream::writerGif( const Drawing& drawing, bool encodeToBase64 )
     // Write all the full data blocks
     while( length >= MAX_GIF_BYTE )
     {
-      if( EGifPutExtensionNext( gifImage, 0, MAX_GIF_BYTE, isfData.mid( pos, MAX_GIF_BYTE ).data() ) == GIF_ERROR )
+      if( EGifPutExtensionBlock( gifImage, MAX_GIF_BYTE, isfData.mid( pos, MAX_GIF_BYTE ).data() ) == GIF_ERROR )
       {
         qWarning() << "EGifPutExtensionNext failed!";
         goto writeError;
@@ -592,21 +593,10 @@ QByteArray Stream::writerGif( const Drawing& drawing, bool encodeToBase64 )
     }
 
     // Write the last block
-    if( length > 0 )
+    if( EGifPutExtensionTrailer( gifImage ) == GIF_ERROR )
     {
-      if( EGifPutExtensionLast( gifImage, 0, length, isfData.mid( pos, MAX_GIF_BYTE ).data() ) == GIF_ERROR )
-      {
-        qWarning() << "EGifPutExtensionLast (n) failed!";
-        goto writeError;
-      }
-    }
-    else
-    {
-      if( EGifPutExtensionLast( gifImage, 0, 0, 0 ) == GIF_ERROR )
-      {
-        qWarning() << "EGifPutExtensionLast (0) failed!";
-        goto writeError;
-      }
+      qWarning() << "EGifPutExtensionLast (n) failed!";
+      goto writeError;
     }
   }
 
@@ -614,13 +604,13 @@ QByteArray Stream::writerGif( const Drawing& drawing, bool encodeToBase64 )
 
 writeError:
   // Clean up the GIF converter etc
-  EGifCloseFile( gifImage );
-  FreeMapObject( cmap );
+  EGifCloseFile( gifImage, &errorCode);
+  GifFreeMapObject( cmap );
   gifData.close();
 
   if( gifError )
   {
-    qWarning() << "GIF error code:" << GifLastError();
+    qWarning() << "GIF error code:" <<  GifErrorString(errorCode);
   }
   else
   {
