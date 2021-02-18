@@ -546,7 +546,7 @@ IsfError TagsParser::parseGuidTable( StreamData* streamData, Drawing* drawing )
 
 #ifdef ISFQT_DEBUG_VERBOSE
     qDebug() << "  - Index" << ( index + FIRST_CUSTOM_TAG_ID )
-             << "->"        << QString( guid ).toUpper();
+             << "->"        << guid.toString().toUpper();
 #endif
 
     ++index;
