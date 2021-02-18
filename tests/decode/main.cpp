@@ -115,16 +115,14 @@ class TestDecode : public QMainWindow, private Ui::TestDecode
       setCentralWidget( mainWidget );
       setWindowTitle( "ISF decoding test" );
 
-      connect( closeButton_, SIGNAL( clicked(QAbstractButton*) ),
-               this,         SLOT  (   close()                 ) );
+      connect( closeButton_, &QPushButton::clicked, this, &TestDecode::close);
 
       show();
 
       test();
     }
 
-    ~TestDecode()
-    {}
+    ~TestDecode() = default;
 
 
 

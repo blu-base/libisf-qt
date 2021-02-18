@@ -35,9 +35,12 @@
     </spacer>
    </item>
    <item>
-    <widget class="QDialogButtonBox" name="closeButton_">
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Close</set>
+    <widget class="QPushButton" name="closeButton_">
+     <property name="layoutDirection">
+      <enum>Qt::LeftToRight</enum>
+     </property>
+     <property name="text">
+      <string>Close</string>
      </property>
     </widget>
    </item>
