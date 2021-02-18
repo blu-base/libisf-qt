@@ -5,7 +5,7 @@
  *
  * @section about About ISF-Qt
  *
- * ISF-Qt is a library, written in C++ with the Qt 4 toolkit, capable of reading
+ * ISF-Qt is a library, written in C++ with the Qt5 toolkit, capable of reading
  * and writing the ISF format. ISF stands for "Ink Serialized Format", and is
  * the disk serialization format used by the Windows.Ink C# library and by the
  * TabletPC platform, but also by applications like Windows Live Messenger - which
@@ -26,7 +26,7 @@
  * Please take your time to understand the structure of the library, its classes
  * and methods.
  *
- * Since ISF-Qt is built on top of the Qt 4 library, you will also need to
+ * Since ISF-Qt is built on top of the Qt5 library, you will also need to
  * be familiar with it; more information can be found online at:
- * - http://doc.trolltech.com/4.3/index.html
+ * - https://www.qt.io/
  */

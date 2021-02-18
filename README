@@ -2,8 +2,8 @@
 About LibISF-Qt:
 ============
 
-LibISF-Qt is a Qt4 library made to encode and decode Microsoft's
-Ink Serialized Format (ISF) files.
+LibISF-Qt is a Qt library made to encode and decode Microsoft's
+[Ink Serialized Format (ISF)](https://docs.microsoft.com/en-us/uwp/specifications/ink-serialized-format) files.
 
 Q. What is ISF?
 A. Ink Serialized Format is an open specification initially
@@ -67,15 +67,12 @@ Documentation:
 The ISF format is (albeit poorly*) documented: here's the
 sources we used.
 
-- Original Microsoft ISF specification, made open with their
-  Open Specification Promise:
-  http://download.microsoft.com/download/0/B/E/0BE8BDD7-E5E8-422A-ABFD-4342ED7AD886/InkSerializedFormat(ISF)Specification.pdf
-- Quick explanation of the algorithms and other very useful
-  details:
-  http://synce.org/moin/FormatDocumentation/InkSerializedFormat
-- Original code from aMSN:
+- Original [Microsoft ISF specification](http://download.microsoft.com/download/0/B/E/0BE8BDD7-E5E8-422A-ABFD-4342ED7AD886/InkSerializedFormat(ISF)Specification.pdf) made open with their Open Specification Promise
+- [Microsoft's ISF specification in the UWP references](https://docs.microsoft.com/en-us/uwp/specifications/ink-serialized-format)
+- Original code from KMess on gitlab.com: https://gitlab.com/kmess/libisf-qt
+- Original code from aMSN:  
   https://amsn.svn.sourceforge.net/svnroot/amsn/trunk/amsn/utils/tclISF/src
-- Original code from emesene:
+- Original code from emesene:  
   https://emesene.svn.sourceforge.net/svnroot/emesene/trunk/emesene/pyisf
 
 * = The specification was probably not meant for use by
