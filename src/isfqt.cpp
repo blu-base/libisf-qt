@@ -372,7 +372,7 @@ bool Stream::supportsGif()
  */
 QByteArray Stream::writer( const Drawing& drawing, bool encodeToBase64 )
 {
-  if( &drawing == 0 || drawing.isNull() || drawing.error() != ISF_ERROR_NONE )
+  if( drawing.isNull() || drawing.error() != ISF_ERROR_NONE )
   {
 #ifdef ISFQT_DEBUG
     qDebug() << "The drawing was not valid!";
