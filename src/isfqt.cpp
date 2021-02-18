@@ -469,8 +469,8 @@ QByteArray Stream::writerGif( const Drawing& drawing, bool encodeToBase64 )
 
   // Initialise the gif variables
   QBuffer         gifData;
-  GifFileType*    gifImage  = NULL;
-  ColorMapObject* cmap      = NULL;
+  GifFileType*    gifImage  = nullptr;
+  ColorMapObject* cmap      = nullptr;
   int             height    = isfImage.height();
   int             width     = isfImage.width();
   int             numColors = 0;
@@ -494,7 +494,7 @@ QByteArray Stream::writerGif( const Drawing& drawing, bool encodeToBase64 )
     numColors = 256;
   }
 
-  cmap = MakeMapObject( numColors, NULL );
+  cmap = MakeMapObject( numColors, nullptr );
   if( cmap == 0 && isfImage.colorCount() > 1 )
   {
     qWarning() << "Couldn't create map object for gif conversion (colors:" << isfImage.colorCount() << ")!";
@@ -518,7 +518,7 @@ QByteArray Stream::writerGif( const Drawing& drawing, bool encodeToBase64 )
   }
 
   // Save the image format
-  if( EGifPutImageDesc( gifImage, 0, 0, width, height, 0, NULL ) == GIF_ERROR )
+  if( EGifPutImageDesc( gifImage, 0, 0, width, height, 0, nullptr ) == GIF_ERROR )
   {
     qWarning() << "EGifPutImageDesc() failed!";
     goto writeError;

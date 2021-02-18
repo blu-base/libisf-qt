@@ -44,7 +44,7 @@ using namespace Compress;
 /**
  * Construct a new empty (null) Drawing instance.
  *
- * As soon as you add data, the instance becomes non-NULL.
+ * As soon as you add data, the instance becomes non-nullptr.
  */
 Drawing::Drawing()
 : error_( ISF_ERROR_NONE )
@@ -551,9 +551,9 @@ Stroke* Drawing::stroke( quint32 index )
  * Returns whatever stroke is located within a 5 pixel radius of point.
  * 
  * Only returns the first matching stroke (in order of drawing). If no stroke
- * falls within the search area, returns NULL.
+ * falls within the search area, returns nullptr.
  * 
- * @param point Search point. The most recently drawn stroke within 5 pixels of this point is returned, or NULL if no stroke is here.
+ * @param point Search point. The most recently drawn stroke within 5 pixels of this point is returned, or nullptr if no stroke is here.
  */
 Stroke* Drawing::strokeAtPoint( const QPoint& point )
 {
@@ -590,7 +590,7 @@ Stroke* Drawing::strokeAtPoint( const QPoint& point )
     }
   }
   
-  return NULL;
+  return nullptr;
 }
 
 
