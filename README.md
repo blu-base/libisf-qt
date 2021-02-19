@@ -39,14 +39,22 @@ LibISF-Qt uses CMake, a quick and clean alternative to Autotools.
 
 First create a new directory within the one which contains this
 file (we'll have the library built there):
+```
 $ mkdir build
+```
 Enter it and run CMake:
+```
 $ cd build
 $ cmake -D CMAKE_INSTALL_PREFIX=/usr ..
+```
 Then, if everything went smoothly, build the library itself:
+```
 $ make
+```
 If everything went right again, install it:
+```
 $ make install
+```
 Aaand now you're set. :)
 
 LibISF-Qt natively supports being bundled into other applications.
@@ -56,8 +64,10 @@ into the application.
 The idea is that you copy the Isf-Qt source tree (with an SVN export
 or a Git submodule) into your project's tree, and then set up your
 CMake listfile to add this library as a subdirectory:
-> SET( ISFQT_IS_BUNDLED TRUE )
-> ADD_SUBDIRECTORY( contrib/isf-qt )
+```
+SET( ISFQT_IS_BUNDLED TRUE )
+ADD_SUBDIRECTORY( contrib/isf-qt )
+```
 And again, you're done!
 
 
@@ -69,15 +79,11 @@ sources we used.
 
 - Original [Microsoft ISF specification](http://download.microsoft.com/download/0/B/E/0BE8BDD7-E5E8-422A-ABFD-4342ED7AD886/InkSerializedFormat(ISF)Specification.pdf) made open with their Open Specification Promise
 - [Microsoft's ISF specification in the UWP references](https://docs.microsoft.com/en-us/uwp/specifications/ink-serialized-format)
-- Original code from KMess on gitlab.com: https://gitlab.com/kmess/libisf-qt
-- Original code from aMSN:  
-  https://amsn.svn.sourceforge.net/svnroot/amsn/trunk/amsn/utils/tclISF/src
-- Original code from emesene:  
-  https://emesene.svn.sourceforge.net/svnroot/emesene/trunk/emesene/pyisf
+- Original code from [KMess on gitlab.com](https://gitlab.com/kmess/libisf-qt)
+- Original code from [aMSN](https://amsn.svn.sourceforge.net/svnroot/amsn/trunk/amsn/utils/tclISF/src)
+- Original code from [emesene](https://emesene.svn.sourceforge.net/svnroot/emesene/trunk/emesene/pyisf)
 
-* = The specification was probably not meant for use by
-    developers wanting to write an alternative implementation;
-    there's a lot of guesswork to be done.
+The ISF specification was probably not meant for use by developers wanting to write an alternative implementation; there's a lot of guesswork to be done.
 
 
 
