@@ -28,19 +28,11 @@ SET( ISFQT_PUBLIC_HEADERS
      ../include/IsfQt
    )
 
-SET( ISFQT_LIBS
-     Qt5::Core
-     Qt5::Gui
-     Qt5::Widgets
-   )
-
 SET( ISFQT_RCCS
      ../data/isfqtresources.qrc
    )
 
-IF( GIF_FOUND )
-  SET( ISFQT_LIBS ${ISFQT_LIBS} gif)
-ENDIF( GIF_FOUND )
+
 
 
 #### Compilation ####
@@ -58,7 +50,16 @@ ELSE()
   ADD_LIBRARY( isf-qt SHARED ${ISFQT_SOURCES} ${MOC_SRCS} ${ISFQT_RCC_SRCS} )
 ENDIF()
 
-TARGET_LINK_LIBRARIES( isf-qt ${ISFQT_LIBS} )
+target_link_libraries( isf-qt
+  PUBLIC
+    Qt5::Core
+    Qt5::Gui
+    Qt5::Widgets
+  )
+
+if( GIF_FOUND )
+  target_link_libraries( isf-qt PRIVATE gif )
+endif()
 
 SET_TARGET_PROPERTIES( isf-qt PROPERTIES
                               VERSION    ${ISFQT_VERSION}
