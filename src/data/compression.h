@@ -56,22 +56,24 @@ namespace Isf
      * Compression and decompressions algorithms.
      *
      * Bit assignment table for packets (strokes):
-     * ---------------------------
-     * | Algorithm             |  7 6 5 4 3 2 1 0 (Bit assignment) |
-     *   Bit packing              0 0 D D D D D D
-     *   Huffman                  1 0 D D D D D D
-     *   Default compression      1 1 0 0 X X X X
-     *   Best compression         1 1 1 1 X X X X
      *
+     * | Algorithm             | `7 6 5 4 3 2 1 0` (Bit assignment) |
+     * | :-------------------- | :--------------------------------- |
+     * | Bit packing           | `0 0 D D D D D D`                  |
+     * | Huffman               | `1 0 D D D D D D`                  |
+     * | Default compression   | `1 1 0 0 X X X X`                  |
+     * | Best compression      | `1 1 1 1 X X X X`                  |
+     *  
      * Bit assignment table for properties (tags):
-     * ---------------------------
-     * | Algorithm             |  7 6 5 4 3 2 1 0 (Bit assignment) |
-     *   Bit packing of bytes     0 0 0 D D D D D
-     *   Bit packing of words     0 0 1 D D D D D
-     *   Bit packing of longs     0 1 D D D D D D
-     *   Limpel-Ziv               1 0 1 0 X X X X
-     *   Default compression      1 1 0 0 X X X X
-     *   Best compression         1 1 1 1 X X X X
+     *
+     * | Algorithm             | `7 6 5 4 3 2 1 0` (Bit assignment) |
+     * | :-------------------- | :--------------------------------- |
+     * | Bit packing of bytes  | `0 0 0 D D D D D`                  |
+     * | Bit packing of words  | `0 0 1 D D D D D`                  |
+     * | Bit packing of longs  | `0 1 D D D D D D`                  |
+     * | Limpel-Ziv            | `1 0 1 0 X X X X`                  |
+     * | Default compression   | `1 1 0 0 X X X X`                  |
+     * | Best compression      | `1 1 1 1 X X X X`                  |
      *
      * D = Algorithm-specific data
      * X = Ignored bit
