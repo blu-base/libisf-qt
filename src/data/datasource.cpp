@@ -334,7 +334,7 @@ bool DataSource::getBit( bool* ok )
     // fails to move the bit index
     if( ( ! moveByteToBitArray() ) || currentBitIndex_ >= 8 )
     {
-      if( ok != 0 )
+      if( ok != nullptr )
       {
         *ok = false;
       }
@@ -346,7 +346,7 @@ bool DataSource::getBit( bool* ok )
 
   Q_ASSERT( currentByte_.size() == 8 );
 
-  if( ok != 0 )
+  if( ok != nullptr )
   {
     *ok = true;
   }
@@ -371,7 +371,7 @@ quint64 DataSource::getBits( quint8 amount, bool* ok )
   {
     qWarning() << "DataSource:getBits() - Cannot retrieve" << amount << "bits, the maximum is 64 bits!";
 
-    if( ok != 0 )
+    if( ok != nullptr )
     {
       *ok = false;
     }
@@ -389,7 +389,7 @@ quint64 DataSource::getBits( quint8 amount, bool* ok )
 
     if( ! gotBitOk )
     {
-      if( ok != 0 )
+      if( ok != nullptr )
       {
         *ok = false;
       }
@@ -418,7 +418,7 @@ quint64 DataSource::getBits( quint8 amount, bool* ok )
 #endif
 
   // Done!
-  if( ok != 0 )
+  if( ok != nullptr )
   {
     *ok = true;
   }
@@ -462,7 +462,7 @@ char DataSource::getByte( bool* ok )
   }
 
   // Done!
-  if( ok != 0 )
+  if( ok != nullptr )
   {
     *ok = true;
   }
@@ -490,7 +490,7 @@ QByteArray DataSource::getBytes( quint8 amount, bool* ok )
 
     if( ! gotByteOk )
     {
-      if( ok != 0 )
+      if( ok != nullptr )
       {
         *ok = false;
       }
@@ -503,7 +503,7 @@ QByteArray DataSource::getBytes( quint8 amount, bool* ok )
   }
 
   // Done!
-  if( ok != 0 )
+  if( ok != nullptr )
   {
     *ok = true;
   }
