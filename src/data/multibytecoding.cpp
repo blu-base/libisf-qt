@@ -25,7 +25,7 @@
 
 #include "isfqt-internal.h"
 
-#include <math.h>
+#include <cmath>
 
 
 using namespace Isf;
